@@ -1,5 +1,5 @@
 # Executable name
-NAME = ircserv
+NAME = irc
 
 # Compiler and flags
 CC = c++
