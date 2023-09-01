@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "ctime": "cpp",
+        "iostream": "cpp",
+        "cstdlib": "cpp",
+        "cstdio": "cpp"
+    }
+}

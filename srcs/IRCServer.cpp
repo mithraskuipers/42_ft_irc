@@ -6,12 +6,9 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/29 10:42:04 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/09/01 13:22:01 by mkuipers      ########   odam.nl         */
+/*   Updated: 2023/09/01 17:55:11 by mkuipers      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
-
-#include "./../incs/includes.hpp"
-#include "./../incs/IRCServer.hpp"
 
 #include <unistd.h> // gethostname()
 #include <netdb.h> // gethostbyname()
@@ -19,7 +16,7 @@
 #include <netinet/in.h> // struct sockaddr_in
 #include <fcntl.h>  // file control options
 #include <sys/types.h> // addrlen
-
+#include "./../incs/includes.hpp"
 
 IRCServer::IRCServer() : port(1234), password("")
 {
@@ -40,7 +37,7 @@ Retrieves the primary IP socket_address of the current machine and stores it in 
 void IRCServer::getHostIP()
 {
     // Buffer for hostname
-    char host[256];
+    char host[256]; // TODO: MAKE THIS DYNAMIC ALLOCATION?
     
     // Step 1: Get the hostname of the current machine and save it in the 'host' buffer
     gethostname(host, sizeof(host));
@@ -55,6 +52,9 @@ void IRCServer::getHostIP()
     // Convert binary IP socket_address to string
     // Note: h_addr_list[0] contains the primary IP socket_address associated with the hostname
     this->IP = inet_ntoa(*((struct in_addr *)host_entry->h_addr_list[0]));
+
+    // [DEBUGGING]: Print host ip
+    std::cout << "Host IP is: " << this->IP << std::endl;
 }
 
 /*
@@ -74,8 +74,11 @@ void IRCServer::initServer()
     }
         
     // Step 2: Set socket options to allow reusing the socket_address
-    if (setsockopt(main_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0)
+    int setsockopt_ret = setsockopt(main_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt));
+    if (setsockopt_ret == -1)
+    {
         throw std::runtime_error("Failed to set socket options");
+    }
 
     // Step 3: Set up socket_address structure
     this->socket_address.sin_family = AF_INET;                // Use IPv4 socket family
@@ -111,28 +114,56 @@ void IRCServer::initServer()
     {
         throw std::runtime_error("Failed to start listening");
     }
-
-    // Print waiting message if VERBOSE is enabled
-    std::cout << "Waiting for connection........" << std::endl << std::endl;
+    std::cout << "Waiting for connection.." << std::endl << std::endl;
 }
 
 // This function accepts incoming connections.
 
+
+#include <ctime> // Include the <ctime> header for time-related functions
+
 void IRCServer::start()
 {
-    int socket_descriptor; // fd that is associated with a network socket, used for sending/receiving data, accepting new connections etc.
-    int highest_socket_descriptor; // requirement for select()
+    int socket_descriptor;
+    int highest_socket_descriptor;
     (void)highest_socket_descriptor;
-    while (TRUE) // Continuously handle client connections..
+    char buffer[4096];
+    
+    while (true)
     {
         socket_descriptor = accept(this->main_socket, NULL, NULL);
         if (socket_descriptor == -1)
         {
-            sleep(1);
-            std::cout << "\nWaiting..\n" << std::endl;
+            time_t raw_datetime = std::time(NULL);
+            struct tm datetime;
+            localtime_r(&raw_datetime, &datetime);
+
+            char time_buffer[9];
+            strftime(time_buffer, sizeof(time_buffer), "%H:%M:%S", &datetime);
+
+            // [DEBUGGING]: Show that the server is waiting and also show how to connect
+            std::cout << "\nWaiting...[" << time_buffer << "]" << std::endl;
+            std::cout << "Server IP is: [" << this->IP << "]" << std::endl;
+            std::cout << "Server port is: [" << this->port << "]" << std::endl;
+
+            sleep(5);
+            continue;
+        }
+        
+        int bytes_received = recv(socket_descriptor, buffer, sizeof(buffer), 0);
+        if (bytes_received == -1)
+        {
+            std::cout << "An error occurred" << std::endl;
+        }
+        else
+        {
+            // Print the received data directly
+            std::cout << "Received data: " << buffer << std::endl;
         }
     }
 }
+
+
 
 IRCServer::~IRCServer()
 {

@@ -6,12 +6,12 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/08/30 17:39:29 by mkuipers      ########   odam.nl         */
+/*   Updated: 2023/09/01 17:58:00 by mkuipers      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../incs/includes.hpp"
-#include "./../incs/IRCServer.hpp"
+#include "./../incs/splash.hpp"
 
 int err_msg_and_return(std::string s, int ret_val)
 {
@@ -21,6 +21,7 @@ int err_msg_and_return(std::string s, int ret_val)
 
 int	main(int argc, char **argv)
 {
+	splash();
 	if (argc != 3)
 		return (err_msg_and_return("Error: Usage: ./ircserv <port #> <password>", 1));
 	int port = atoi(argv[1]);
@@ -48,11 +49,6 @@ Remarks:
 - Laat voor nu maar de {} staan, zelfs als het niet nodig is voor single line code blocks.
 Dit maakt het makkelijk voor ons om extra print statements toe the voegen en debuggen.
 Maar ook het toevoegen van comments boven de line.
-*/
-
-/*
-Current problems:
-- Parameters port and password not correctly shown in output
 */
 
 /*

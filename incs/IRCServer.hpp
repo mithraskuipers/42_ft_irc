@@ -1,9 +1,20 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   IRCServer.hpp                                      :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2023/09/01 17:56:34 by mkuipers      #+#    #+#                 */
+/*   Updated: 2023/09/01 17:56:35 by mkuipers      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef IRCSERVER_HPP
 # define IRCSERVER_HPP
 
 #include "includes.hpp"
 #include <netinet/in.h> // struct sockaddr_in
-
 
 class IRCServer
 {
