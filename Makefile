@@ -3,7 +3,8 @@ NAME = irc
 
 # Compiler and flags
 CC = c++
-CFLAGS = -Wall -Werror -Wextra -std=c++98
+CFLAGS = -Wall -Werror -Wextra
+#-std=c++98
 
 # Color codes for messages
 RESET = \033[0m

@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/08/29 13:46:46 by mkuipers      ########   odam.nl         */
+/*   Updated: 2023/08/30 17:39:29 by mkuipers      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ int	main(int argc, char **argv)
 	try
 	{
 		server.initServer();
-		//server.start();
+		server.start();
 	}
 	catch(const std::exception& e)
 	{
@@ -44,9 +44,15 @@ int	main(int argc, char **argv)
 
 
 /*
+Remarks:
+- Laat voor nu maar de {} staan, zelfs als het niet nodig is voor single line code blocks.
+Dit maakt het makkelijk voor ons om extra print statements toe the voegen en debuggen.
+Maar ook het toevoegen van comments boven de line.
+*/
+
+/*
 Current problems:
 - Parameters port and password not correctly shown in output
-
 */
 
 /*
@@ -58,7 +64,5 @@ socket will be used to listen for incoming connections from clients
 
 - binding
 after creating a socket, you need to bind the socket to a specific ip socket_address and port
-
-
 
 */
