@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/29 10:42:04 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/09/01 17:55:11 by mkuipers      ########   odam.nl         */
+/*   Updated: 2023/09/06 18:31:44 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 #include <fcntl.h>  // file control options
 #include <sys/types.h> // addrlen
 #include "./../incs/includes.hpp"
+#include <cstring>
 
 IRCServer::IRCServer() : port(1234), password("")
 {
@@ -122,11 +123,11 @@ void IRCServer::initServer()
 
 #include <ctime> // Include the <ctime> header for time-related functions
 
+
+
 void IRCServer::start()
 {
     int socket_descriptor;
-    int highest_socket_descriptor;
-    (void)highest_socket_descriptor;
     char buffer[4096];
     
     while (true)
@@ -134,7 +135,7 @@ void IRCServer::start()
         socket_descriptor = accept(this->main_socket, NULL, NULL);
         if (socket_descriptor == -1)
         {
-            time_t raw_datetime = std::time(NULL);
+			time_t raw_datetime = std::time(NULL);
             struct tm datetime;
             localtime_r(&raw_datetime, &datetime);
 
@@ -146,7 +147,7 @@ void IRCServer::start()
             std::cout << "Server IP is: [" << this->IP << "]" << std::endl;
             std::cout << "Server port is: [" << this->port << "]" << std::endl;
 
-            sleep(5);
+            sleep(1);
             continue;
         }
         
@@ -159,9 +160,24 @@ void IRCServer::start()
         {
             // Print the received data directly
             std::cout << "Received data: " << buffer << std::endl;
+            
+            // Check if the received data contains the escape character (e.g., 'ESC' key)
+            if (bytes_received >= 1 && buffer[0] == 27) // 27 is ASCII for ESC
+            {
+                // Send a "Disconnect" message to the client
+                const char* disconnect_message = "Disconnect";
+                send(socket_descriptor, disconnect_message, strlen(disconnect_message), 0);
+                
+                // Close the connection and clean up the socket
+                close(socket_descriptor);
+                std::cout << "Client disconnected using ESC key." << std::endl;
+                continue; // Continue to accept other connections
+            }
         }
     }
 }
+
+
 
 
 
@@ -169,3 +185,9 @@ IRCServer::~IRCServer()
 {
     // 
 }
+
+
+/*
+irssi
+/connect 127.0.1.1 1234
+*/

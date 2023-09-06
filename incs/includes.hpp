@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:12:24 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/09/01 17:56:12 by mkuipers      ########   odam.nl         */
+/*   Updated: 2023/09/06 18:17:01 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #include <cstdio> // printf
 #include "splash.hpp"
 #include <unistd.h>
-
+#include <algorithm>
 
 # define QUEUE_SIZE 3
 # define TRUE 1
