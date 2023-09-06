@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:12:24 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/09/06 18:17:01 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/09/06 22:03:57 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,5 +23,6 @@
 # define QUEUE_SIZE 3
 # define TRUE 1
 # define FALSE 0
+# define MAX_CLIENTS 10
 
 #endif
