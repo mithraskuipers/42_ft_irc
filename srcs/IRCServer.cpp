@@ -17,15 +17,18 @@
 #include <fcntl.h>  // file control options
 #include <sys/types.h> // addrlen
 #include "./../incs/includes.hpp"
+#include "../incs/user.hpp"
 #include <cstring>
 
 IRCServer::IRCServer() : port(1234), password("")
 {
+	this->active_users = 0;
 	this->getHostIP();
 }
 
 IRCServer::IRCServer(int port, const std::string &password)
 {
+	this->active_users = 0;
 	this->port = port;
 	this->password = password;
 	this->getHostIP();
@@ -196,6 +199,8 @@ void IRCServer::start()
 	int socket_descriptor;
 	int max_socket_fd;
 	int readySockets; // n sockets that are ready for I/O operations in fd_pack.
+	this->userArray = new user[MAX_CLIENTS];
+	channel mainChannel("main");
 	while (true)
 	{
 		// Clear the fd_set and add the server's listening socket
@@ -219,7 +224,6 @@ void IRCServer::start()
 			perror("select");
 			break;
 		}
-
 		// Check if FD_SET succeeded using FD_ISSET(); Only run accept() when FD_ISSET().
 		if (FD_ISSET(this->server_listening_socket, &fd_pack))
 		{
@@ -233,7 +237,11 @@ void IRCServer::start()
 			else
 			{
 				// A new client has successfully connected
+				this->userArray[this->active_users].setName("username");
+				mainChannel.addUser(this->userArray[this->active_users]);
+				this->active_users++;
 				std::cout << "Iemand is verbonden.." << std::endl;
+				
 				this->addClientSocket(socket_descriptor);
 				std::cout << this->nConnectedClients << std::endl; // Print the number of connected clients
 			}
@@ -254,10 +262,15 @@ void IRCServer::start()
 				else
 				{
 					// Print the received data directly
+					if (buffer[0] == '/')
+					{
+						std::cout << "Command received: " << buffer << std::endl;
+
+					}
 					std::cout << "Received data: " << buffer << std::endl;
 
 					// Check if the received data contains the escape character (e.g., 'ESC' key)
-					if (bytes_received >= 1 && buffer[0] == 27) // 27 is ASCII for ESC
+					if (bytes_received >= 1 && buffer[0] == ESC_KEY) // 27 is ASCII for ESC
 					{
 						// Send a "Disconnect" message to the client
 						const char* disconnect_message = "Disconnect";
