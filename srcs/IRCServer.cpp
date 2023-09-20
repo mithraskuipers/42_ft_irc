@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/29 10:42:04 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/09/06 22:51:19 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/09/20 13:55:29 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <sys/types.h> // addrlen
 #include "./../incs/includes.hpp"
 #include <cstring>
+#include <ctime> // Include the <ctime> header for time-related functions
 
 IRCServer::IRCServer() : port(1234), password("")
 {
@@ -29,6 +30,11 @@ IRCServer::IRCServer(int port, const std::string &password)
 	this->port = port;
 	this->password = password;
 	this->getHostIP();
+}
+
+IRCServer::~IRCServer()
+{
+	// 
 }
 
 /*
@@ -130,8 +136,6 @@ int IRCServer::getPort() const
 {
 	return (this->port);
 }
-
-#include <ctime> // Include the <ctime> header for time-related functions
 
 void print_waiting_status(const IRCServer &other)
 {
@@ -279,10 +283,7 @@ void IRCServer::start()
 
 
 
-IRCServer::~IRCServer()
-{
-	// 
-}
+
 
 
 /*
