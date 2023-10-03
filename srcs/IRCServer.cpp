@@ -196,10 +196,11 @@ void IRCServer::start()
 	fd_set fd_pack;
 
 	char buffer[9999]; // TODO? HOW MAKE DYNAMICALLY SIZED BUFFER? BUFFER EVEN NECESSARY?
-	int socket_descriptor;
 	int max_socket_fd;
 	int readySockets; // n sockets that are ready for I/O operations in fd_pack.
 	this->userArray = new user[MAX_CLIENTS];
+	this->channelArray = new channel[10];
+	this->channelArray[0].setName("main");
 	channel mainChannel("main");
 	while (true)
 	{
@@ -227,9 +228,10 @@ void IRCServer::start()
 		// Check if FD_SET succeeded using FD_ISSET(); Only run accept() when FD_ISSET().
 		if (FD_ISSET(this->server_listening_socket, &fd_pack))
 		{
+			this->active_users++;
 			// A new client is attempting to connect
-			socket_descriptor = accept(this->server_listening_socket, NULL, NULL);
-			if (socket_descriptor == -1)
+			this->userArray[this->active_users].setSocket(accept(this->server_listening_socket, NULL, NULL));
+			if (this->userArray[this->active_users].getSocket() == -1)
 			{
 				// Handle the error here, e.g., print an error message
 				perror("accept");
@@ -237,12 +239,11 @@ void IRCServer::start()
 			else
 			{
 				// A new client has successfully connected
-				this->userArray[this->active_users].setName("username");
+				this->userArray[this->active_users].setid(this->active_users);
 				mainChannel.addUser(this->userArray[this->active_users]);
-				this->active_users++;
 				std::cout << "Iemand is verbonden.." << std::endl;
 				
-				this->addClientSocket(socket_descriptor);
+				this->addClientSocket(this->userArray[this->active_users].getSocket());
 				std::cout << this->nConnectedClients << std::endl; // Print the number of connected clients
 			}
 		}
@@ -251,10 +252,10 @@ void IRCServer::start()
 		// Check for activity on client sockets and handle data as before
 		for (int i = 0; i < nConnectedClients; i++)
 		{
-			socket_descriptor = client_socket_array[i];
-			if (FD_ISSET(socket_descriptor, &fd_pack))
+			this->userArray[this->active_users].setSocket(client_socket_array[i]);
+			if (FD_ISSET(this->userArray[this->active_users].getSocket(), &fd_pack))
 			{
-				int bytes_received = recv(socket_descriptor, buffer, sizeof(buffer), 0);
+				int bytes_received = recv(this->userArray[this->active_users].getSocket(), buffer, sizeof(buffer), 0);
 				if (bytes_received == -1)
 				{
 					std::cout << "An error occurred" << std::endl;
@@ -265,6 +266,7 @@ void IRCServer::start()
 					if (buffer[0] == '/')
 					{
 						std::cout << "Command received: " << buffer << std::endl;
+						this->userArray[i].commandHandler(buffer, this->userArray[i], this->channelArray);
 
 					}
 					std::cout << "Received data: " << buffer << std::endl;
@@ -274,10 +276,10 @@ void IRCServer::start()
 					{
 						// Send a "Disconnect" message to the client
 						const char* disconnect_message = "Disconnect";
-						send(socket_descriptor, disconnect_message, strlen(disconnect_message), 0);
+						send(this->userArray[this->active_users].getSocket(), disconnect_message, strlen(disconnect_message), 0);
 
 						// Close the connection and clean up the socket
-						close(socket_descriptor);
+						close(this->userArray[this->active_users].getSocket());
 						std::cout << "Client disconnected using ESC key." << std::endl;
 						continue; // Continue to accept other connections
 					}

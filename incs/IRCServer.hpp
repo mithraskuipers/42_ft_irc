@@ -34,6 +34,7 @@ class IRCServer
 	private:
 		unsigned int active_users;
 		user		*userArray;
+		channel		*channelArray;
 		int port;
         int server_listening_socket;
 		std::string password;

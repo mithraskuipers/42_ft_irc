@@ -50,3 +50,13 @@ void channel::removeUser(user oldUser)
         i++;
     }
 }
+
+void channel::setName(std::string channelname)
+{
+    this->_channelName = channelname;
+}
+
+std::string channel::getName()
+{
+    return this->_channelName;
+}
