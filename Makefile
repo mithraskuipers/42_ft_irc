@@ -19,7 +19,7 @@ OBJ_DIR = objs/
 
 # Source, object, and header files
 SRC_FILES = main.cpp IRCServer.cpp splash.cpp
-HDR_FILES = includes.hpp IRCServer.hpp splash.hpp
+HDR_FILES = includes.hpp IRCServer.hpp splash.hpp Client.hpp
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 
 # Paths for source, object, and header files

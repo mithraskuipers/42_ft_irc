@@ -6,12 +6,13 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/09/01 17:58:00 by mkuipers      ########   odam.nl         */
+/*   Updated: 2023/10/17 22:25:32 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../incs/includes.hpp"
 #include "./../incs/splash.hpp"
+
 
 int err_msg_and_return(std::string s, int ret_val)
 {

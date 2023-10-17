@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/09/01 17:56:34 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/09/20 13:49:04 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/17 22:37:18 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include "includes.hpp"
 #include <netinet/in.h> // struct sockaddr_in
+#include <list>
 
 class IRCServer
 {
@@ -22,22 +23,21 @@ class IRCServer
 		IRCServer();
 		IRCServer(int port, const std::string &password);
 		~IRCServer();
-		void				initServer(); // initServer server
-		void				start(); // start server
-		void				getHostIP(); // get host ip
-		std::string	getIP() const;
-		int					getPort() const;
-		int					updateMaxSocketDescriptor();
-		void				addClientSocket(int clientSocket);
+		void initServer(); // initialize server
+		void start(); // start server
+		void getHostIP(); // get host ip
+		std::string getIP() const;
+		int getPort() const;
+		void addClientSocket(int clientSocket);
+		int updateMaxSocketDescriptor();
 	private:
-		int					port;
-		int					server_listening_socket;
-		std::string			password;
-		std::string			IP;
-		struct sockaddr_in	socket_address;
-		int					nConnectedClients = 0;
-		int					client_socket_array[MAX_CLIENTS];
-
+		int port;
+		int server_listening_socket;
+		std::string password;
+		std::string IP;
+		struct sockaddr_in socket_address;
+		std::list<Client> clients;
+		int nConnectedClients;
 };
 
 #endif

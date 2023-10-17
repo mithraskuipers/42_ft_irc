@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/29 10:42:04 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/09 09:33:42 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/17 22:49:13 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include "./../incs/includes.hpp"
 #include <cstring>
 #include <ctime> // Include the <ctime> header for time-related functions
+
 
 IRCServer::IRCServer() : port(1234), password("")
 {
@@ -154,14 +155,11 @@ void print_waiting_status(const IRCServer &other)
 	sleep(1);
 }
 
-void IRCServer::addClientSocket(int clientSocket)
-{
-	if (nConnectedClients < MAX_CLIENTS)
-	{
-		client_socket_array[nConnectedClients++] = clientSocket;
-	}
-	else
-	{
+void IRCServer::addClientSocket(int clientSocket) {
+	if (nConnectedClients < MAX_CLIENTS) {
+		clients.push_back(Client(clientSocket));
+		nConnectedClients++;
+	} else {
 		// TODO? Triggers when max clients has been reached...
 	}
 }
@@ -170,16 +168,16 @@ int IRCServer::updateMaxSocketDescriptor()
 {
 	int maxSocket = server_listening_socket; // Initialize with the server's listening socket
 
-	// Iterate through all connected clients
-	for (const auto& clientSocket : client_socket_array)
+	// Iterate through all connected clients using the std::list
+	for (const auto& client : clients)
 	{
-		if (clientSocket > maxSocket)
+		if (client.getSocketDescriptor() > maxSocket)
 		{
-			maxSocket = clientSocket;
+			maxSocket = client.getSocketDescriptor();
 		}
 	}
 
-	return (maxSocket); // Return the maximum socket descriptor value
+	return maxSocket; // Return the maximum socket descriptor value
 }
 
 /*
@@ -192,93 +190,94 @@ This is the socket used by the client program to initiate a connection to the se
 It's an active socket that initiates the communication by connecting to the server's listening socket.
 */
 
+
+#include <vector>
+
 void IRCServer::start()
 {
 	fd_set fd_pack;
-
-	char buffer[9999]; // TODO? HOW MAKE DYNAMICALLY SIZED BUFFER? BUFFER EVEN NECESSARY?
-	int socket_descriptor;
+    std::vector<char> buffer(1024); // Start with an initial size of 1024 bytes
 	int max_socket_fd;
-	int readySockets; // n sockets that are ready for I/O operations in fd_pack.
+	int readySockets;
+
 	while (true)
 	{
 		// Clear the fd_set and add the server's listening socket
 		FD_ZERO(&fd_pack);
-		FD_SET(this->server_listening_socket, &fd_pack);
+		FD_SET(server_listening_socket, &fd_pack);
 
 		// Call updateMaxSocketDescriptor to get the maximum socket descriptor value
 		max_socket_fd = updateMaxSocketDescriptor();
 
 		// Add connected client sockets to the fd_set
-		for (int i = 0; i < nConnectedClients; i++)
+		for (const auto& client : clients)
 		{
-			FD_SET(client_socket_array[i], &fd_pack);
+			FD_SET(client.getSocketDescriptor(), &fd_pack);
 		}
+
 		// Monitor fd's
 		readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
-		// Check if select() failed
+
+		// Handle select() errors
 		if (readySockets == -1)
 		{
-			// Handle the error here, e.g., print an error message or exit the server
 			perror("select");
 			break;
 		}
 
-		// Check if FD_SET succeeded using FD_ISSET(); Only run accept() when FD_ISSET().
-		if (FD_ISSET(this->server_listening_socket, &fd_pack))
+		// Check if server's listening socket is in fd_set (new client attempting to connect)
+		if (FD_ISSET(server_listening_socket, &fd_pack))
 		{
-			// A new client is attempting to connect
-			socket_descriptor = accept(this->server_listening_socket, NULL, NULL);
+			// Accept new client connection
+			int socket_descriptor = accept(server_listening_socket, NULL, NULL);
 			if (socket_descriptor == -1)
 			{
-				// Handle the error here, e.g., print an error message
 				perror("accept");
 			}
 			else
 			{
-				// A new client has successfully connected
-				std::cout << "Iemand is verbonden.." << std::endl;
-				this->addClientSocket(socket_descriptor);
-				std::cout << this->nConnectedClients << std::endl; // Print the number of connected clients
+				// Add the new client to the clients list
+				clients.push_back(Client(socket_descriptor));
+				std::cout << "New client connected. Total clients: " << clients.size() << std::endl;
 			}
 		}
-		
 
-		// Check for activity on client sockets and handle data as before
-		for (int i = 0; i < nConnectedClients; i++)
-		{
-			socket_descriptor = client_socket_array[i];
-			if (FD_ISSET(socket_descriptor, &fd_pack))
-			{
-				int bytes_received = recv(socket_descriptor, buffer, sizeof(buffer), 0);
-				if (bytes_received == -1)
-				{
-					std::cout << "An error occurred" << std::endl;
-				}
-				else
-				{
-					// Print the received data directly
-					std::cout << "Received data: " << buffer << std::endl;
+        // Check for activity on client sockets and handle data
+        for (auto it = clients.begin(); it != clients.end();)
+        {
+            int socket_descriptor = it->getSocketDescriptor();
+            if (FD_ISSET(socket_descriptor, &fd_pack))
+            {
+                // Receive data into the dynamic buffer
+                int bytes_received = recv(socket_descriptor, buffer.data(), buffer.size(), 0);
+                if (bytes_received <= 0)
+                {
+                    // Client disconnected or error occurred, remove client from the list
+                    close(socket_descriptor);
+                    it = clients.erase(it);
+                    std::cout << "Client disconnected. Total clients: " << clients.size() << std::endl;
+                    continue;
+                }
+                else
+                {
+                    // Handle received data here (buffer contains the received data)
+                    // Process received data as needed
 
-					// Check if the received data contains the escape character (e.g., 'ESC' key)
-					if (bytes_received >= 1 && buffer[0] == 27) // 27 is ASCII for ESC
-					{
-						// Send a "Disconnect" message to the client
-						const char* disconnect_message = "Disconnect";
-						send(socket_descriptor, disconnect_message, strlen(disconnect_message), 0);
+                    buffer[bytes_received] = '\0'; // Null-terminate the received data
 
-						// Close the connection and clean up the socket
-						close(socket_descriptor);
-						std::cout << "Client disconnected using ESC key." << std::endl;
-						continue; // Continue to accept other connections
-					}
-				}
-			}
-		}
-	}
+                    // Process the received data using buffer.data()
+
+                    // Check if the buffer is almost full, and if so, double its size
+                    if (bytes_received >= buffer.size() - 1)
+                    {
+                        buffer.resize(buffer.size() * 2);
+                    }
+                }
+            }
+            ++it;
+        }
+    }
 }
-
-
 
 
 
