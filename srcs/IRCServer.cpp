@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/29 10:42:04 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/09/20 13:55:29 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/09 09:33:42 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ void IRCServer::initServer()
 	this->socket_address.sin_family = AF_INET;                // Use IPv4 socket family
 	this->socket_address.sin_addr.s_addr = INADDR_ANY;        // Listen on any available network interface
 	this->socket_address.sin_port = htons(port);              // Set the port number in network byte order
-	
+
 	// Step 4: Set socket to non-blocking mode
 	// Uses file control function to set properties of a socket
 	if (fcntl(server_listening_socket, F_SETFL, O_NONBLOCK) < -1)
