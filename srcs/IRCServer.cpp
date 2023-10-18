@@ -17,17 +17,20 @@
 #include <fcntl.h>  // file control options
 #include <sys/types.h> // addrlen
 #include "./../incs/includes.hpp"
+#include "../incs/user.hpp"
 #include <cstring>
 #include <ctime> // Include the <ctime> header for time-related functions
 
 
 IRCServer::IRCServer() : port(1234), password("")
 {
+	this->active_users = 0;
 	this->getHostIP();
 }
 
 IRCServer::IRCServer(int port, const std::string &password)
 {
+	this->active_users = 0;
 	this->port = port;
 	this->password = password;
 	this->getHostIP();

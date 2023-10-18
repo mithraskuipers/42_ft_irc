@@ -21,9 +21,18 @@
 #include <algorithm>
 #include "Client.hpp"
 
+#include "user.hpp"
+#include "channel.hpp"
+#include <cstdio> // printf
+#include "splash.hpp"
+#include <unistd.h>
+#include <algorithm>
+#include "string.h"
+#include <cstring>
 # define QUEUE_SIZE 3
 # define TRUE 1
 # define FALSE 0
 # define MAX_CLIENTS 10
+# define ESC_KEY 27
 
 #endif

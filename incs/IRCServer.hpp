@@ -17,6 +17,8 @@
 #include <netinet/in.h> // struct sockaddr_in
 #include <list>
 
+class user;
+
 class IRCServer
 {
 	public:
@@ -30,7 +32,14 @@ class IRCServer
 		int getPort() const;
 		void addClientSocket(int clientSocket);
 		int updateMaxSocketDescriptor();
+		int 	getPort() const;
+		int 	updateMaxSocketDescriptor();
+		void	addClientSocket(int clientSocket);
 	private:
+		unsigned int active_users;
+		user		*userArray;
+		channel		*channelArray;
+		//int			channelCount;
 		int port;
 		int server_listening_socket;
 		std::string password;
