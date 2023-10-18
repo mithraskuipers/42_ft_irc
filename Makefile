@@ -18,8 +18,8 @@ HDR_DIR = incs/
 OBJ_DIR = objs/
 
 # Source, object, and header files
-SRC_FILES = main.cpp IRCServer.cpp splash.cpp
-HDR_FILES = includes.hpp IRCServer.hpp splash.hpp Client.hpp
+SRC_FILES = main.cpp IRCServer.cpp splash.cpp User.cpp Command.cpp ft_split.cpp
+HDR_FILES = includes.hpp IRCServer.hpp splash.hpp User.hpp Command.hpp
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 
 # Paths for source, object, and header files

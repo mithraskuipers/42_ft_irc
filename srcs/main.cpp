@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/17 22:25:32 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/18 23:33:58 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,20 +46,19 @@ int	main(int argc, char **argv)
 
 
 /*
-Remarks:
-- Laat voor nu maar de {} staan, zelfs als het niet nodig is voor single line code blocks.
-Dit maakt het makkelijk voor ons om extra print statements toe the voegen en debuggen.
-Maar ook het toevoegen van comments boven de line.
+After connecting with an IRC server, you typically do the following:
+1. /nick <CHOSEN NICKNAME>														<-- TODO: What if the nickname is already registered?
+2. /join <CHOSEN CHANNEL INSIDE THE SERVER>										<-- Works after having chosen a nickname.
+3. <YOUR MESSAGE HERE>															<-- Without any specific command this will broadcast a message to everyone in the channel.
+3. /msg <SOMEONE'S NICKNAME> <YOUR MESSAGE HERE>								<-- Send a private message to another user.
 */
 
 /*
-Must know:
-
-- socket is combination of ip and port
+[socket]
+A combination of ip and port
 e.g. 192.168.1.10:8080
 socket will be used to listen for incoming connections from clients
 
-- binding
+[binding]
 after creating a socket, you need to bind the socket to a specific ip socket_address and port
-
 */

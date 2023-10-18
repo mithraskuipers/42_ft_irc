@@ -49,6 +49,9 @@
 		"optional": "cpp",
 		"ranges": "cpp",
 		"span": "cpp",
-		"cinttypes": "cpp"
+		"cinttypes": "cpp",
+		"list": "cpp",
+		"map": "cpp",
+		"sstream": "cpp"
 	}
 }

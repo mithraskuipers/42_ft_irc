@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/09/01 17:56:34 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/17 22:37:18 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/18 23:53:02 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 #include "includes.hpp"
 #include <netinet/in.h> // struct sockaddr_in
 #include <list>
+#include "Command.hpp"
+
 
 class user;
 
@@ -29,12 +31,9 @@ class IRCServer
 		void start(); // start server
 		void getHostIP(); // get host ip
 		std::string getIP() const;
-		int getPort() const;
 		void addClientSocket(int clientSocket);
 		int updateMaxSocketDescriptor();
 		int 	getPort() const;
-		int 	updateMaxSocketDescriptor();
-		void	addClientSocket(int clientSocket);
 	private:
 		unsigned int active_users;
 		user		*userArray;
@@ -45,8 +44,9 @@ class IRCServer
 		std::string password;
 		std::string IP;
 		struct sockaddr_in socket_address;
-		std::list<Client> clients;
+		std::list<User> clients;
 		int nConnectedClients;
+		Command command;
 };
 
 #endif
