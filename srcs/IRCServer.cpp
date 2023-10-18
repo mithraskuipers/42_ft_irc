@@ -201,7 +201,6 @@ void IRCServer::start()
 	this->userArray = new user[MAX_CLIENTS];
 	this->channelArray = new channel[10];
 	this->channelArray[0].setName("main");
-	channel mainChannel("main");
 	while (true)
 	{
 		// Clear the fd_set and add the server's listening socket
@@ -240,10 +239,11 @@ void IRCServer::start()
 			{
 				// A new client has successfully connected
 				this->userArray[this->active_users].setid(this->active_users);
-				mainChannel.addUser(this->userArray[this->active_users]);
-				std::cout << "Iemand is verbonden.." << std::endl;
-				
+				this->userArray[this->active_users].setName("Bas");
 				this->addClientSocket(this->userArray[this->active_users].getSocket());
+				std::cout << "socketie: " <<this->userArray[this->active_users].getSocket() << std::endl;
+				this->channelArray[0].addUser(this->userArray[this->active_users]);
+				std::cout << "Iemand is verbonden.." << std::endl;
 				std::cout << this->nConnectedClients << std::endl; // Print the number of connected clients
 			}
 		}
@@ -263,13 +263,20 @@ void IRCServer::start()
 				else
 				{
 					// Print the received data directly
+					std::cout << "buffer 0:" <<buffer[0] << std::endl;
 					if (buffer[0] == '/')
 					{
-						std::cout << "Command received: " << buffer << std::endl;
 						this->userArray[i].commandHandler(buffer, this->userArray[i], this->channelArray);
-
 					}
-					std::cout << "Received data: " << buffer << std::endl;
+					// Send message to channel members
+					else
+					{
+						for (int i = 0; i < this->channelArray[0].getUserCount(); i++)
+						{
+							if (this->channelArray[0].getChannelMembers()[i].getSocket() != this->userArray[this->active_users].getSocket())
+								send(this->channelArray[0].getChannelMembers()[i].getSocket(), buffer, strlen(buffer), 0);
+						}
+					}
 
 					// Check if the received data contains the escape character (e.g., 'ESC' key)
 					if (bytes_received >= 1 && buffer[0] == ESC_KEY) // 27 is ASCII for ESC
@@ -282,6 +289,13 @@ void IRCServer::start()
 						close(this->userArray[this->active_users].getSocket());
 						std::cout << "Client disconnected using ESC key." << std::endl;
 						continue; // Continue to accept other connections
+					}
+					if (bytes_received <= 0)
+					{
+						// Client disconnected or error occurred, remove client from the list
+						close(this->userArray[this->active_users].getSocket());
+						std::cout << "Client disconnected" << std::endl;
+						continue;
 					}
 				}
 			}

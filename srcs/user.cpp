@@ -28,27 +28,65 @@ user &user::operator=(const user &src)
 
 void    user::commandHandler(std::string buffer, user commandGiver, channel *channelArray)
 {
-    int i = 0;
     std::string command;
 
-    command = buffer.substr(1, buffer.find(" "));
+    std::cout << "Sockettttttt: " <<commandGiver.getSocket() << std::endl;
+
+    command = buffer.substr(1, buffer.find(" ") - 1);
     std::cout << "command: " << command << std::endl;
-    if (command == "JOIN")
+    if (strcmp(command.c_str(), "JOIN") == 0)
     {
-        command = buffer.substr(buffer.find(" ") + 1, buffer.find("\n"));
+        int i = 0;
+        command = buffer.substr(buffer.find(" ") + 1, buffer.find("\n") - 1);
         while (channelArray[i].getName() != "")
         {
-            if (channelArray[i].getName() == command)
+             std::cout << "Command: " << command << std::endl;
+              std::cout << "Channel name: " << channelArray[i].getName() << std::endl;
+            if (channelArray[i].getName().compare(command))
             {
                 channelArray[i].addUser(commandGiver);
                 return;
             }
             i++;
         }
-        channelArray[i].setName(command);
-        channelArray[i].addUser(commandGiver);
         return;
     }
+
+    if (strcmp(command.c_str(), "CREATE") == 0)
+    {
+        int i = 0;
+        command = buffer.substr(buffer.find(" ") + 1, buffer.find("\n") - 1);
+        while (channelArray[i].getName() != "")
+        {
+            if (channelArray[i].getName().compare(command))
+            {
+                std::cout << "channel already exists" << std::endl;
+                return;
+            }
+            std::cout << i << std::endl;
+            i++;
+        }
+        channelArray[i].setName(command);
+        channelArray[i].addUser(commandGiver);
+        std::cout << "channel '" << command << "' created" << std::endl;
+        return;
+    }
+
+    if (strcmp(command.c_str(), "LIST") == 0)
+    {
+        int i = 0;
+        std::string message = "Channels: ";
+        while (channelArray[i].getName() != "")
+        {
+            message += channelArray[i].getName() + " ";
+            i++;
+        }
+        message += "\n";
+        send(commandGiver.getSocket(), message.c_str(), strlen(message.c_str()), 0);
+        return;
+    }
+    else 
+        std::cout << "command not found: " << command << std::endl;
 }
 
 void user::setName(std::string username)

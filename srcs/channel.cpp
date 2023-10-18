@@ -2,12 +2,14 @@
 
 channel::channel()
 {
-    
+    this->_channelMembers = new user[100];
+    _userCount = 0;
 }
 
 channel::channel(std::string channelName) : _channelName(channelName)
 {
     this->_channelMembers = new user[100];
+    _userCount = 0;
 }
 
 channel::~channel()
@@ -27,8 +29,12 @@ channel &channel::operator=(const channel &src)
 
 void channel::addUser(user newUser)
 {
-    this->_channelMembers[this->_userCount] = newUser;
+    this->_channelMembers[this->_userCount].setName(newUser.getName());
+    this->_channelMembers[this->_userCount].setSocket(newUser.getSocket());
+    this->_channelMembers[this->_userCount].setid(newUser.getid());
     this->_userCount++;
+    std::string message = "You have joined channel: " + this->_channelName + "\n";
+    send(newUser.getSocket(), message.c_str(), strlen(message.c_str()), 0);
     std::cout << newUser.getName() << " added to channel: " << this->_channelName << std::endl;
 }
 
@@ -50,6 +56,17 @@ void channel::removeUser(user oldUser)
         i++;
     }
 }
+
+// void channel::createChannel(std::string channelName, int channelCount)
+// {
+//     if (channelCount >= 10)
+//     {
+//         std::cout << "Max channels reached" << std::endl;
+//         return;
+//     }
+//     this->setName(channelName);
+//     channelCount++;
+// }
 
 void channel::setName(std::string channelname)
 {
