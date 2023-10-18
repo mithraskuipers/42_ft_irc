@@ -258,21 +258,6 @@ void IRCServer::start()
                     std::cout << "Client disconnected. Total clients: " << clients.size() << std::endl;
                     continue;
                 }
-                else
-                {
-                    // Handle received data here (buffer contains the received data)
-                    // Process received data as needed
-
-                    buffer[bytes_received] = '\0'; // Null-terminate the received data
-
-                    // Process the received data using buffer.data()
-
-                    // Check if the buffer is almost full, and if so, double its size
-                    if (bytes_received >= buffer.size() - 1)
-                    {
-                        buffer.resize(buffer.size() * 2);
-                    }
-                }
             }
             ++it;
         }
