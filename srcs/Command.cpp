@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/18 22:54:57 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/19 19:55:45 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/19 21:00:30 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,13 +15,20 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <functional>
+
 
 /*
 Orthodox Canonical Form
 */
 
-Command::Command()
-{
+
+#include "Command.hpp"
+#include "includes.hpp"
+#include <iostream>
+#include <sstream>
+
+Command::Command() {
 	commandDictionary["JOIN"] = [this](const std::vector<std::string>& cmds, User& Client) {
 		this->joinCommand(cmds, Client);
 	};
@@ -31,166 +38,102 @@ Command::Command()
 	commandDictionary["LIST"] = [this](const std::vector<std::string>& cmds, User& Client) {
 		this->listCommand(cmds, Client);
 	};
-	commandDictionary["CREATE"] = [this](const std::vector<std::string>& cmds, User& Client) {
-    this->createCommand(cmds, Client);
-};
-
 }
 
-Command::~Command()
-{
-}
+Command::~Command() {}
 
-/*
-Member functions
-*/
-
-
-void trim(std::string& str) {
-    str.erase(0, str.find_first_not_of(" \t\n\r\f\v"));
-    str.erase(str.find_last_not_of(" \t\n\r\f\v") + 1);
+void Command::trim(std::string& str) {
+	// Trim leading and trailing spaces from the string
+	str.erase(0, str.find_first_not_of(" \t\n\r\f\v"));
+	str.erase(str.find_last_not_of(" \t\n\r\f\v") + 1);
 }
 
 
-std::vector<std::string> Command::splitCmd(const std::string& input, const std::string& delimiter) {
-    std::vector<std::string> tokens;
-    size_t start = 0, end = 0;
+std::vector<std::string> Command::splitCmd(const std::string& input) {
+	std::vector<std::string> tokens;
+	std::istringstream iss(input);
+	std::string token;
 
-    // Find the first occurrence of the delimiter
-    end = input.find(delimiter, start);
+	while (std::getline(iss, token, ' ')) {
+		this->trim(token); // Corrected here
+		if (!token.empty()) {
+			tokens.push_back(token);
+		}
+	}
 
-    // Iterate until no more delimiters are found
-    while (end != std::string::npos) {
-        // Extract the token between start and end positions
-        std::string token = input.substr(start, end - start);
-
-        // Add the token to the vector
-        tokens.push_back(token);
-
-        // Move the start position to the character after the last delimiter
-        start = end + delimiter.length();
-
-        // Find the next occurrence of the delimiter
-        end = input.find(delimiter, start);
-    }
-
-    // Add the last token after the last delimiter (or the whole input if no more delimiters found)
-    std::string lastToken = input.substr(start);
-    tokens.push_back(lastToken);
-
-    return tokens;
+	return tokens;
 }
 
-
-void Command::sendMessage(User& Client, const std::string& msgCode, const std::string& target, const std::string& message)
-{
-    std::string response = ":" + std::string(SERVER_NAME) + " " + msgCode + " " + Client.getNick() + " " + target + " :" + message + "\r\n";
-    std::cout << "CREATED RESPONSE FOR SERVER: " << response << std::endl;
-    send(Client.getSocketDescriptor(), response.c_str(), response.size(), 0);
+void Command::sendMessage(User& Client, const std::string& msgCode, const std::string& target, const std::string& message) {
+	std::string response = ":" + std::string(SERVER_NAME) + " " + msgCode + " " + Client.getNick() + " " + target + " :" + message + "\r\n";
+	std::cout << "CREATED RESPONSE FOR SERVER: " << response << std::endl;
+	send(Client.getSocketDescriptor(), response.c_str(), response.size(), 0);
 }
 
+void Command::commandHandler(User& Client) {
+	std::string buffer = Client.getBuff();
+	std::vector<std::string> cmdLines = splitCmd(buffer);
 
-void Command::commandHandler(User& Client)
-{
-    std::string buffer = Client.getBuff();
-	// std::cout << buffer << std::endl;
+	for (const std::string& cmdLine : cmdLines) {
+		std::vector<std::string> tokens = splitCmd(cmdLine);
+		if (tokens.empty()) {
+			std::cout << "Command was empty.." << std::endl;
+			continue;
+		}
 
-    // Split commands based on newline delimiter
-	std::vector<std::string> cmdLines = splitCmd(buffer, "\n");
-	
-	// Check if cmdLines vector is not empty before accessing the first element
-	// if (!cmdLines.empty())
-	// {
-	//     std::cout << "First element of cmdLines: " << cmdLines[0] << std::endl;
-	// }
-	// else
-	// {
-	//     std::cout << "cmdLines vector is empty." << std::endl;
-	// }
-	
-    for (const std::string& cmdLine : cmdLines)
-    {
-        std::vector<std::string> cmds = splitCmd(cmdLine, " ");
-
-        if (cmds.empty())
-        {
-            // Empty command, skip
-			std::cout << "Commando was leeg.." << std::endl;
-            continue;
-        }
-		std::cout << cmds[0] << std::endl;										// Kijk naar het eerste stuk
-	
-
-        // std::string command = cmds[1]; // The command is now at index 1 in cmds after removing the prefix
-        // std::transform(command.begin(), command.end(), command.begin(), toupper);
-        // auto iter = commandDictionary.find(command);
-		/*
-        if (iter != commandDictionary.end()) {
-            iter->second(cmds, Client); // Call the lambda function directly
-        } else {
-            sendMessage(Client, "421", Client.getNick(), "Unknown command");
-        }
-	*/
-    }
-
+		auto iter = commandDictionary.find(tokens[0]);
+		if (iter != commandDictionary.end()) {
+			std::cout << "Recognized command: " << tokens[0] << std::endl;
+			iter->second(tokens, Client);
+		} else {
+			sendMessage(Client, "421", Client.getNick(), "Unknown command");
+		}
+	}
 }
-
-
-
 
 void Command::createCommand(const std::vector<std::string>& cmds, User& Client) {
-    std::string channelName = cmds[2]; // Extract channel name from the command
+	if (cmds.size() >= 2) {
+		std::string command = cmds[0];
+		std::string channelName = cmds[1];
 
-    // Check if the channel already exists
-    auto it = channels.find(channelName);
-    if (it != channels.end()) {
-        sendMessage(Client, "CREATE", channelName, "Channel " + channelName + " already exists");
-    }
-	else
-	{
-        // Create a new channel and add the user
-        std::vector<User> newChannel;
-        newChannel.push_back(Client);
-        channels[channelName] = newChannel;
-        sendMessage(Client, "CREATE", channelName, "Channel " + channelName + " created successfully");
-    }
+		if (command == "CREATE" && !channelName.empty()) {
+			auto it = channels.find(channelName);
+			if (it != channels.end()) {
+				sendMessage(Client, "CREATE", channelName, "Channel " + channelName + " already exists");
+			} else {
+				std::vector<User> newChannel;
+				newChannel.push_back(Client);
+				channels[channelName] = newChannel;
+				sendMessage(Client, "CREATE", channelName, "Channel " + channelName + " created successfully");
+			}
+		} else {
+			sendMessage(Client, "ERROR", Client.getNick(), "Invalid CREATE command format");
+		}
+	}
 }
-
-
-
-
-
 
 void Command::joinCommand(const std::vector<std::string>& cmds, User& Client) {
-    std::string channelName = cmds[2]; // Extract channel name from the command
-
-    // Check if the channel already exists
-    auto it = channels.find(channelName);
-    if (it != channels.end()) {
-        // Add the user to an existing channel
-        it->second.push_back(Client);
-    } else {
-        // Create a new channel and add the user
-        std::vector<User> newChannel;
-        newChannel.push_back(Client);
-        channels[channelName] = newChannel;
-    }
-
-    // Example response to send back to the User
-    sendMessage(Client, "JOIN", channelName, "Welcome to Channel " + channelName);
+	if (cmds.size() >= 3) {
+		std::string channelName = cmds[2];
+		auto it = channels.find(channelName);
+		if (it != channels.end()) {
+			it->second.push_back(Client);
+		} else {
+			std::vector<User> newChannel;
+			newChannel.push_back(Client);
+			channels[channelName] = newChannel;
+		}
+		sendMessage(Client, "JOIN", channelName, "Welcome to Channel " + channelName);
+	} else {
+		sendMessage(Client, "ERROR", Client.getNick(), "Invalid JOIN command format");
+	}
 }
 
-
-
 void Command::listCommand(const std::vector<std::string>& cmds, User& Client) {
-    (void)cmds;
-
-    std::string channelList = "Channels: ";
-    for (const auto& pair : channels) {
-        // pair.first is the Channel name, pair.second.size() is the number of users in the Channel
-        channelList += pair.first + "(" + std::to_string(pair.second.size()) + ") ";
-    }
-
-    // Send the Channel list back to the User
-    sendMessage(Client, "LIST", Client.getNick(), channelList);
+	(void)cmds;
+	std::string channelList = "Channels: ";
+	for (const auto& pair : channels) {
+		channelList += pair.first + "(" + std::to_string(pair.second.size()) + ") ";
+	}
+	sendMessage(Client, "LIST", Client.getNick(), channelList);
 }

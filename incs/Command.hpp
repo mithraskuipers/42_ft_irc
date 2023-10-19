@@ -6,37 +6,34 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/18 22:50:12 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/19 18:41:20 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/19 21:00:25 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef COMMAND_HPP
-#define COMMAND_HPP
+
+#pragma once
 
 #include "User.hpp"
+#include <string>
 #include <vector>
-#include <map>
-#include <functional>
 #include <unordered_map>
+#include <functional>
 
-typedef void (*pfunc)(const std::vector<std::string>&, User&);
+class Command {
+public:
+	Command();
+	~Command();
 
-class Command
-{
-	public:
-		Command();
-		~Command();
-		void commandHandler(User& User);
+	void commandHandler(User& Client);
 
-	private:
-		void sendMessage(User& User, const std::string& msgCode, const std::string& target, const std::string& message);
-		void joinCommand(const std::vector<std::string>& cmds, User& User);
-		void createCommand(const std::vector<std::string>& cmds, User& User);
-		void listCommand(const std::vector<std::string>& cmds, User& User);
+private:
+	std::unordered_map<std::string, std::function<void(const std::vector<std::string>&, User&)>> commandDictionary;
+	std::unordered_map<std::string, std::vector<User>> channels;
 
-		std::map<std::string, std::vector<User>> channels;
-		std::map<std::string, std::function<void(const std::vector<std::string>&, User&)>> commandDictionary;
- 	   	std::vector<std::string> splitCmd(const std::string& input, const std::string& delimiter);
+	void createCommand(const std::vector<std::string>& cmds, User& Client);
+	void joinCommand(const std::vector<std::string>& cmds, User& Client);
+	void listCommand(const std::vector<std::string>& cmds, User& Client);
+	void sendMessage(User& Client, const std::string& msgCode, const std::string& target, const std::string& message);
+	void trim(std::string& str); // Declaration of trim function
+	std::vector<std::string> splitCmd(const std::string& input);
 };
-
-#endif // COMMAND_HPP
