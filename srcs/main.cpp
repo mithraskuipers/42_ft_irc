@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/18 23:33:58 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/19 12:45:23 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,8 +49,8 @@ int	main(int argc, char **argv)
 After connecting with an IRC server, you typically do the following:
 1. /nick <CHOSEN NICKNAME>														<-- TODO: What if the nickname is already registered?
 2. /join <CHOSEN CHANNEL INSIDE THE SERVER>										<-- Works after having chosen a nickname.
-3. <YOUR MESSAGE HERE>															<-- Without any specific command this will broadcast a message to everyone in the channel.
-3. /msg <SOMEONE'S NICKNAME> <YOUR MESSAGE HERE>								<-- Send a private message to another user.
+3. <YOUR MESSAGE HERE>															<-- Without any specific command this will broadcast a message to everyone in the Channel.
+3. /msg <SOMEONE'S NICKNAME> <YOUR MESSAGE HERE>								<-- Send a private message to another User.
 */
 
 /*

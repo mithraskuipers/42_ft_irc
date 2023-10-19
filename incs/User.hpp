@@ -12,8 +12,8 @@
 
 
 
-#ifndef CLIENT_HPP
-#define CLIENT_HPP
+#ifndef USER_HPP
+#define USER_HPP
 
 #include <string>
 
@@ -29,6 +29,10 @@ class User
         void setPort(int clientPort);
         std::string getNick() const; // Added method declaration for getNick
 		bool getRegisteredStatus() const;
+		void setPass(std::string);
+		void setName(std::string);
+		int getid();
+		void setid(int id);
 
     private:
         int socket_descriptor;
@@ -37,6 +41,9 @@ class User
         int port;         // User's port
         std::string nickname; // User's nickname
 		bool registered;
+		std::string _username;
+		std::string _password;
+		User& operator=(const User& src);
 };
 
 #endif

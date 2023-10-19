@@ -64,3 +64,12 @@ std::string User::getNick() const
 {
 	return nickname;
 }
+
+User &User::operator=(const User &src)
+{
+	if (this == &src)
+		return *this;
+	this->_username = src._username;
+    this->_password = src._password;
+	return *this;
+}

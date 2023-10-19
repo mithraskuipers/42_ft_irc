@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/09/01 17:56:34 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/18 23:53:02 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/19 12:45:23 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,7 +19,7 @@
 #include "Command.hpp"
 
 
-class user;
+class User;
 
 class IRCServer
 {
@@ -36,8 +36,8 @@ class IRCServer
 		int 	getPort() const;
 	private:
 		unsigned int active_users;
-		user		*userArray;
-		channel		*channelArray;
+		User		*userArray;
+		Channel		*channelArray;
 		//int			channelCount;
 		int port;
 		int server_listening_socket;

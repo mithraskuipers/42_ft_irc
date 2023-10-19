@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:12:24 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/18 23:53:02 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/19 12:43:36 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,8 +21,7 @@
 #include <algorithm>
 #include "User.hpp"
 #include "Command.hpp"
-#include "user.hpp"
-#include "channel.hpp"
+#include "Channel.hpp"
 #include <cstring> // string.h
 # define QUEUE_SIZE 3
 # define TRUE 1

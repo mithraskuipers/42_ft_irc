@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/29 10:42:04 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/18 23:53:02 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/19 11:17:13 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@
 #include <fcntl.h>  // file control options
 #include <sys/types.h> // addrlen
 #include "./../incs/includes.hpp"
-#include "../incs/user.hpp"
 #include <cstring>
 #include <ctime> // Include the <ctime> header for time-related functions
 
@@ -260,8 +259,8 @@ void IRCServer::start()
 					std::cout << "Command received, socket fd : " << socket_descriptor << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
 					std::cout << "<< " + complete_command ;
 
-                    // Assuming command.processCommand(*it) processes the complete command
-                    command.processCommand(*it);
+                    // Assuming command.commandHandler(*it) processes the complete command
+                    command.commandHandler(*it);
                 }
             }
             ++it;
