@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/18 22:50:12 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/19 12:33:49 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/19 18:41:20 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,17 +26,17 @@ class Command
 	public:
 		Command();
 		~Command();
-		void commandHandler(User& client);
+		void commandHandler(User& User);
 
 	private:
-		std::vector<std::string> splitCmd(const std::string& input, const std::string& delimiter);
-		void sendMessage(User& client, const std::string& msgCode, const std::string& target, const std::string& message);
-		void joinCommand(const std::vector<std::string>& cmds, User& client);
-		void createCommand(const std::vector<std::string>& cmds, User& client);
-		void listCommand(const std::vector<std::string>& cmds, User& client);
+		void sendMessage(User& User, const std::string& msgCode, const std::string& target, const std::string& message);
+		void joinCommand(const std::vector<std::string>& cmds, User& User);
+		void createCommand(const std::vector<std::string>& cmds, User& User);
+		void listCommand(const std::vector<std::string>& cmds, User& User);
 
-
+		std::map<std::string, std::vector<User>> channels;
 		std::map<std::string, std::function<void(const std::vector<std::string>&, User&)>> commandDictionary;
+ 	   	std::vector<std::string> splitCmd(const std::string& input, const std::string& delimiter);
 };
 
 #endif // COMMAND_HPP

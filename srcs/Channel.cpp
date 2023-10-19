@@ -6,87 +6,52 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/19 12:44:44 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/19 12:48:07 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/19 17:25:09 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../incs/Channel.hpp"
 #include "./../incs/User.hpp"
+#include <cstring>
+#include <iostream>
+#include <algorithm>
+#include <string>
+#include <unistd.h>
+#include <sys/socket.h> // Add this line to include the necessary header
 
+Channel::Channel(std::string channelName) : _channelName(channelName) {}
 
-Channel::Channel()
-{
-    this->_channelMembers = new User[100];
-    _userCount = 0;
-}
-
-Channel::Channel(std::string channelName) : _channelName(channelName)
-{
-    this->_channelMembers = new User[100];
-    _userCount = 0;
-}
-
-Channel::~Channel()
-{
-
-}
-
-Channel &Channel::operator=(const Channel &src)
-{
-	std::cout << "Channel Assignation operator called" << std::endl;
-	if (this == &src)
-		return *this;
-	this->_channelName = src._channelName;
-	return *this;
-}
+Channel::~Channel() {}
 
 void Channel::addUser(User newUser)
 {
-    this->_channelMembers[this->_userCount].setName(newUser.getName());
-    this->_channelMembers[this->_userCount].setSocket(newUser.getSocket());
-    this->_channelMembers[this->_userCount].setid(newUser.getid());
-    this->_userCount++;
+    _channelMembers.push_back(newUser);
     std::string message = "You have joined Channel: " + this->_channelName + "\n";
-    send(newUser.getSocket(), message.c_str(), strlen(message.c_str()), 0);
-    std::cout << newUser.getName() << " added to Channel: " << this->_channelName << std::endl;
+    send(newUser.getSocketDescriptor(), message.c_str(), std::strlen(message.c_str()), 0);
+    std::cout << newUser.getNick() << " added to Channel: " << this->_channelName << std::endl;
 }
 
 void Channel::removeUser(User oldUser)
 {
-    int i = 0;
-    while (i < this->_userCount)
+    auto it = std::remove_if(_channelMembers.begin(), _channelMembers.end(), [&](const User& user) {
+        return user.getNick() == oldUser.getNick();
+    });
+    _channelMembers.erase(it, _channelMembers.end());
+}
+
+void Channel::broadcastMessage(const std::string& message, User sender)
+{
+    for (const auto& user : _channelMembers)
     {
-        if (this->_channelMembers[i].getName() == oldUser.getName())
+        if (user.getNick() != sender.getNick()) // Don't send the message back to the sender
         {
-            while (i < this->_userCount)
-            {
-                this->_channelMembers[i] = this->_channelMembers[i + 1];
-                i++;
-            }
-            this->_userCount--;
-            return;
+            std::string fullMessage = sender.getNick() + ": " + message + "\n";
+            send(user.getSocketDescriptor(), fullMessage.c_str(), std::strlen(fullMessage.c_str()), 0);
         }
-        i++;
     }
 }
 
-// void Channel::createChannel(std::string channelName, int channelCount)
-// {
-//     if (channelCount >= 10)
-//     {
-//         std::cout << "Max channels reached" << std::endl;
-//         return;
-//     }
-//     this->setName(channelName);
-//     channelCount++;
-// }
-
-void Channel::setName(std::string channelname)
-{
-    this->_channelName = channelname;
-}
-
-std::string Channel::getName()
+std::string Channel::getName() const
 {
     return this->_channelName;
 }

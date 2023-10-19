@@ -12,11 +12,15 @@
 
 #include "./../incs/User.hpp"
 
+#include <arpa/inet.h>   // For inet_ntop
+#include <netinet/in.h>  // For sockaddr_in
+#include <sys/socket.h>  // For getpeername
+#include <unistd.h>      // For close function
+
 // Constructor
-User::User(int socket_descriptor, const std::string& nick) : socket_descriptor(socket_descriptor), port(0), nickname(nick)
+User::User(int socket_descriptor, const std::string& nick) : socket_descriptor(socket_descriptor), port(0), _nickname(nick)
 {
-	
-} // Modified constructor to accept nickname
+}
 
 // Getter function for the socket descriptor
 int User::getSocketDescriptor() const
@@ -30,10 +34,22 @@ std::string& User::getBuff()
 	return buff;
 }
 
-// Getter function for the client's IP address
+// Getter function for the User's IP address
 std::string User::getIP() const
 {
-	return ip;
+    struct sockaddr_in addr;
+    socklen_t addr_len = sizeof(addr);
+    char ip[INET_ADDRSTRLEN];
+    
+    if (getpeername(socket_descriptor, (struct sockaddr*)&addr, &addr_len) == 0)
+	{
+        inet_ntop(AF_INET, &(addr.sin_addr), ip, INET_ADDRSTRLEN);
+        return ip;
+    }
+	else
+	{
+        return "Unknown IP";
+    }
 }
 
 bool User::getRegisteredStatus() const
@@ -41,35 +57,35 @@ bool User::getRegisteredStatus() const
     return registered;
 }
 
-// Setter function to set the client's IP address
+// Setter function to set the User's IP address
 void User::setIP(const std::string& clientIP)
 {
 	ip = clientIP;
 }
 
-// Getter function for the client's port
+// Getter function for the User's port
 int User::getPort() const
 {
 	return port;
 }
 
-// Setter function to set the client's port
+// Setter function to set the User's port
 void User::setPort(int clientPort)
 {
 	port = clientPort;
 }
 
-// Getter function for the client's nickname
+// Getter function for the User's nickname
 std::string User::getNick() const
 {
-	return nickname;
+	return _nickname;
 }
 
 User &User::operator=(const User &src)
 {
-	if (this == &src)
-		return *this;
-	this->_username = src._username;
+    if (this == &src)
+        return *this;
+    this->_nickname = src._nickname;
     this->_password = src._password;
-	return *this;
+    return *this;
 }

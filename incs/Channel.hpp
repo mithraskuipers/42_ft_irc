@@ -1,33 +1,35 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Channel.hpp                                        :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2023/10/19 13:48:42 by mikuiper      #+#    #+#                 */
+/*   Updated: 2023/10/19 13:48:43 by mikuiper      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CHANNEL_HPP
-# define CHANNEL_HPP
+#define CHANNEL_HPP
 
-#include "includes.hpp"
-#include <netinet/in.h> // struct sockaddr_in
+#include <string>
+#include <vector>
+#include "./User.hpp" // Include the User class for User objects
 
-class User;
+class Channel {
+public:
+    Channel(std::string channelName);
+    ~Channel();
 
+    void addUser(User newUser);
+    void removeUser(User oldUser);
+    void broadcastMessage(const std::string& message, User sender);
+    std::string getName() const;
 
-class Channel
-{
-	public:
-		Channel(); // default constructor
-		Channel(std::string channelName);
-		~Channel(); // destructor
-
-		Channel &operator=(const Channel &src);
-		void setName(std::string);
-		std::string getName();
-		void setUserCount(int userCount) { this->_userCount = userCount; }
-		int getUserCount() { return this->_userCount;}
-		User *getChannelMembers() { return this->_channelMembers;}
-		void addUser(User newUser);
-		void removeUser(User oldUser);
-		//void createChannel(std::string channelName, int channelCount);
-
-	private:
-		std::string		_channelName;
-		User			*_channelMembers;
-		int				_userCount;
+private:
+    std::string _channelName;
+    std::vector<User> _channelMembers;
 };
 
 #endif

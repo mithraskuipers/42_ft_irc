@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/29 10:42:04 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/19 11:17:13 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/19 19:44:54 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -171,11 +171,11 @@ int IRCServer::updateMaxSocketDescriptor()
 	int maxSocket = server_listening_socket; // Initialize with the server's listening socket
 
 	// Iterate through all connected clients using the std::list
-	for (const auto& client : clients)
+	for (const auto& User : clients)
 	{
-		if (client.getSocketDescriptor() > maxSocket)
+		if (User.getSocketDescriptor() > maxSocket)
 		{
-			maxSocket = client.getSocketDescriptor();
+			maxSocket = User.getSocketDescriptor();
 		}
 	}
 
@@ -188,7 +188,7 @@ This is the socket used by the server program to listen for incoming connections
 It's also known as the listening socket. The server socket is passive and waits for clients to connect to it.
 
 User Socket:
-This is the socket used by the client program to initiate a connection to the server.
+This is the socket used by the User program to initiate a connection to the server.
 It's an active socket that initiates the communication by connecting to the server's listening socket.
 */
 
@@ -207,9 +207,9 @@ void IRCServer::start()
 
         int max_socket_fd = updateMaxSocketDescriptor();
 
-        for (const auto& client : clients)
+        for (const auto& User : clients)
         {
-            FD_SET(client.getSocketDescriptor(), &fd_pack);
+            FD_SET(User.getSocketDescriptor(), &fd_pack);
         }
 
         int readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
@@ -223,14 +223,17 @@ void IRCServer::start()
         if (FD_ISSET(server_listening_socket, &fd_pack))
         {
             int socket_descriptor = accept(server_listening_socket, NULL, NULL);
-            if (socket_descriptor == -1)
-            {
+
+            if (socket_descriptor == -1) {
                 perror("accept");
+                // Handle the error, possibly continue listening or exit the server gracefully
+                continue;
             }
+
             else
             {
                 addClientSocket(socket_descriptor);
-                std::cout << "New client connected. Total clients: " << clients.size() << std::endl;
+                std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
             }
         }
 
@@ -240,34 +243,47 @@ void IRCServer::start()
             if (FD_ISSET(socket_descriptor, &fd_pack))
             {
                 int bytes_received = recv(socket_descriptor, buffer.data(), buffer.size(), 0);
+
                 if (bytes_received <= 0)
                 {
+                    if (bytes_received == 0)
+                    {
+                        // Connection closed by User
+                        std::cout << "Client disconnected. Total clients: " << clients.size() << std::endl;
+                    }
+                    else
+                    {
+                        perror("recv");
+                    }
                     close(socket_descriptor);
                     it = clients.erase(it);
-                    std::cout << "User disconnected. Total clients: " << clients.size() << std::endl;
                     continue;
                 }
 
                 std::string received_data(buffer.data(), bytes_received);
+                if (received_data.size() > 99999999) {
+                    // Handle the buffer overflow, send an error message to the client, or close the connection
+                    // Example: sendMessage(*it, "ERROR", "*", "Message size exceeds allowed limit");
+                    close(socket_descriptor);
+                    it = clients.erase(it);
+                    continue;
+                }
                 it->getBuff().append(received_data);
 
                 while (it->getBuff().find('\n') != std::string::npos)
                 {
                     std::string complete_command = it->getBuff().substr(0, it->getBuff().find('\n') + 1);
-                    it->getBuff().erase(0, complete_command.length());
 
-					std::cout << "Command received, socket fd : " << socket_descriptor << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
-					std::cout << "<< " + complete_command ;
+                    std::cout << "Command received, socket fd : " << socket_descriptor << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
 
-                    // Assuming command.commandHandler(*it) processes the complete command
                     command.commandHandler(*it);
+                    it->getBuff().erase(0, complete_command.length());
                 }
             }
-            ++it;
+            it++;
         }
     }
 }
-
 
 
 
