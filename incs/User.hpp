@@ -29,7 +29,6 @@ public:
 	void setPass(const std::string& password);
 	void setName(const std::string& username);
 	int getID() const;
-	User& operator=(const User& src);
 
 private:
 	int socket_descriptor;

@@ -36,16 +36,12 @@ class IRCServer
 		int 	getPort() const;
 	private:
 		unsigned int active_users;
-		User		*userArray;
-		Channel		*channelArray;
-		//int			channelCount;
 		int port;
 		int server_listening_socket;
 		std::string password;
 		std::string IP;
 		struct sockaddr_in socket_address;
 		std::list<User> clients;
-		int nConnectedClients;
 		Command command;
 };
 

@@ -80,14 +80,3 @@ std::string User::getNick() const
 {
 	return (_nickname);
 }
-
-User &User::operator=(const User &src)
-{
-	if (this == &src)
-	{
-		return (*this);
-	}
-	this->_nickname = src._nickname;
-	this->_password = src._password;
-	return (*this);
-}
