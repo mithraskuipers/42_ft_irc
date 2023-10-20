@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/08/29 10:42:04 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/19 19:44:54 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/20 09:28:37 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,8 +18,9 @@
 #include <sys/types.h> // addrlen
 #include "./../incs/includes.hpp"
 #include <cstring>
-#include <ctime> // Include the <ctime> header for time-related functions
-
+#include <ctime> // time-related functions
+#include <vector>
+#include <stdio.h>
 
 IRCServer::IRCServer() : port(1234), password("")
 {
@@ -41,6 +42,7 @@ IRCServer::~IRCServer()
 }
 
 /*
+getHostIP()
 Retrieves the primary IP socket_address of the current machine and stores it in the 'IP' member variable.
 */
 
@@ -68,10 +70,9 @@ void IRCServer::getHostIP()
 }
 
 /*
+initServer()
 This function sets up the socket, configures options, and prepares for incoming connections.
 */
-
-#include <stdio.h>
 
 void IRCServer::initServer()
 {
@@ -91,9 +92,9 @@ void IRCServer::initServer()
 	}
 
 	// Step 3: Set up socket_address structure
-	this->socket_address.sin_family = AF_INET;                // Use IPv4 socket family
-	this->socket_address.sin_addr.s_addr = INADDR_ANY;        // Listen on any available network interface
-	this->socket_address.sin_port = htons(port);              // Set the port number in network byte order
+	this->socket_address.sin_family = AF_INET;									// Use IPv4 socket family
+	this->socket_address.sin_addr.s_addr = INADDR_ANY;							// Listen on any available network interface
+	this->socket_address.sin_port = htons(port);								// Set the port number in network byte order
 
 	// Step 4: Set socket to non-blocking mode
 	// Uses file control function to set properties of a socket
@@ -140,158 +141,113 @@ int IRCServer::getPort() const
 	return (this->port);
 }
 
-void print_waiting_status(const IRCServer &other)
+void IRCServer::addClientSocket(int clientSocket)
 {
-	time_t raw_datetime = std::time(NULL);
-	struct tm datetime;
-	localtime_r(&raw_datetime, &datetime);
-
-	char time_buffer[9];
-	strftime(time_buffer, sizeof(time_buffer), "%H:%M:%S", &datetime);
-
-	// [DEBUGGING]: Show that the server is waiting and also show how to connect
-	std::cout << "\nWaiting...[" << time_buffer << "]" << std::endl;
-	std::cout << "Server IP is: [" << other.getIP() << "]" << std::endl;
-	std::cout << "Server port is: [" << other.getPort() << "]" << std::endl;
-
-	sleep(1);
-}
-
-
-void IRCServer::addClientSocket(int clientSocket) {
-    // Provide a default nickname, for example, "Guest"
-    std::string defaultNickname = "Guest";
-    clients.push_back(User(clientSocket, defaultNickname));
-    // Rest of your code
+	std::string defaultNickname = "Guest";										// Standaard nickname
+	clients.push_back(User(clientSocket, defaultNickname));
 }
 
 
 int IRCServer::updateMaxSocketDescriptor()
 {
-	int maxSocket = server_listening_socket; // Initialize with the server's listening socket
+	int maxSocket = server_listening_socket;									// Init with the server's listening socket
 
-	// Iterate through all connected clients using the std::list
-	for (const auto& User : clients)
+	for (const auto& User : clients)											// Iterate through all connected clients using the std::list
 	{
 		if (User.getSocketDescriptor() > maxSocket)
 		{
 			maxSocket = User.getSocketDescriptor();
 		}
 	}
-
-	return maxSocket; // Return the maximum socket descriptor value
+	return maxSocket;															// Return the maximum socket descriptor value
 }
-
-/*
-Server Socket:
-This is the socket used by the server program to listen for incoming connections from clients.
-It's also known as the listening socket. The server socket is passive and waits for clients to connect to it.
-
-User Socket:
-This is the socket used by the User program to initiate a connection to the server.
-It's an active socket that initiates the communication by connecting to the server's listening socket.
-*/
-
-
-#include <vector>
 
 void IRCServer::start()
 {
-    std::vector<char> buffer(2048); // Buffer size increased to 2048 bytes
+	std::vector<char> buffer(2048);
 
-    while (true)
-    {
-        fd_set fd_pack;
-        FD_ZERO(&fd_pack);
-        FD_SET(server_listening_socket, &fd_pack);
+	while (true)
+	{
+		fd_set fd_pack;
+		FD_ZERO(&fd_pack);
+		FD_SET(server_listening_socket, &fd_pack);
 
-        int max_socket_fd = updateMaxSocketDescriptor();
+		int max_socket_fd = updateMaxSocketDescriptor();
 
-        for (const auto& User : clients)
-        {
-            FD_SET(User.getSocketDescriptor(), &fd_pack);
-        }
+		for (const auto& User : clients)
+		{
+			FD_SET(User.getSocketDescriptor(), &fd_pack);
+		}
 
-        int readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
+		int readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
 
-        if (readySockets == -1)
-        {
-            perror("select");
-            break;
-        }
+		if (readySockets == -1)
+		{
+			perror("select");
+			break;
+		}
 
-        if (FD_ISSET(server_listening_socket, &fd_pack))
-        {
-            int socket_descriptor = accept(server_listening_socket, NULL, NULL);
+		if (FD_ISSET(server_listening_socket, &fd_pack))
+		{
+			int socket_descriptor = accept(server_listening_socket, NULL, NULL);
 
-            if (socket_descriptor == -1) {
-                perror("accept");
-                // Handle the error, possibly continue listening or exit the server gracefully
-                continue;
-            }
+			if (socket_descriptor == -1) {
+				perror("accept");
+				// Handle the error, possibly continue listening or exit the server gracefully
+				continue;
+			}
 
-            else
-            {
-                addClientSocket(socket_descriptor);
-                std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
-            }
-        }
+			else
+			{
+				addClientSocket(socket_descriptor);
+				std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
+			}
+		}
 
-        for (auto it = clients.begin(); it != clients.end();)
-        {
-            int socket_descriptor = it->getSocketDescriptor();
-            if (FD_ISSET(socket_descriptor, &fd_pack))
-            {
-                int bytes_received = recv(socket_descriptor, buffer.data(), buffer.size(), 0);
+		for (auto it = clients.begin(); it != clients.end();)
+		{
+			int socket_descriptor = it->getSocketDescriptor();
+			if (FD_ISSET(socket_descriptor, &fd_pack))
+			{
+				int bytes_received = recv(socket_descriptor, buffer.data(), buffer.size(), 0);
 
-                if (bytes_received <= 0)
-                {
-                    if (bytes_received == 0)
-                    {
-                        // Connection closed by User
-                        std::cout << "Client disconnected. Total clients: " << clients.size() << std::endl;
-                    }
-                    else
-                    {
-                        perror("recv");
-                    }
-                    close(socket_descriptor);
-                    it = clients.erase(it);
-                    continue;
-                }
+				if (bytes_received <= 0)
+				{
+					if (bytes_received == 0)
+					{
+						// Connection closed by User
+						std::cout << "Client disconnected. Total clients: " << clients.size() << std::endl;
+					}
+					else
+					{
+						perror("recv");
+					}
+					close(socket_descriptor);
+					it = clients.erase(it);
+					continue;
+				}
 
-                std::string received_data(buffer.data(), bytes_received);
-                if (received_data.size() > 99999999) {
-                    // Handle the buffer overflow, send an error message to the client, or close the connection
-                    // Example: sendMessage(*it, "ERROR", "*", "Message size exceeds allowed limit");
-                    close(socket_descriptor);
-                    it = clients.erase(it);
-                    continue;
-                }
-                it->getBuff().append(received_data);
+				std::string received_data(buffer.data(), bytes_received);
+				if (received_data.size() > 99999999) {
+					// Handle the buffer overflow, send an error message to the client, or close the connection
+					// Example: sendMessage(*it, "ERROR", "*", "Message size exceeds allowed limit");
+					close(socket_descriptor);
+					it = clients.erase(it);
+					continue;
+				}
+				it->getBuff().append(received_data);
 
-                while (it->getBuff().find('\n') != std::string::npos)
-                {
-                    std::string complete_command = it->getBuff().substr(0, it->getBuff().find('\n') + 1);
+				while (it->getBuff().find('\n') != std::string::npos)
+				{
+					std::string complete_command = it->getBuff().substr(0, it->getBuff().find('\n') + 1);
 
-                    std::cout << "Command received, socket fd : " << socket_descriptor << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
+					std::cout << "Command received, socket fd : " << socket_descriptor << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
 
-                    command.commandHandler(*it);
-                    it->getBuff().erase(0, complete_command.length());
-                }
-            }
-            it++;
-        }
-    }
+					command.commandHandler(*it);
+					it->getBuff().erase(0, complete_command.length());
+				}
+			}
+			it++;
+		}
+	}
 }
-
-
-
-
-
-
-
-/*
-irssi
-/connect 127.0.1.1 1234
-*/

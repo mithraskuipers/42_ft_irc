@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/20 08:36:46 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/20 09:26:48 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,6 +44,17 @@ int	main(int argc, char **argv)
 	return (0);
 }
 
+/*
+
+/*
+Server Socket:
+This is the socket used by the server program to listen for incoming connections from clients.
+It's also known as the listening socket. The server socket is passive and waits for clients to connect to it.
+
+User Socket:
+This is the socket used by the User program to initiate a connection to the server.
+It's an active socket that initiates the communication by connecting to the server's listening socket.
+*/
 
 /*
 After connecting with an IRC server, you typically do the following:
@@ -77,7 +88,7 @@ TODO: Verander de channel topic. Dit wordt gedaan door client die verbonden is m
 TODO: Kick a client. Dit wordt gestart door een andere client.
 
 [Command]
-TO DO
+TODO
 
 [Server]
 Initialiseert de server sockets, options, en koppelt de server aan een specifieke poort.
@@ -87,5 +98,4 @@ Accepteert verbindingen van clients via accept().
 Nieuwe clients worden opgeslagen in de Client objects.
 
 Parsed en execute ook commands van de clients.
-
 */
