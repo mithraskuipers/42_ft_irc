@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/19 12:45:23 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/20 08:36:46 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,4 +61,31 @@ socket will be used to listen for incoming connections from clients
 
 [binding]
 after creating a socket, you need to bind the socket to a specific ip socket_address and port
+*/
+
+/*
+Classes overview:
+
+[User]
+Heeft info. over individuele clients, zoals sockets, IP, ports, nickname, password, etc.
+
+[Channel]
+Heeft info. over clients die in de channel zitten.
+Clients kunnen worden toegevoegd/verwijderd via een member function van Channel.
+TODO: Uitnodigen clients naar channels.
+TODO: Verander de channel topic. Dit wordt gedaan door client die verbonden is met die channel.
+TODO: Kick a client. Dit wordt gestart door een andere client.
+
+[Command]
+TO DO
+
+[Server]
+Initialiseert de server sockets, options, en koppelt de server aan een specifieke poort.
+Low-level networking aspecten van de server.
+
+Accepteert verbindingen van clients via accept().
+Nieuwe clients worden opgeslagen in de Client objects.
+
+Parsed en execute ook commands van de clients.
+
 */
