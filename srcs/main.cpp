@@ -6,13 +6,12 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/20 09:26:48 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/20 11:34:22 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../incs/includes.hpp"
 #include "./../incs/splash.hpp"
-
 
 int err_msg_and_return(std::string s, int ret_val)
 {
@@ -27,10 +26,10 @@ int	main(int argc, char **argv)
 		return (err_msg_and_return("Error: Usage: ./ircserv <port #> <password>", 1));
 	int port = atoi(argv[1]);
 
-	// Ports below 1024 are privileged
-	if (port < 1024 || port > 65535)
+	if (port < 1024 || port > 65535)											// Ports below 1024 are reserved
+
 		return (err_msg_and_return("Error: <port #> must be an int >= 1024 and =< 65535", 1));
-	// Here start the server
+
 	IRCServer server(port, argv[2]);
 	try
 	{
@@ -44,7 +43,6 @@ int	main(int argc, char **argv)
 	return (0);
 }
 
-/*
 
 /*
 Server Socket:
@@ -88,7 +86,8 @@ TODO: Verander de channel topic. Dit wordt gedaan door client die verbonden is m
 TODO: Kick a client. Dit wordt gestart door een andere client.
 
 [Command]
-TODO
+Deze class bevat alle server commando's (e.g. JOIN).
+De class voegt ze ook samen in een dictionary.
 
 [Server]
 Initialiseert de server sockets, options, en koppelt de server aan een specifieke poort.
