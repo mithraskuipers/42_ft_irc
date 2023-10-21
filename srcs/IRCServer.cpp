@@ -1,253 +1,187 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        ::::::::            */
-/*   IRCServer.cpp                                      :+:    :+:            */
-/*                                                     +:+                    */
-/*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
-/*                                                   +#+                      */
-/*   Created: 2023/08/29 10:42:04 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/20 09:28:37 by mikuiper      ########   odam.nl         */
-/*                                                                            */
-/* ************************************************************************** */
-
-#include <unistd.h> // gethostname()
-#include <netdb.h> // gethostbyname()
-#include <arpa/inet.h> // inet_ntoa()
-#include <netinet/in.h> // struct sockaddr_in
-#include <fcntl.h>  // file control options
-#include <sys/types.h> // addrlen
-#include "./../incs/includes.hpp"
+#include <unistd.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <iostream>
+#include <stdexcept>
 #include <cstring>
-#include <ctime> // time-related functions
-#include <vector>
-#include <stdio.h>
+#include <sstream>
+#include <algorithm>
+#include "../incs/includes.hpp"
+#include "../incs/user.hpp"
+#include "../incs/channel.hpp"
+
+class channel;
 
 IRCServer::IRCServer() : port(1234), password("")
 {
-	this->active_users = 0;
-	this->getHostIP();
+    this->active_users = 0;
+    this->getHostIP();
 }
+
+IRCServer::~IRCServer() {
+    // Perform any necessary cleanup here
+}
+
 
 IRCServer::IRCServer(int port, const std::string &password)
 {
-	this->active_users = 0;
-	this->port = port;
-	this->password = password;
-	this->getHostIP();
+    this->active_users = 0;
+    this->port = port;
+    this->password = password;
+    this->getHostIP();
 }
-
-IRCServer::~IRCServer()
-{
-	// 
-}
-
-/*
-getHostIP()
-Retrieves the primary IP socket_address of the current machine and stores it in the 'IP' member variable.
-*/
 
 void IRCServer::getHostIP()
 {
-	// Buffer for hostname
-	char host[256]; // TODO: MAKE THIS DYNAMIC ALLOCATION?
-	
-	// Step 1: Get the hostname of the current machine and save it in the 'host' buffer
-	gethostname(host, sizeof(host));
-	
-	// Step 2: Retrieve host information
-	// Step 2.1 Pointer to hostent struct that stores host information
-	struct hostent *host_entry;
-	
-	// Step 2.2: Retrieve host information using the hostname
-	host_entry = gethostbyname(host);
-	
-	// Convert binary IP socket_address to string
-	// Note: h_addr_list[0] contains the primary IP socket_address associated with the hostname
-	this->IP = inet_ntoa(*((struct in_addr *)host_entry->h_addr_list[0]));
+    char host[256];
+    gethostname(host, sizeof(host));
 
-	// [DEBUGGING]: Print host ip
-	std::cout << "Host IP is: " << this->IP << std::endl;
+    struct hostent *host_entry;
+    host_entry = gethostbyname(host);
+
+    this->IP = inet_ntoa(*((struct in_addr *)host_entry->h_addr_list[0]));
+    std::cout << "Host IP is: " << this->IP << std::endl;
 }
-
-/*
-initServer()
-This function sets up the socket, configures options, and prepares for incoming connections.
-*/
 
 void IRCServer::initServer()
 {
-	// Step 1: Set up socket and options
-	int opt = 1;  // Option for setsockopt
-	this->server_listening_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (this->server_listening_socket == 0) // Use IPv4 socket family and TCP type socket
-	{
-		throw std::runtime_error("Failed to create socket");
-	}
-		
-	// Step 2: Set socket options to allow reusing the socket_address
-	int setsockopt_ret = setsockopt(server_listening_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt));
-	if (setsockopt_ret == -1)
-	{
-		throw std::runtime_error("Failed to set socket options");
-	}
+    int opt = 1;
+    this->server_listening_socket = socket(AF_INET, SOCK_STREAM, 0);
+    if (this->server_listening_socket == 0)
+    {
+        throw std::runtime_error("Failed to create socket");
+    }
 
-	// Step 3: Set up socket_address structure
-	this->socket_address.sin_family = AF_INET;									// Use IPv4 socket family
-	this->socket_address.sin_addr.s_addr = INADDR_ANY;							// Listen on any available network interface
-	this->socket_address.sin_port = htons(port);								// Set the port number in network byte order
+    int setsockopt_ret = setsockopt(server_listening_socket, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt));
+    if (setsockopt_ret == -1)
+    {
+        throw std::runtime_error("Failed to set socket options");
+    }
 
-	// Step 4: Set socket to non-blocking mode
-	// Uses file control function to set properties of a socket
-	if (fcntl(server_listening_socket, F_SETFL, O_NONBLOCK) < -1)
-	{
-		throw std::runtime_error("Failed to set non-blocking mode");
-	}
+    this->socket_address.sin_family = AF_INET;
+    this->socket_address.sin_addr.s_addr = INADDR_ANY;
+    this->socket_address.sin_port = htons(port);
 
-	// Step 5: Bind the socket to the socket_address
-	// Step 5.1: Convert the socket_address structure to a pointer of type struct sockaddr *
-	struct sockaddr *socket_address = (struct sockaddr *)&this->socket_address;
-	
-	// Step 5.2: Get the size of the socket_address structure
-	socklen_t address_size = sizeof(this->socket_address);
-	
-	// Step 5.3 Attempt to bind the socket to the socket_address
-	if (bind(this->server_listening_socket, socket_address, address_size) < 0)
-	{
-		throw std::runtime_error("Failed to bind socket");
-	}
+    if (fcntl(server_listening_socket, F_SETFL, O_NONBLOCK) < -1)
+    {
+        throw std::runtime_error("Failed to set non-blocking mode");
+    }
 
-	// Print listening information
-	std::cout << "Listening on port: " << this->port << std::endl;
-	std::cout << "The password you chose to use is: " << this->password << std::endl;
+    struct sockaddr *socket_address = (struct sockaddr *)&this->socket_address;
+    socklen_t address_size = sizeof(this->socket_address);
 
-	// Step 6: Start listening for incoming connections
-	if (listen(this->server_listening_socket, QUEUE_SIZE) == -1)
-	{
-		throw std::runtime_error("Failed to start listening");
-	}
-	std::cout << "Waiting for connection.." << std::endl << std::endl;
-}
+    if (bind(this->server_listening_socket, socket_address, address_size) < 0)
+    {
+        throw std::runtime_error("Failed to bind socket");
+    }
 
-// This function accepts incoming connections.
+    std::cout << "Listening on port: " << this->port << std::endl;
+    std::cout << "The password you chose to use is: " << this->password << std::endl;
 
-
-std::string IRCServer::getIP() const
-{
-	return (this->IP);
-}
-
-int IRCServer::getPort() const
-{
-	return (this->port);
+    if (listen(this->server_listening_socket, QUEUE_SIZE) == -1)
+    {
+        throw std::runtime_error("Failed to start listening");
+    }
+    std::cout << "Waiting for connection.." << std::endl
+              << std::endl;
 }
 
 void IRCServer::addClientSocket(int clientSocket)
 {
-	std::string defaultNickname = "Guest";										// Standaard nickname
-	clients.push_back(User(clientSocket, defaultNickname));
+    if (nConnectedClients < MAX_CLIENTS)
+    {
+        user newUser(clientSocket);
+        this->userContainer.push_back(newUser);
+        nConnectedClients++;
+    }
+    else
+    {
+        // Handle max clients reached case
+    }
 }
-
 
 int IRCServer::updateMaxSocketDescriptor()
 {
-	int maxSocket = server_listening_socket;									// Init with the server's listening socket
+    int maxSocket = server_listening_socket;
 
-	for (const auto& User : clients)											// Iterate through all connected clients using the std::list
-	{
-		if (User.getSocketDescriptor() > maxSocket)
-		{
-			maxSocket = User.getSocketDescriptor();
-		}
-	}
-	return maxSocket;															// Return the maximum socket descriptor value
+    for (const auto &user : userContainer)
+    {
+        if (user.getSocket() > maxSocket)
+        {
+            maxSocket = user.getSocket();
+        }
+    }
+
+    return maxSocket;
 }
 
 void IRCServer::start()
 {
-	std::vector<char> buffer(2048);
+    fd_set fd_pack;
+    char buffer[9999];
 
-	while (true)
-	{
-		fd_set fd_pack;
-		FD_ZERO(&fd_pack);
-		FD_SET(server_listening_socket, &fd_pack);
+    while (true)
+    {
+        FD_ZERO(&fd_pack);
+        FD_SET(this->server_listening_socket, &fd_pack);
 
-		int max_socket_fd = updateMaxSocketDescriptor();
+        int max_socket_fd = updateMaxSocketDescriptor();
 
-		for (const auto& User : clients)
-		{
-			FD_SET(User.getSocketDescriptor(), &fd_pack);
-		}
+        for (const auto &user : userContainer)
+        {
+            FD_SET(user.getSocket(), &fd_pack);
+        }
 
-		int readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
+        int readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
 
-		if (readySockets == -1)
-		{
-			perror("select");
-			break;
-		}
+        if (readySockets == -1)
+        {
+            perror("select");
+            break;
+        }
 
-		if (FD_ISSET(server_listening_socket, &fd_pack))
-		{
-			int socket_descriptor = accept(server_listening_socket, NULL, NULL);
+        if (FD_ISSET(this->server_listening_socket, &fd_pack))
+        {
+            int newClientSocket = accept(this->server_listening_socket, NULL, NULL);
+            if (newClientSocket == -1)
+            {
+                perror("accept");
+            }
+            else
+            {
+                this->addClientSocket(newClientSocket);
+                std::cout << "Client connected. Total users: " << nConnectedClients << std::endl;
+            }
+        }
 
-			if (socket_descriptor == -1) {
-				perror("accept");
-				// Handle the error, possibly continue listening or exit the server gracefully
-				continue;
-			}
-
-			else
-			{
-				addClientSocket(socket_descriptor);
-				std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
-			}
-		}
-
-		for (auto it = clients.begin(); it != clients.end();)
-		{
-			int socket_descriptor = it->getSocketDescriptor();
-			if (FD_ISSET(socket_descriptor, &fd_pack))
-			{
-				int bytes_received = recv(socket_descriptor, buffer.data(), buffer.size(), 0);
-
-				if (bytes_received <= 0)
-				{
-					if (bytes_received == 0)
-					{
-						// Connection closed by User
-						std::cout << "Client disconnected. Total clients: " << clients.size() << std::endl;
-					}
-					else
-					{
-						perror("recv");
-					}
-					close(socket_descriptor);
-					it = clients.erase(it);
-					continue;
-				}
-
-				std::string received_data(buffer.data(), bytes_received);
-				if (received_data.size() > 99999999) {
-					// Handle the buffer overflow, send an error message to the client, or close the connection
-					// Example: sendMessage(*it, "ERROR", "*", "Message size exceeds allowed limit");
-					close(socket_descriptor);
-					it = clients.erase(it);
-					continue;
-				}
-				it->getBuff().append(received_data);
-
-				while (it->getBuff().find('\n') != std::string::npos)
-				{
-					std::string complete_command = it->getBuff().substr(0, it->getBuff().find('\n') + 1);
-
-					std::cout << "Command received, socket fd : " << socket_descriptor << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
-
-					command.commandHandler(*it);
-					it->getBuff().erase(0, complete_command.length());
-				}
-			}
-			it++;
-		}
-	}
+        for (auto it = userContainer.begin(); it != userContainer.end();)
+        {
+            auto &user = *it;
+            if (FD_ISSET(user.getSocket(), &fd_pack))
+            {
+                int bytes_received = recv(user.getSocket(), buffer, sizeof(buffer), 0);
+                if (bytes_received <= 0)
+                {
+                    // Handle disconnect or error
+                    close(user.getSocket());
+                    std::cout << "Client disconnected. Total users: " << nConnectedClients << std::endl;
+                    it = userContainer.erase(it);
+                }
+                else
+                {
+                    // Handle received data
+                    std::string receivedData(buffer, bytes_received);
+                    user.commandHandler(receivedData, this->channelContainer);
+                    ++it;
+                }
+            }
+            else
+            {
+                ++it;
+            }
+        }
+    }
 }
