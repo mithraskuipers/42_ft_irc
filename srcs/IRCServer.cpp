@@ -10,13 +10,13 @@
 #include <netdb.h>		 // Add this line to include the netdb.h header
 #include "IRCServer.hpp" // Include your IRCServer.hpp file after the necessary system
 
-IRCServer::IRCServer() : port(1234), password("")
+IRCServer::IRCServer() : port(1234), password(""), command(clients)
 {
 	this->active_users = 0;
 	this->getHostIP();
 }
 
-IRCServer::IRCServer(int port, const std::string &password) : port(port), password(password)
+IRCServer::IRCServer(int port, const std::string &password) : port(port), password(password), command(clients)
 {
 	this->active_users = 0;
 	this->getHostIP();
@@ -162,25 +162,37 @@ void IRCServer::start()
 			break;
 		}
 
-		if (FD_ISSET(server_listening_socket, &fd_pack))
-		{
-			int socket_descriptor = accept(server_listening_socket, NULL, NULL);
+        if (FD_ISSET(server_listening_socket, &fd_pack))
+        {
+            int socket_descriptor = accept(server_listening_socket, NULL, NULL);
 
-			if (socket_descriptor == -1)
-			{
-				perror("accept");
-				continue;
-			}
-			else
-			{
-				std::string username = addClientSocket(socket_descriptor);
-				std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
+            if (socket_descriptor == -1)
+            {
+                perror("accept");
+                continue;
+            }
+            else
+            {
+                std::string username = addClientSocket(socket_descriptor);
+                std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
 
-				// Send welcome message to the client
-				std::string welcomeMessage = "You connected with server " + IP + " as " + username + "\n";
-				send(socket_descriptor, welcomeMessage.c_str(), welcomeMessage.size(), 0);
-			}
-		}
+                // Send IRC welcome messages to the client
+                std::string welcomeMessage = ":randomservernaam 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
+                send(socket_descriptor, welcomeMessage.c_str(), welcomeMessage.size(), 0);
+
+                // Send MOTD (Message of the Day) message to the client
+                std::string motdMessage = ":randomservernaam 375 " + username + " :- randomservernaam Message of the Day -\r\n";
+                send(socket_descriptor, motdMessage.c_str(), motdMessage.size(), 0);
+
+                // Send MOTD content to the client (customize this according to your server's MOTD)
+                std::string motdContent = ":randomservernaam 372 " + username + " :- Welcome to our IRC server! Enjoy your stay.\r\n";
+                send(socket_descriptor, motdContent.c_str(), motdContent.size(), 0);
+
+                // Send end of MOTD message
+                std::string endMotdMessage = ":randomservernaam 376 " + username + " :End of /MOTD command.\r\n";
+                send(socket_descriptor, endMotdMessage.c_str(), endMotdMessage.size(), 0);
+            }
+        }
 
 		// Inside your while loop where you handle incoming data and disconnections
 		for (auto it = clients.begin(); it != clients.end();)
@@ -234,6 +246,7 @@ void IRCServer::start()
 
 					std::cout << "Command received, socket fd : " << socket_descriptor << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
 					command.process(complete_command, *it, channels);
+					
 					it->getBuff().erase(0, complete_command.length());
 				}
 			}

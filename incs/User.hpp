@@ -12,6 +12,7 @@ private:
 	std::string buff;
 	bool registered;
 	std::string ip;
+	std::string _realname;
 
 public:
 	void sendToClient(const std::string &data);
@@ -20,6 +21,7 @@ public:
 	int getSocketDescriptor() const;
 	std::string &getBuff();
 	void setNick(const std::string &newNick);
+	void setRealName(const std::string &newRealName);
 	void send(const std::string &data);
 	std::string getIP() const;
 	void setIP(const std::string &clientIP);

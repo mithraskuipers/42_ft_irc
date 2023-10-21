@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/09/01 17:56:34 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/21 21:54:55 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/21 23:59:43 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,13 +38,13 @@ public:
 	bool isNicknameInUse(const std::string &nickname) const;
 
 private:
+    std::vector<User> clients;  // Add a vector to store clients
 	unsigned int active_users;
 	int port;
 	int server_listening_socket;
 	std::string password;
 	std::string IP;
 	struct sockaddr_in socket_address;
-	std::list<User> clients;
 	Command command;
 	std::vector<Channel> channels; // Declare the channels vector here
 };

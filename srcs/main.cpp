@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/20 11:34:22 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/21 22:55:39 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,23 @@ int	main(int argc, char **argv)
 	return (0);
 }
 
+/*
+Uitleg verbinden met Pidgin:
+
+
+[STAP 1: VIA PIDGIN 1E CLIENT VERBINDEN]
+Zet de server aan met port "6667" (standaard IRC protocol port) en password "pw"
+./irc 6667 pw
+Ga naar Pidgin:
+[BASIC] -> Protocol: IRC
+[BASIC] -> Username: <WHATEVER>
+[BASIC] -> Server: 127.0.0.1
+[BASIC] -> Password: pw
+[BASIC] -> Local alias: <LEEG>
+[ADVANCED] -> Port: 6667
+
+
+*/
 
 /*
 Server Socket:

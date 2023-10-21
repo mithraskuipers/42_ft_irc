@@ -27,6 +27,8 @@ public:
 	void removeOperator(User *user);
 	int getUsersCount() const;
 	bool isUserInChannel(const User* user) const;
+	const std::vector<User*>& getUsers() const {return users;}
+	void broadcastMessage(const std::string& message);
 
 private:
 	std::vector<User *> users;

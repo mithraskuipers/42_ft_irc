@@ -43,6 +43,11 @@ void User::setNick(const std::string &newNick)
 	_nickname = newNick;
 }
 
+void User::setRealName(const std::string &newRealName)
+{
+	_realname = newRealName;
+}
+
 void User::send(const std::string &data)
 {
 	ssize_t bytesSent = write(socket_descriptor, data.c_str(), data.size());
