@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/21 22:55:39 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/22 01:28:28 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,12 +25,13 @@ int	main(int argc, char **argv)
 	if (argc != 3)
 		return (err_msg_and_return("Error: Usage: ./ircserv <port #> <password>", 1));
 	int port = atoi(argv[1]);
+	std::string password = argv[2];
 
 	if (port < 1024 || port > 65535)											// Ports below 1024 are reserved
 
 		return (err_msg_and_return("Error: <port #> must be an int >= 1024 and =< 65535", 1));
 
-	IRCServer server(port, argv[2]);
+	IRCServer server(port, password);
 	try
 	{
 		server.initServer();

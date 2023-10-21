@@ -6,20 +6,22 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/21 20:49:19 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/21 23:57:49 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/22 01:30:08 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 // Command.cpp
 
-#include "Command.hpp"
-#include "User.hpp"
-#include "Channel.hpp"
+#include "./../incs/Command.hpp"
+#include "./../incs/User.hpp"
+#include "./../incs/Channel.hpp"
 #include <algorithm>
 #include <unistd.h>
+#include "./../incs/IRCServer.hpp"
 
+class IRCServer; // Forward declaration of IRCServer class
 
-Command::Command(std::vector<User>& clients) : clients(clients)
+Command::Command(std::vector<User> &clients, IRCServer &server) : clients(clients), ircServer(server)
 {
 	// Constructor implementation
 }
@@ -53,88 +55,108 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 
 	if (command == "/nick")
 	{
-	    std::string newNick;
-	    if (spacePos != std::string::npos)
-	    {
-	        newNick = input.substr(spacePos + 1);
-	        newNick = newNick.substr(newNick.find_first_not_of(' '));
-	
-	        if (!newNick.empty())
-	        {
-	            // Check if the nickname is already in use
-	            bool nicknameInUse = false;
-	            for (const auto &channel : channels)
-	            {
-	                for (const auto &user : channel.getUsers())
-	                {
-	                    if (user->getNick() == newNick)
-	                    {
-	                        nicknameInUse = true;
-	                        break;
-	                    }
-	                }
-	            }
-	
-	            if (!nicknameInUse)
-	            {
-	                if (client.getNick().empty())
-	                {
-	                    client.setNick(newNick);
-	                    client.sendToClient(":" + newNick + " NICK " + newNick + "\r\n");
-	                    std::cout << "Your nickname has been set to: " << newNick << std::endl;
-	                }
-	                else
-	                {
-	                    std::string oldNick = client.getNick();
-	                    client.setNick(newNick);
-	                    client.sendToClient(":" + oldNick + " NICK " + newNick + "\r\n");
-	                    std::cout << "Your nickname has been changed from " << oldNick << " to " << newNick << std::endl;
-	                }
-	            }
-	            else
-	            {
-	                client.sendToClient(":server 433 * " + newNick + " :Nickname is already in use\r\n");
-	            }
-	        }
-	        else
-	        {
-	            client.sendToClient(":server 431 * :No nickname given\r\n");
-	        }
-	    }
-	    else
-	    {
-	        client.sendToClient(":server 431 * :No nickname given\r\n");
-	    }
+		std::string newNick;
+		if (spacePos != std::string::npos)
+		{
+			newNick = input.substr(spacePos + 1);
+			newNick = newNick.substr(newNick.find_first_not_of(' '));
+
+			if (!newNick.empty())
+			{
+				// Check if the nickname is already in use
+				bool nicknameInUse = false;
+				for (const auto &channel : channels)
+				{
+					for (const auto &user : channel.getUsers())
+					{
+						if (user->getNick() == newNick)
+						{
+							nicknameInUse = true;
+							break;
+						}
+					}
+				}
+
+				if (!nicknameInUse)
+				{
+					if (client.getNick().empty())
+					{
+						client.setNick(newNick);
+						client.sendToClient(":" + newNick + " NICK " + newNick + "\r\n");
+						std::cout << "Your nickname has been set to: " << newNick << std::endl;
+					}
+					else
+					{
+						std::string oldNick = client.getNick();
+						client.setNick(newNick);
+						client.sendToClient(":" + oldNick + " NICK " + newNick + "\r\n");
+						std::cout << "Your nickname has been changed from " << oldNick << " to " << newNick << std::endl;
+					}
+				}
+				else
+				{
+					client.sendToClient(":server 433 * " + newNick + " :Nickname is already in use\r\n");
+				}
+			}
+			else
+			{
+				client.sendToClient(":server 431 * :No nickname given\r\n");
+			}
+		}
+		else
+		{
+			client.sendToClient(":server 431 * :No nickname given\r\n");
+		}
 	}
+
+	else if (command == "/pass")
+	{
+		std::string password = input.substr(spacePos + 1);
+
+		// Compare the provided password with the server password
+		if (password == ircServer.getPass())
+		{
+			std::cout << "PASSWORD IS CORRECT!!!!" << std::endl;
+			client.setRegistered(true);
+			client.sendToClient(":server 001 " + client.getNick() + " :Welcome to the IRC server, " + client.getNick() + "!\r\n");
+			std::cout << "User " << client.getNick() << " has successfully registered." << std::endl;
+		}
+		else
+		{
+			std::cout << "PASSWORD IS NOT CORRECT!!!!" << std::endl;
+			client.sendToClient(":server 464 " + client.getNick() + " :Password incorrect\r\n");
+			std::cout << "User " << client.getNick() << " failed to register. Incorrect password." << std::endl;
+		}
+	}
+
 	else if (command == "/quit")
 	{
-	    std::string quitMessage = input.substr(spacePos + 1);
-	
-	    // Broadcast quit message to all channels the user is in
-    	// Inside the function, you can now use the 'clients' vector
-		auto iterator = std::find_if(clients.begin(), clients.end(), [&client](const User &user) {
-		    return user.getSocketDescriptor() == client.getSocketDescriptor();
-		});
-		
-		if (iterator != clients.end()) {
-		    clients.erase(iterator);
+		std::string quitMessage = input.substr(spacePos + 1);
+
+		// Broadcast quit message to all channels the user is in
+		// Inside the function, you can now use the 'clients' vector
+		auto iterator = std::find_if(clients.begin(), clients.end(), [&client](const User &user)
+									 { return user.getSocketDescriptor() == client.getSocketDescriptor(); });
+
+		if (iterator != clients.end())
+		{
+			clients.erase(iterator);
 		}
-		
-	
-	    // Close the client socket and remove the user from the server
-	    close(client.getSocketDescriptor());
-	
-	    // Find the client in the clients vector and remove it
-	    auto it = std::find_if(clients.begin(), clients.end(), [&client](const User &user)
-	                           { return user.getSocketDescriptor() == client.getSocketDescriptor(); });
-	    if (it != clients.end())
-	    {
-	        clients.erase(it);
-	    }
-	
-	    std::cout << "User " << client.getNick() << " has quit the server." << std::endl;
+
+		// Close the client socket and remove the user from the server
+		close(client.getSocketDescriptor());
+
+		// Find the client in the clients vector and remove it
+		auto it = std::find_if(clients.begin(), clients.end(), [&client](const User &user)
+							   { return user.getSocketDescriptor() == client.getSocketDescriptor(); });
+		if (it != clients.end())
+		{
+			clients.erase(it);
+		}
+
+		std::cout << "User " << client.getNick() << " has quit the server." << std::endl;
 	}
-	
+
 	else if (command == "/user")
 	{
 		std::string parameters = input.substr(spacePos + 1);
@@ -162,7 +184,6 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 			// You can send an error response indicating incorrect usage of the USER command
 		}
 	}
-		
 
 	else if (command == "/list")
 	{

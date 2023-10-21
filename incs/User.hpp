@@ -29,6 +29,9 @@ public:
 	void setPort(int clientPort);
 	std::string getNick() const;
 	bool getRegisteredStatus() const;
+	void setRegistered(bool value) {
+        registered = value;
+    }
 };
 
 #endif // USER_HPP

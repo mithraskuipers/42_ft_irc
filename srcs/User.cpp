@@ -18,7 +18,6 @@
 #include <unistd.h>		// For close function
 
 // Constructor
-#include "./../incs/User.hpp"
 // Other necessary includes
 
 User::User(int socket_descriptor, const std::string &nick) : socket_descriptor(socket_descriptor), port(0), _nickname(nick), registered(false), ip("Unknown IP")

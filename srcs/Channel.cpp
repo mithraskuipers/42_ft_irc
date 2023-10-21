@@ -6,13 +6,13 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/21 20:49:24 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/21 23:22:42 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/22 01:15:25 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Channel.hpp"
-#include "User.hpp"
-#include "includes.hpp"
+#include "./../incs/Channel.hpp"
+#include "./../incs/User.hpp"
+#include "./../incs/includes.hpp"
 
 Channel::Channel() : topic(""), topicAuthor("") {}
 

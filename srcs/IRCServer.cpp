@@ -1,4 +1,3 @@
-#include "IRCServer.hpp"
 #include <unistd.h>
 #include <cstring>
 #include <iostream>
@@ -8,18 +7,16 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <netdb.h>		 // Add this line to include the netdb.h header
-#include "IRCServer.hpp" // Include your IRCServer.hpp file after the necessary system
+#include "./../incs/IRCServer.hpp" // Include your IRCServer.hpp file after the necessary system
 
-IRCServer::IRCServer() : port(1234), password(""), command(clients)
+IRCServer::IRCServer(int port, const std::string &password) : port(port), password(password), clients(), command(clients, *this)
 {
-	this->active_users = 0;
-	this->getHostIP();
+    // Initialize other members as needed
 }
 
-IRCServer::IRCServer(int port, const std::string &password) : port(port), password(password), command(clients)
+std::string IRCServer::getPass()
 {
-	this->active_users = 0;
-	this->getHostIP();
+	return (this->password);
 }
 
 IRCServer::~IRCServer()
@@ -124,6 +121,8 @@ std::string IRCServer::addClientSocket(int clientSocket) // Update the definitio
 {
 	std::string defaultNickname = "Guest";
 	std::string randomCode;
+	std::string welcomeMessage = "IRC : To register please use commands PASS - NICK - USER(user, mode, unused, realname)";
+	send(clientSocket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
 
 	// Generate a random number code and check if it's not already in use
 	do
