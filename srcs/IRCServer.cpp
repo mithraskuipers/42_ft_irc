@@ -136,42 +136,35 @@ std::string IRCServer::addClientSocket(int clientSocket) // Update the definitio
 	return defaultNickname; // Return the generated username
 }
 
-void IRCServer::start()
-{
-	std::vector<char> buffer(2048);
 
-	while (true)
-	{
-		fd_set fd_pack;
-		FD_ZERO(&fd_pack);
-		FD_SET(server_listening_socket, &fd_pack);
+void IRCServer::start() {
+    std::vector<char> buffer(2048);
 
-		int max_socket_fd = updateMaxSocketDescriptor();
+    while (true) {
+        fd_set fd_pack;
+        FD_ZERO(&fd_pack);
+        FD_SET(server_listening_socket, &fd_pack);
 
-		for (const auto &User : clients)
-		{
-			FD_SET(User.getSocketDescriptor(), &fd_pack);
-		}
+        int max_socket_fd = updateMaxSocketDescriptor();
 
-		int readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
+        for (const auto &User : clients) {
+            FD_SET(User.getSocketDescriptor(), &fd_pack);
+        }
 
-		if (readySockets == -1)
-		{
-			perror("select");
-			break;
-		}
+        int readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
 
-        if (FD_ISSET(server_listening_socket, &fd_pack))
-        {
+        if (readySockets == -1) {
+            perror("select");
+            break;
+        }
+
+        if (FD_ISSET(server_listening_socket, &fd_pack)) {
             int socket_descriptor = accept(server_listening_socket, NULL, NULL);
 
-            if (socket_descriptor == -1)
-            {
+            if (socket_descriptor == -1) {
                 perror("accept");
                 continue;
-            }
-            else
-            {
+            } else {
                 std::string username = addClientSocket(socket_descriptor);
                 std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
 
@@ -193,63 +186,51 @@ void IRCServer::start()
             }
         }
 
-		// Inside your while loop where you handle incoming data and disconnections
-		for (auto it = clients.begin(); it != clients.end();)
-		{
-			int socket_descriptor = it->getSocketDescriptor();
-			if (FD_ISSET(socket_descriptor, &fd_pack))
-			{
-				int bytes_received = recv(socket_descriptor, buffer.data(), buffer.size(), 0);
+        // Inside your while loop where you handle incoming data and disconnections
+        for (auto it = clients.begin(); it != clients.end();) {
+            int socket_descriptor = it->getSocketDescriptor();
 
-				if (bytes_received <= 0)
-				{
-					if (bytes_received == 0)
-					{
-						std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
-					}
-					else
-					{
-						perror("recv");
-					}
-					close(socket_descriptor);
-					it = clients.erase(it); // Remove the client from the list
-					continue;
-				}
+            if (FD_ISSET(socket_descriptor, &fd_pack)) {
+                int bytes_received = recv(socket_descriptor, buffer.data(), buffer.size(), 0);
 
-				std::string received_data(buffer.data(), bytes_received);
-				if (received_data.size() > 1024)
-				{
-					close(socket_descriptor);
-					it = clients.erase(it);
-					continue;
-				}
-				it->getBuff().append(received_data);
+                if (bytes_received <= 0) {
+                    if (bytes_received == 0) {
+                        std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
+                    } else {
+                        perror("recv");
+                    }
+                    close(socket_descriptor);
+                    it = clients.erase(it); // Remove the client from the list
+                    continue;
+                }
 
-				while (it->getBuff().find('\n') != std::string::npos)
-				{
-					std::string complete_command = it->getBuff().substr(0, it->getBuff().find('\n') + 1);
+                // Append received data to the client's buffer
+                it->getBuff().append(buffer.data(), bytes_received);
 
-					// Remove leading newline characters
-					size_t first_non_newline = complete_command.find_first_not_of("\n");
-					if (first_non_newline != std::string::npos)
-					{
-						complete_command = complete_command.substr(first_non_newline);
-					}
+                // Process complete messages in the buffer
+                size_t newlinePos;
+                while ((newlinePos = it->getBuff().find('\n')) != std::string::npos) {
+                    std::string complete_command = it->getBuff().substr(0, newlinePos);
 
-					// Remove trailing newline characters
-					size_t last_non_newline = complete_command.find_last_not_of("\n");
-					if (last_non_newline != std::string::npos)
-					{
-						complete_command = complete_command.substr(0, last_non_newline + 1);
-					}
+                    // Process the complete command
+                    std::cout << "Command received, socket fd : " << socket_descriptor << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
+                    command.process(complete_command, *it, channels);
 
-					std::cout << "Command received, socket fd : " << socket_descriptor << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
-					command.process(complete_command, *it, channels);
-					
-					it->getBuff().erase(0, complete_command.length());
-				}
-			}
-			it++;
-		}
-	}
+                    // Remove processed message from the buffer
+                    it->getBuff().erase(0, newlinePos + 1);
+                }
+
+                // Check if the buffer size exceeds the allowed limit
+                if (it->getBuff().size() > 1024) {
+                    std::string errorMessage = "ERROR : Message size exceeds the allowed limit.\r\n";
+                    send(socket_descriptor, errorMessage.c_str(), errorMessage.size(), 0);
+
+                    // Clear the buffer to avoid further processing of this message
+                    it->getBuff().clear();
+                }
+            }
+
+            it++;
+        }
+    }
 }

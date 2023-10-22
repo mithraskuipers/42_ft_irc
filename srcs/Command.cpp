@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/21 20:49:19 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/22 01:30:08 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/22 10:51:49 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,12 +48,58 @@ void Command::sendChannelList(User &user, const std::vector<Channel> &channels)
 	}
 }
 
+
 void Command::process(const std::string &input, User &client, std::vector<Channel> &channels)
 {
+	// Split the input into command and arguments
+	std::vector<std::string> command;
 	size_t spacePos = input.find(' ');
-	std::string command = input.substr(0, spacePos); // Extract the command
+	command.push_back(input.substr(0, spacePos)); // Extract the command
+	
+	if (spacePos != std::string::npos) {
+	    command.push_back(input.substr(spacePos + 1)); // Extract the arguments
+	} else {
+	    // No space found, handle this case (send an error message, etc.)
+	    client.sendToClient(":server ERROR :Invalid command format\r\n");
+	    return;
+	}
 
-	if (command == "/nick")
+    std::cout << "[DEBUG] [root]: input received: " << input << std::endl;
+    std::cout << "[DEBUG] [command[0]]: input received: " << command[0] << std::endl;
+    std::cout << "[DEBUG] [command[1]]: input received: " << command[1] << std::endl;
+
+
+    if (command[0] == "pass") {
+
+			std::cout << "command.size():" << command.size() << std::endl;
+            std::string password = command[1];
+    		std::cout << "[DEBUG] [/pass]: pass received: " << password << std::endl;
+			
+			std::cout << "[DEBUG] [/pass]: server pass: " << ircServer.getPass() << std::endl;
+
+			std::cout << "Received Password Length: " << password.length() << std::endl;
+			std::cout << "Server Password Length: " << ircServer.getPass().length() << std::endl;
+
+			// Trim the received password to match the length of the server's password
+			password = password.substr(0, ircServer.getPass().length());
+
+            // Compare the provided password with the server password
+            if (password == ircServer.getPass()) {
+				std::cout << "YOUR PASSWORD MATCHES THE SERVED PASSWORD!!!!" << std::endl;
+                // Set client registered status to true
+                client.setRegistered(true);
+                // Send success message to the client
+                std::string successMessage = ":server 001 " + client.getNick() + " :You have successfully logged in, " + client.getNick() + "!\r\n";
+                client.sendToClient(successMessage);
+                // You can also perform additional actions after successful login if needed
+                std::cout << "User " << client.getNick() << " has successfully logged in." << std::endl;
+            } else {
+                // Send error message to the client for incorrect password
+                client.sendToClient(":server 464 " + client.getNick() + " :Password incorrect\r\n");
+                std::cout << "User " << client.getNick() << " failed to log in. Incorrect password." << std::endl;
+            }
+	}
+	else if (command[0] == "nick")
 	{
 		std::string newNick;
 		if (spacePos != std::string::npos)
@@ -109,27 +155,7 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 		}
 	}
 
-	else if (command == "/pass")
-	{
-		std::string password = input.substr(spacePos + 1);
-
-		// Compare the provided password with the server password
-		if (password == ircServer.getPass())
-		{
-			std::cout << "PASSWORD IS CORRECT!!!!" << std::endl;
-			client.setRegistered(true);
-			client.sendToClient(":server 001 " + client.getNick() + " :Welcome to the IRC server, " + client.getNick() + "!\r\n");
-			std::cout << "User " << client.getNick() << " has successfully registered." << std::endl;
-		}
-		else
-		{
-			std::cout << "PASSWORD IS NOT CORRECT!!!!" << std::endl;
-			client.sendToClient(":server 464 " + client.getNick() + " :Password incorrect\r\n");
-			std::cout << "User " << client.getNick() << " failed to register. Incorrect password." << std::endl;
-		}
-	}
-
-	else if (command == "/quit")
+	else if (command[0] == "quit")
 	{
 		std::string quitMessage = input.substr(spacePos + 1);
 
@@ -157,7 +183,7 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 		std::cout << "User " << client.getNick() << " has quit the server." << std::endl;
 	}
 
-	else if (command == "/user")
+	else if (command[0] == "user")
 	{
 		std::string parameters = input.substr(spacePos + 1);
 		size_t secondSpacePos = parameters.find(' ');
@@ -185,13 +211,13 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 		}
 	}
 
-	else if (command == "/list")
+	else if (command[0] == "list")
 	{
 		std::cout << "Executing /list for " << client.getNick() << std::endl;
 		sendChannelList(client, channels);
 		return;
 	}
-	else if (command == "/create")
+	else if (command[0] == "create")
 	{
 		std::string channelName = input.substr(spacePos + 1);
 		bool channelExists = false;
@@ -232,7 +258,7 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 		}
 	}
 
-	else if (command == "/join")
+	else if (command[0] == "join")
 	{
 		std::string channelName = input.substr(spacePos + 1);
 		bool alreadyInChannel = false;
@@ -280,7 +306,7 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 		}
 	}
 
-	else if (command == "/leave")
+	else if (command[0] == "leave")
 	{
 		std::string channelName = input.substr(spacePos + 1);
 		auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
