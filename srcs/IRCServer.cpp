@@ -1,7 +1,23 @@
 #include "./../incs/IRCServer.hpp" // Include your IRCServer.hpp file after the necessary system
+#include "IRCServer.hpp"
 
-IRCServer::IRCServer(int port, const std::string &password) : port(port), password(password), clients(), command(clients, *this)
+#include "Command.hpp"
+
+class IRCServer;
+
+IRCServer::IRCServer(int port, const std::string &password)
+	: active_users(0),
+	  port(port),
+	  clients(),
+	  password(password),
+	  command(clients, *this),
+	  server_listening_socket(0),
+	  IP(),
+	  socket_address(),
+	  channels(),
+	  welcomeMessage("Welcome to the IRC server!")
 {
+	// Rest of your constructor implementation
 }
 
 std::string IRCServer::getPass()
@@ -137,51 +153,51 @@ std::string IRCServer::addClientSocket(int clientSocket)
 
 void IRCServer::startServer()
 {
-    std::vector<char> buffer(2048);
+	std::vector<char> buffer(2048);
 
-    while (true)
-    {
-        int readySockets;
-        int max_socket_fd;
-        int client_socket;
-        std::string username;
-        std::string welcomeMessage;
-        std::string motdMessage;
-        std::string motdContent;
-        std::string endMotdMessage;
-        int bytes_received;
-        fd_set fd_pack;
-        FD_ZERO(&fd_pack);
-        FD_SET(server_listening_socket, &fd_pack);
+	while (true)
+	{
+		int readySockets;
+		int max_socket_fd;
+		int client_socket;
+		std::string username;
+		std::string welcomeMessage;
+		std::string motdMessage;
+		std::string motdContent;
+		std::string endMotdMessage;
+		int bytes_received;
+		fd_set fd_pack;
+		FD_ZERO(&fd_pack);
+		FD_SET(server_listening_socket, &fd_pack);
 
-        max_socket_fd = updateMaxSocketDescriptor();
+		max_socket_fd = updateMaxSocketDescriptor();
 
-        for (const auto &User : clients)
-        {
-            FD_SET(User.getSocketDescriptor(), &fd_pack);
-        }
+		for (const auto &User : clients)
+		{
+			FD_SET(User.getSocketDescriptor(), &fd_pack);
+		}
 
-        readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
+		readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
 
-        if (readySockets == -1)
-        {
-            std::cerr << "Error: Failed to select sockets: " << strerror(errno) << std::endl;
-            break;
-        }
+		if (readySockets == -1)
+		{
+			std::cerr << "Error: Failed to select sockets: " << strerror(errno) << std::endl;
+			break;
+		}
 
-        if (FD_ISSET(server_listening_socket, &fd_pack))
-        {
-            client_socket = accept(server_listening_socket, NULL, NULL);
+		if (FD_ISSET(server_listening_socket, &fd_pack))
+		{
+			client_socket = accept(server_listening_socket, NULL, NULL);
 
-            if (client_socket == -1)
-            {
-                std::cerr << "Error: Failed to accept client connection: " << strerror(errno) << std::endl;
-                continue;
-            }
-            else
-            {
-                username = addClientSocket(client_socket);
-                std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
+			if (client_socket == -1)
+			{
+				std::cerr << "Error: Failed to accept client connection: " << strerror(errno) << std::endl;
+				continue;
+			}
+			else
+			{
+				username = addClientSocket(client_socket);
+				std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
 
 				// Send IRC welcome messages to the client
 				welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
@@ -197,57 +213,57 @@ void IRCServer::startServer()
 			}
 		}
 
-        // For each connected client, check if everything is set up and if they sent data.
-        for (auto it = clients.begin(); it != clients.end();)
-        {
-            client_socket = it->getSocketDescriptor();
+		// For each connected client, check if everything is set up and if they sent data.
+		for (auto it = clients.begin(); it != clients.end();)
+		{
+			client_socket = it->getSocketDescriptor();
 
-            if (FD_ISSET(client_socket, &fd_pack))
-            {
-                bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
+			if (FD_ISSET(client_socket, &fd_pack))
+			{
+				bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
 
-                if (bytes_received <= 0)
-                {
-                    if (bytes_received == 0)
-                    {
-                        std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
-                    }
-                    else
-                    {
-                        std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
-                    }
-                    close(client_socket);
-                    it = clients.erase(it); // Remove the client from the list
-                    continue;
-                }
+				if (bytes_received <= 0)
+				{
+					if (bytes_received == 0)
+					{
+						std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
+					}
+					else
+					{
+						std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
+					}
+					close(client_socket);
+					it = clients.erase(it); // Remove the client from the list
+					continue;
+				}
 
-                // Append received data to the client's buffer
-                it->getBuff().append(buffer.data(), bytes_received);
+				// Append received data to the client's buffer
+				it->getBuff().append(buffer.data(), bytes_received);
 
-                // Process complete messages in the buffer
-                size_t newlinePos;
-                while ((newlinePos = it->getBuff().find('\n')) != std::string::npos)
-                {
-                    std::string complete_command = it->getBuff().substr(0, newlinePos);
+				// Process complete messages in the buffer
+				size_t newlinePos;
+				while ((newlinePos = it->getBuff().find('\n')) != std::string::npos)
+				{
+					std::string complete_command = it->getBuff().substr(0, newlinePos);
 
-                    std::cout << "Command received, socket fd : " << client_socket << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
-                    command.process(complete_command, *it);
+					std::cout << "Command received, socket fd : " << client_socket << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
+					command.commandHandler(complete_command, *it);
 
-                    // Remove processed message from the buffer
-                    it->getBuff().erase(0, newlinePos + 1);
-                }
+					// Remove processed message from the buffer
+					it->getBuff().erase(0, newlinePos + 1);
+				}
 
-                // Check if the buffer size exceeds the allowed limit
-                if (it->getBuff().size() > BUFF_LIMIT)
-                {
-                    std::string errorMessage = "ERROR : Message size exceeds the allowed limit.\r\n";
-                    send(client_socket, errorMessage.c_str(), errorMessage.size(), 0);
+				// Check if the buffer size exceeds the allowed limit
+				if (it->getBuff().size() > BUFF_LIMIT)
+				{
+					std::string errorMessage = "ERROR : Message size exceeds the allowed limit.\r\n";
+					send(client_socket, errorMessage.c_str(), errorMessage.size(), 0);
 
-                    // Clear the buffer to avoid further processing of this message
-                    it->getBuff().clear();
-                }
-            }
-            it++;
-        }
-    }
+					// Clear the buffer to avoid further processing of this message
+					it->getBuff().clear();
+				}
+			}
+			it++;
+		}
+	}
 }

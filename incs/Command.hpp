@@ -1,34 +1,43 @@
 // Command.hpp
+
 #ifndef COMMAND_HPP
 #define COMMAND_HPP
 
 #include <iostream>
-#include <string>
 #include <vector>
+#include <string>
+#include "User.hpp"
+#include "Channel.hpp"
+#include "User.hpp"
+#include "Channel.hpp"
+#include <vector>
+#include <string>
 
 class IRCServer; // Forward declaration of IRCServer class
-class User;
-class Channel; // Forward declaration of Channel class
 
 class Command
 {
-private:
-    std::vector<User> &clients;
-    IRCServer &ircServer;
-    std::vector<Channel> channels; // Store channels directly in the Command class
-
 public:
-    ~Command();
-    Command(std::vector<User> &clients, IRCServer &server);
+	Command(std::vector<User> &clients, IRCServer &server);
+	~Command();
+	void addChannel(const std::string &channelName);
+	void commandHandler(const std::string &input, User &client);
 
-    void process(const std::string &input, User &user);
-    void sendChannelList(User &user);
-    void sendNumericReply(User &user, int numericCode, const std::string &message);
+private:
+	std::vector<User> &clients;
+	std::vector<Channel> channels;
+	IRCServer &ircServer;
 
-    // Add methods for channel management within the Command class
-    void addChannel(const std::string &channelName);
-    bool joinChannel(const std::string &channelName, User &user);
-    bool leaveChannel(const std::string &channelName, User &user);
+	void handlePassCommand(const std::vector<std::string> &command, User &client);
+	void handleNickCommand(const std::vector<std::string> &command, User &client);
+	void handleListCommand(const std::vector<std::string> &command, User &client);
+
+	void handleUserCommand(const std::vector<std::string> &command, User &client);
+	void handleQuitCommand(const std::vector<std::string> &command, User &client);
+	void handleJoinCommand(const std::vector<std::string> &command, User &client);
+	void handleLeaveCommand(const std::vector<std::string> &command, User &client);
+	void handleCreateCommand(const std::vector<std::string> &command, User &client);
+	void sendChannelList(User &user);
 };
 
 #endif // COMMAND_HPP
