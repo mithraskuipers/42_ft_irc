@@ -274,6 +274,9 @@ void Command::sendChannelList(User &user)
 void Command::commandHandler(const std::string &input, User &client)
 {
 	// Split the input into command and arguments
+
+	std::cout << "DEBUG: commandHandler raw input: " << input << std::endl;
+
 	std::vector<std::string> command;
 	size_t spacePos = input.find(' ');
 	command.push_back(input.substr(0, spacePos)); // Extract the command
@@ -283,35 +286,35 @@ void Command::commandHandler(const std::string &input, User &client)
 		command.push_back(input.substr(spacePos + 1)); // Extract the arguments
 	}
 
-	if (command[0] == "pass")
+	if (command[0] == "/pass")
 	{
 		handlePassCommand(command, client);
 	}
-	else if (command[0] == "nick")
+	else if (command[0] == "/nick")
 	{
 		handleNickCommand(command, client);
 	}
-	else if (command[0] == "user")
+	else if (command[0] == "/user")
 	{
 		handleUserCommand(command, client);
 	}
-	else if (command[0] == "quit")
+	else if (command[0] == "/quit")
 	{
 		handleQuitCommand(command, client);
 	}
-	else if (command[0] == "join")
+	else if (command[0] == "/join")
 	{
 		handleJoinCommand(command, client);
 	}
-	else if (command[0] == "leave")
+	else if (command[0] == "/leave")
 	{
 		handleLeaveCommand(command, client);
 	}
-	else if (command[0] == "list")
+	else if (command[0] == "/list")
 	{
 		handleListCommand(command, client);
 	}
-	else if (command[0] == "create")
+	else if (command[0] == "/create")
 	{
 		handleCreateCommand(command, client);
 	}
