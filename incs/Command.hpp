@@ -22,6 +22,8 @@ public:
 	~Command();
 	void addChannel(const std::string &channelName);
 	void commandHandler(const std::string &input, User &client);
+	bool leaveChannel(const std::string &channelName, User &user);
+	bool joinChannel(const std::string &channelName, User &user);
 
 private:
 	std::vector<User> &clients;

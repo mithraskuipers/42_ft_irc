@@ -19,11 +19,6 @@ Command::~Command()
 	// Destructor implementation
 }
 
-void Command::addChannel(const std::string &channelName)
-{
-	Channel newChannel(channelName);
-	channels.push_back(newChannel);
-}
 
 void Command::handlePassCommand(const std::vector<std::string> &command, User &client)
 {
@@ -210,11 +205,63 @@ void Command::handleLeaveCommand(const std::vector<std::string> &command, User &
 	}
 }
 
+void Command::addChannel(const std::string &channelName)
+{
+	Channel newChannel(channelName);
+	channels.push_back(newChannel);
+}
+
+bool Command::joinChannel(const std::string &channelName, User &user)
+{
+	for (auto &channel : channels)
+	{
+		if (channel.getName() == channelName)
+		{
+			channel.addUser(&user);
+			return true; // Successfully joined the channel
+		}
+	}
+	return false; // Channel not found
+}
+
+bool Command::leaveChannel(const std::string &channelName, User &user)
+{
+	auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
+						   { return channel.getName() == channelName; });
+
+	if (it != channels.end())
+	{
+		it->removeUser(&user);
+		return true; // Successfully left the channel
+	}
+	return false; // Channel not found
+}
+
+void Command::sendChannelList(User &user)
+{
+	if (channels.empty())
+	{
+		user.sendToClient("There are no channels in this server.\n");
+	}
+	else
+	{
+		std::string channelList = "Channel List:\n";
+		for (const auto &channel : channels)
+		{
+			channelList += channel.getName() + " (" + std::to_string(channel.getUsersCount()) + " users)\n";
+		}
+		user.sendToClient(channelList);
+	}
+}
+
 void Command::handleListCommand(const std::vector<std::string> &command, User &client)
 {
-	(void)command;
-	(void)client;
+    (void)command; // Unused parameter
+
+    // Send the list of active channels to the client
+    sendChannelList(client);
 }
+
 
 void Command::handleCreateCommand(const std::vector<std::string> &command, User &client)
 {
@@ -254,22 +301,7 @@ void Command::handleCreateCommand(const std::vector<std::string> &command, User 
 	}
 }
 
-void Command::sendChannelList(User &user)
-{
-	if (channels.empty())
-	{
-		user.sendToClient("There are no channels in this server.\n");
-	}
-	else
-	{
-		std::string channelList = "Channel List:\n";
-		for (const auto &channel : channels)
-		{
-			channelList += channel.getName() + " (" + std::to_string(channel.getUsersCount()) + " users)\n";
-		}
-		user.sendToClient(channelList);
-	}
-}
+
 
 void Command::commandHandler(const std::string &input, User &client)
 {
