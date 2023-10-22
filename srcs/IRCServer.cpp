@@ -214,7 +214,7 @@ void IRCServer::start() {
 
                     // Process the complete command
                     std::cout << "Command received, socket fd : " << socket_descriptor << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
-                    command.process(complete_command, *it, channels);
+                    command.process(complete_command, *it);
 
                     // Remove processed message from the buffer
                     it->getBuff().erase(0, newlinePos + 1);

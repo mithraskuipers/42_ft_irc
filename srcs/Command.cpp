@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/21 20:49:19 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/22 15:09:01 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/22 15:34:46 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,7 +31,39 @@ Command::~Command()
 	// Destructor implementation
 }
 
-void Command::sendChannelList(User &user, const std::vector<Channel> &channels)
+void Command::addChannel(const std::string &channelName)
+{
+	Channel newChannel(channelName);
+	channels.push_back(newChannel);
+}
+
+bool Command::joinChannel(const std::string &channelName, User &user)
+{
+	for (auto &channel : channels)
+	{
+		if (channel.getName() == channelName)
+		{
+			channel.addUser(&user);
+			return true; // Successfully joined the channel
+		}
+	}
+	return false; // Channel not found
+}
+
+bool Command::leaveChannel(const std::string &channelName, User &user)
+{
+	auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
+						   { return channel.getName() == channelName; });
+
+	if (it != channels.end())
+	{
+		it->removeUser(&user);
+		return true; // Successfully left the channel
+	}
+	return false; // Channel not found
+}
+
+void Command::sendChannelList(User &user)
 {
 	if (channels.empty())
 	{
@@ -48,7 +80,7 @@ void Command::sendChannelList(User &user, const std::vector<Channel> &channels)
 	}
 }
 
-void Command::process(const std::string &input, User &client, std::vector<Channel> &channels)
+void Command::process(const std::string &input, User &client)
 {
 	// Split the input into command and arguments
 	std::vector<std::string> command;
@@ -224,7 +256,7 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 	else if (command[0] == "list")
 	{
 		std::cout << "Executing /list for " << client.getNick() << std::endl;
-		sendChannelList(client, channels);
+		sendChannelList(client);
 		return;
 	}
 	else if (command[0] == "create")
