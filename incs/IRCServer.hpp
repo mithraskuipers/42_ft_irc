@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/09/01 17:56:34 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/22 20:36:15 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/22 21:22:02 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,11 @@ public:
 	void startServer(); // start server
 	void getHostIP();	// get host ip
 	std::string getIP() const;
+	User& getClientByUsername(const std::string &username);
+
+	std::string getClientIP(int clientSocket);
+    int getClientPort(int clientSocket);
+    std::string usernameFromSocket(int clientSocket);
 	int updateMaxSocketDescriptor();
 	int getPort() const;
 	std::string addClientSocket(int clientSocket); // Update the declaration

@@ -14,8 +14,8 @@
 				+ Second param specifies max number of queued connections.
 	+ this->startServer()
 		+ Starts server. Responsible to handling incoming client connections and managing data transfer.
-			+ select()
-				+ Monitors multiple fd for read readiness. Iterates over all fd that it monitors. When knowing max descriptor value, it can efficiently loop through the descriptors.
+			+ poll()
+				+ Monitors multiple fd for read readiness. Waits until an event occurs on any of the specified file descriptors. (poll() is bit similar to select()).
 			+ accept()
 				+ System call to accept new incoming connection from a client. Creates new socket descriptor for that specific client.
 			+ send()

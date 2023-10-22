@@ -94,6 +94,43 @@ std::string IRCServer::generateRandomCode()
 	return randomCode;
 }
 
+std::string IRCServer::getClientIP(int clientSocket)
+{
+    for (const auto &user : clients)
+    {
+        if (user.getSocketDescriptor() == clientSocket)
+        {
+            return user.getIP();
+        }
+    }
+    return "Unknown IP"; // Return a default value if client IP is not found
+}
+
+int IRCServer::getClientPort(int clientSocket)
+{
+    for (const auto &user : clients)
+    {
+        if (user.getSocketDescriptor() == clientSocket)
+        {
+            return user.getPort();
+        }
+    }
+    return 0; // Return a default value if client port is not found
+}
+
+std::string IRCServer::usernameFromSocket(int clientSocket)
+{
+    for (const auto &user : clients)
+    {
+        if (user.getSocketDescriptor() == clientSocket)
+        {
+            return user.getNick();
+        }
+    }
+    return "UnknownUsername"; // Return a default value if username is not found
+}
+
+
 /*
 isNicknameInUse() checks if a username has already been taken.
 */
@@ -151,119 +188,122 @@ std::string IRCServer::addClientSocket(int clientSocket)
 	return (username);
 }
 
+User& IRCServer::getClientByUsername(const std::string &username)
+{
+    for (auto &user : clients)
+    {
+        if (user.getNick() == username)
+        {
+            return user;
+        }
+    }
+    // Handle this case according to your application logic
+    throw std::runtime_error("User not found with the specified username");
+}
+
+
+#include <poll.h>
+
 void IRCServer::startServer()
 {
-	std::vector<char> buffer(2048);
+    std::vector<char> buffer(2048);
 
-	while (true)
-	{
-		int readySockets;
-		int max_socket_fd;
-		int client_socket;
-		std::string username;
-		std::string welcomeMessage;
-		std::string motdMessage;
-		std::string motdContent;
-		std::string endMotdMessage;
-		int bytes_received;
-		fd_set fd_pack;
-		FD_ZERO(&fd_pack);
-		FD_SET(server_listening_socket, &fd_pack);
+    while (true)
+    {
+        int readySockets;
+        // int max_socket_fd;
+        int client_socket;
+        std::string username;
+        std::string welcomeMessage;
+        std::string motdMessage;
+        std::string motdContent;
+        std::string endMotdMessage;
+        int bytes_received;
+        std::vector<pollfd> fds;
+        pollfd serverSocket;
+        serverSocket.fd = server_listening_socket;
+        serverSocket.events = POLLIN;
+        fds.push_back(serverSocket);
 
-		max_socket_fd = updateMaxSocketDescriptor();
+        for (const auto &User : clients)
+        {
+            pollfd clientSocket;
+            clientSocket.fd = User.getSocketDescriptor();
+            clientSocket.events = POLLIN;
+            fds.push_back(clientSocket);
+        }
 
-		for (const auto &User : clients)
-		{
-			FD_SET(User.getSocketDescriptor(), &fd_pack);
-		}
+        readySockets = poll(fds.data(), fds.size(), -1);
 
-		readySockets = select(max_socket_fd + 1, &fd_pack, NULL, NULL, NULL);
+        if (readySockets == -1)
+        {
+            std::cerr << "Error: Failed to poll sockets: " << strerror(errno) << std::endl;
+            break;
+        }
 
-		if (readySockets == -1)
-		{
-			std::cerr << "Error: Failed to select sockets: " << strerror(errno) << std::endl;
-			break;
-		}
+        for (size_t i = 0; i < fds.size(); ++i)
+        {
+            if (fds[i].revents & POLLIN)
+            {
+                // Handle server socket (new connection)
+                if (fds[i].fd == server_listening_socket)
+                {
+                    client_socket = accept(server_listening_socket, NULL, NULL);
 
-		if (FD_ISSET(server_listening_socket, &fd_pack))
-		{
-			client_socket = accept(server_listening_socket, NULL, NULL);
+                    if (client_socket == -1)
+                    {
+                        std::cerr << "Error: Failed to accept client connection: " << strerror(errno) << std::endl;
+                        continue;
+                    }
+                    else
+                    {
+                        username = addClientSocket(client_socket);
+                        std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
 
-			if (client_socket == -1)
-			{
-				std::cerr << "Error: Failed to accept client connection: " << strerror(errno) << std::endl;
-				continue;
-			}
-			else
-			{
-				username = addClientSocket(client_socket);
-				std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
+                        // Send IRC welcome messages to the client
+                        welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
+                        send(client_socket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
 
-				// Send IRC welcome messages to the client
-				welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
-				send(client_socket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
+                        // Send Message of the Day message to client
+                        motdMessage = ":" + std::string(SERVER_NAME) + " 375 " + username + " :- " + std::string(SERVER_NAME) + " Message of the Day -\r\n";
+                        send(client_socket, motdMessage.c_str(), motdMessage.size(), 0);
+                        motdContent = ":" + std::string(SERVER_NAME) + " 372 " + username + " :- Welcome to our awesome IRC server! yugioh > magic!!! Enjoy your stay.\r\n";
+                        send(client_socket, motdContent.c_str(), motdContent.size(), 0);
+                        endMotdMessage = ":" + std::string(SERVER_NAME) + " 376 " + username + " :End of /MOTD command.\r\n";
+                        send(client_socket, endMotdMessage.c_str(), endMotdMessage.size(), 0);
+                    }
+                }
+                // Handle client sockets for incoming data
+                else
+                {
+                    client_socket = fds[i].fd;
+                    bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
 
-				// Send Message of the Day message to client
-				motdMessage = ":" + std::string(SERVER_NAME) + " 375 " + username + " :- " + std::string(SERVER_NAME) + " Message of the Day -\r\n";
-				send(client_socket, motdMessage.c_str(), motdMessage.size(), 0);
-				motdContent = ":" + std::string(SERVER_NAME) + " 372 " + username + " :- Welcome to our awesome IRC server! yugioh > magic!!! Enjoy your stay.\r\n";
-				send(client_socket, motdContent.c_str(), motdContent.size(), 0);
-				endMotdMessage = ":" + std::string(SERVER_NAME) + " 376 " + username + " :End of /MOTD command.\r\n";
-				send(client_socket, endMotdMessage.c_str(), endMotdMessage.size(), 0);
-			}
-		}
+                    if (bytes_received <= 0)
+                    {
+                        if (bytes_received == 0)
+                        {
+                            std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
+                        }
+                        else
+                        {
+                            std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
+                        }
+                        close(client_socket);
+                        auto it = std::remove_if(clients.begin(), clients.end(), [client_socket](const User &user) {
+                            return user.getSocketDescriptor() == client_socket;
+                        });
+                        clients.erase(it, clients.end()); // Remove the client from the list
+                        continue;
+                    }
 
-		// For each connected client, check if everything is set up and if they sent data.
-		for (auto it = clients.begin(); it != clients.end();)
-		{
-			client_socket = it->getSocketDescriptor();
+                    // Process received data from the client
+                    std::string complete_command(buffer.data(), bytes_received);
+                    std::cout << "Command received, socket fd: " << client_socket << ", IP: " << getClientIP(client_socket) << ", port: " << getClientPort(client_socket) << std::endl;
+					command.commandHandler(complete_command, getClientByUsername(usernameFromSocket(client_socket)));
 
-			if (FD_ISSET(client_socket, &fd_pack))
-			{
-				bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
-
-				if (bytes_received <= 0)
-				{
-					if (bytes_received == 0)
-					{
-						std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
-					}
-					else
-					{
-						std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
-					}
-					close(client_socket);
-					it = clients.erase(it); // Remove the client from the list
-					continue;
-				}
-
-				// Append received data to the client's buffer
-				it->getBuff().append(buffer.data(), bytes_received);
-
-				// Process complete messages in the buffer
-				size_t newlinePos;
-				while ((newlinePos = it->getBuff().find('\n')) != std::string::npos)
-				{
-					std::string complete_command = it->getBuff().substr(0, newlinePos);
-
-					std::cout << "Command received, socket fd : " << client_socket << ", IP : " << it->getIP() << ", port : " << it->getPort() << std::endl;
-					command.commandHandler(complete_command, *it);
-
-					// Remove processed message from the buffer
-					it->getBuff().erase(0, newlinePos + 1);
-				}
-
-				// Check if the buffer size exceeds the allowed limit
-				if (it->getBuff().size() > BUFF_LIMIT)
-				{
-					std::string errorMessage = "ERROR : Message size exceeds the allowed limit.\r\n";
-					send(client_socket, errorMessage.c_str(), errorMessage.size(), 0);
-
-					// Clear the buffer to avoid further processing of this message
-					it->getBuff().clear();
-				}
-			}
-			it++;
-		}
-	}
+                }
+            }
+        }
+    }
 }
