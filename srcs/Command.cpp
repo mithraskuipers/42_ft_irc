@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/21 20:49:19 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/22 10:51:49 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/22 15:09:01 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,68 +48,72 @@ void Command::sendChannelList(User &user, const std::vector<Channel> &channels)
 	}
 }
 
-
 void Command::process(const std::string &input, User &client, std::vector<Channel> &channels)
 {
 	// Split the input into command and arguments
 	std::vector<std::string> command;
 	size_t spacePos = input.find(' ');
 	command.push_back(input.substr(0, spacePos)); // Extract the command
-	
-	if (spacePos != std::string::npos) {
-	    command.push_back(input.substr(spacePos + 1)); // Extract the arguments
-	} else {
-	    // No space found, handle this case (send an error message, etc.)
-	    client.sendToClient(":server ERROR :Invalid command format\r\n");
-	    return;
+
+	if (spacePos != std::string::npos)
+	{
+		command.push_back(input.substr(spacePos + 1)); // Extract the arguments
+	}
+	else
+	{
+		// No space found, handle this case (send an error message, etc.)
+		client.sendToClient(":server ERROR :Invalid command format\r\n");
+		return;
 	}
 
-    std::cout << "[DEBUG] [root]: input received: " << input << std::endl;
-    std::cout << "[DEBUG] [command[0]]: input received: " << command[0] << std::endl;
-    std::cout << "[DEBUG] [command[1]]: input received: " << command[1] << std::endl;
+	std::cout << "[DEBUG] [root]: input received: " << input << std::endl;
+	std::cout << "[DEBUG] [command[0]]: input received: " << command[0] << std::endl;
+	std::cout << "[DEBUG] [command[1]]: input received: " << command[1] << std::endl;
 
+	if (command[0] == "pass")
+	{
 
-    if (command[0] == "pass") {
+		std::cout << "command.size():" << command.size() << std::endl;
+		std::string password = command[1];
+		std::cout << "[DEBUG] [/pass]: pass received: " << password << std::endl;
 
-			std::cout << "command.size():" << command.size() << std::endl;
-            std::string password = command[1];
-    		std::cout << "[DEBUG] [/pass]: pass received: " << password << std::endl;
-			
-			std::cout << "[DEBUG] [/pass]: server pass: " << ircServer.getPass() << std::endl;
+		std::cout << "[DEBUG] [/pass]: server pass: " << ircServer.getPass() << std::endl;
 
-			std::cout << "Received Password Length: " << password.length() << std::endl;
-			std::cout << "Server Password Length: " << ircServer.getPass().length() << std::endl;
+		std::cout << "Received Password Length: " << password.length() << std::endl;
+		std::cout << "Server Password Length: " << ircServer.getPass().length() << std::endl;
 
-			// Trim the received password to match the length of the server's password
-			password = password.substr(0, ircServer.getPass().length());
+		// Trim the received password to match the length of the server's password
+		password = password.substr(0, ircServer.getPass().length());
 
-            // Compare the provided password with the server password
-            if (password == ircServer.getPass()) {
-				std::cout << "YOUR PASSWORD MATCHES THE SERVED PASSWORD!!!!" << std::endl;
-                // Set client registered status to true
-                client.setRegistered(true);
-                // Send success message to the client
-                std::string successMessage = ":server 001 " + client.getNick() + " :You have successfully logged in, " + client.getNick() + "!\r\n";
-                client.sendToClient(successMessage);
-                // You can also perform additional actions after successful login if needed
-                std::cout << "User " << client.getNick() << " has successfully logged in." << std::endl;
-            } else {
-                // Send error message to the client for incorrect password
-                client.sendToClient(":server 464 " + client.getNick() + " :Password incorrect\r\n");
-                std::cout << "User " << client.getNick() << " failed to log in. Incorrect password." << std::endl;
-            }
+		// Compare the provided password with the server password
+		if (password == ircServer.getPass())
+		{
+			std::cout << "YOUR PASSWORD MATCHES THE SERVED PASSWORD!!!!" << std::endl;
+			// Set client registered status to true
+			client.setRegistered(true);
+			// Send success message to the client
+			std::string successMessage = ":server 001 " + client.getNick() + " :You have successfully logged in, " + client.getNick() + "!\r\n";
+			client.sendToClient(successMessage);
+			// You can also perform additional actions after successful login if needed
+			std::cout << "User " << client.getNick() << " has successfully logged in." << std::endl;
+		}
+		else
+		{
+			// Send error message to the client for incorrect password
+			client.sendToClient(":server 464 " + client.getNick() + " :Password incorrect\r\n");
+			std::cout << "User " << client.getNick() << " failed to log in. Incorrect password." << std::endl;
+		}
 	}
 	else if (command[0] == "nick")
 	{
 		std::string newNick;
 		if (spacePos != std::string::npos)
 		{
-			newNick = input.substr(spacePos + 1);
-			newNick = newNick.substr(newNick.find_first_not_of(' '));
+			newNick = command[1];
 
 			if (!newNick.empty())
 			{
-				// Check if the nickname is already in use
+				// Check if the new nickname is already in use
 				bool nicknameInUse = false;
 				for (const auto &channel : channels)
 				{
@@ -125,19 +129,25 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 
 				if (!nicknameInUse)
 				{
-					if (client.getNick().empty())
+					std::string oldNick = client.getNick();
+					client.setNick(newNick);
+
+					// Broadcast the nick change to all channels the user is in
+					for (auto &channel : channels)
 					{
-						client.setNick(newNick);
-						client.sendToClient(":" + newNick + " NICK " + newNick + "\r\n");
-						std::cout << "Your nickname has been set to: " << newNick << std::endl;
+						if (channel.isUserInChannel(&client))
+						{
+							std::string nickChangeMessage = ":" + oldNick + " NICK " + newNick + "\r\n";
+							channel.broadcastMessage(nickChangeMessage, &client);
+						}
 					}
-					else
-					{
-						std::string oldNick = client.getNick();
-						client.setNick(newNick);
-						client.sendToClient(":" + oldNick + " NICK " + newNick + "\r\n");
-						std::cout << "Your nickname has been changed from " << oldNick << " to " << newNick << std::endl;
-					}
+
+					client.sendToClient("Your nickname has been changed to: " + newNick + "\n");
+					std::cout << "User " << oldNick << " has changed their nickname to " << newNick << std::endl;
+
+					// Send custom server response after nickname change
+					std::string nickChangeResponse = ":server 001 " + newNick + " :Your new nickname is " + newNick + "\r\n";
+					client.sendToClient(nickChangeResponse);
 				}
 				else
 				{
@@ -221,15 +231,17 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 	{
 		std::string channelName = input.substr(spacePos + 1);
 		bool channelExists = false;
+
+		// Check if the channel already exists
 		for (const auto &channel : channels)
 		{
 			if (channel.getName() == channelName)
 			{
 				channelExists = true;
-				std::cout << "Channel already exists with the name: " << channelName << std::endl;
 				break;
 			}
 		}
+
 		if (!channelExists)
 		{
 			Channel newChannel(channelName);
@@ -254,7 +266,9 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 		}
 		else
 		{
-			client.sendToClient("Channel already exists with the name: " + channelName + "\n");
+			// Send error message to the client if the channel already exists
+			client.sendToClient(":server 403 " + client.getNick() + " " + channelName + " :Channel already exists\r\n");
+			std::cout << "Channel already exists with the name: " << channelName << std::endl;
 		}
 	}
 
@@ -317,16 +331,16 @@ void Command::process(const std::string &input, User &client, std::vector<Channe
 			if (it->isUserInChannel(&client))
 			{
 				it->removeUser(&client);
-				std::cout << "You left channel: " << channelName << std::endl;
+				client.sendToClient("You left channel: " + channelName + "\n");
 			}
 			else
 			{
-				std::cout << "You are not in channel: " << channelName << std::endl;
+				client.sendToClient("You are not in channel: " + channelName + ".\n");
 			}
 		}
 		else
 		{
-			std::cout << "Channel not found: " << channelName << std::endl;
+			client.sendToClient("Channel not found: " + channelName + ".\n");
 		}
 	}
 }

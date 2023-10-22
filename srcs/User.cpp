@@ -57,14 +57,11 @@ void User::send(const std::string &data)
 	}
 }
 
-void User::sendToClient(const std::string &data)
+void User::sendToClient(const std::string &message)
 {
-	ssize_t bytesSent = ::send(socket_descriptor, data.c_str(), data.size(), 0);
-	if (bytesSent == -1)
-	{
-		// Handle error, e.g., print an error message or close the connection
-	}
+    ::send(this->getSocketDescriptor(), message.c_str(), message.length(), 0);
 }
+
 
 // Getter function for the User's IP address
 std::string User::getIP() const

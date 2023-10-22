@@ -28,7 +28,7 @@ public:
 	int getUsersCount() const;
 	bool isUserInChannel(const User* user) const;
 	const std::vector<User*>& getUsers() const {return users;}
-	void broadcastMessage(const std::string& message);
+	void broadcastMessage(const std::string& message, User* sender);
 
 private:
 	std::vector<User *> users;

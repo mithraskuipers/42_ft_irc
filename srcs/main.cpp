@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/22 01:28:28 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/22 14:47:24 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,14 @@ int	main(int argc, char **argv)
 }
 
 /*
+
+Uitleg verbinden irssi:
+irssi
+/connect 127.0.0.1 6667
+
+
+
+
 Uitleg verbinden met Pidgin:
 
 

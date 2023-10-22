@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/21 20:49:24 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/22 01:15:25 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/22 15:08:09 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,11 +26,11 @@ void Channel::addUser(User *user)
 }
 
 
-void Channel::broadcastMessage(const std::string& message)
-{
-    for (auto& user : users)
-    {
-        user->sendToClient(message);
+void Channel::broadcastMessage(const std::string& message, User* sender) {
+    for (auto& user : users) {
+        if (user != sender) {
+            user->sendToClient(message);
+        }
     }
 }
 
