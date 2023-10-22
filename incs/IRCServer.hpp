@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/09/01 17:56:34 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/22 01:24:37 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/22 18:36:56 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ public:
     IRCServer(int port, const std::string &password); // Constructor takes port and password as arguments
     ~IRCServer();
     void initServer();                      // initialize server
-    void start();                           // start server
+    void startServer();                           // start server
     void getHostIP();                       // get host ip
     std::string getIP() const;
     int updateMaxSocketDescriptor();
