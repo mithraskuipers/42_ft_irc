@@ -9,16 +9,9 @@
 
 class IRCServer; // Forward declaration of IRCServer class
 
-Command::Command(std::vector<User> &clients, IRCServer &server) : clients(clients), ircServer(server)
-{
-	// Constructor implementation
-}
+Command::Command(std::vector<User> &clients, IRCServer &server) : clients(clients), ircServer(server) {}
 
-Command::~Command()
-{
-	// Destructor implementation
-}
-
+Command::~Command() {}
 
 void Command::handlePassCommand(const std::vector<std::string> &command, User &client)
 {
@@ -115,7 +108,15 @@ void Command::handleUserCommand(const std::vector<std::string> &command, User &c
 
 void Command::handleQuitCommand(const std::vector<std::string> &command, User &client)
 {
-	std::string quitMessage = command.size() >= 2 ? command[1] : "Client Quit";
+	std::string quitMessage;
+	if (command.size() >= 2)
+	{
+		quitMessage = command[1];
+	}
+	else
+	{
+		quitMessage = "Client quit";
+	}
 
 	auto iterator = std::find_if(clients.begin(), clients.end(), [&client](const User &user)
 								 { return user.getSocketDescriptor() == client.getSocketDescriptor(); });

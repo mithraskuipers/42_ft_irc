@@ -5,20 +5,7 @@
 
 class IRCServer;
 
-IRCServer::IRCServer(int port, const std::string &password)
-	: active_users(0),
-	  port(port),
-	  clients(),
-	  password(password),
-	  command(clients, *this),
-	  server_listening_socket(0),
-	  IP(),
-	  socket_address(),
-	  channels(),
-	  welcomeMessage("Welcome to the IRC server!")
-{
-	// Rest of your constructor implementation
-}
+IRCServer::IRCServer(int port, const std::string &password) : active_users(0), port(port), clients(), password(password), command(clients, *this), server_listening_socket(0), IP(), socket_address(), channels(), welcomeMessage("Welcome to the IRC server!") {}
 
 std::string IRCServer::getPass()
 {
@@ -115,7 +102,7 @@ int IRCServer::getClientPort(int clientSocket)
             return user.getPort();
         }
     }
-    return 0; // Return a default value if client port is not found
+    return 0; // IP niet gevonden
 }
 
 std::string IRCServer::usernameFromSocket(int clientSocket)
@@ -127,7 +114,7 @@ std::string IRCServer::usernameFromSocket(int clientSocket)
             return user.getNick();
         }
     }
-    return "UnknownUsername"; // Return a default value if username is not found
+    return "UnknownUsername"; // Username niet gevonden
 }
 
 
@@ -211,7 +198,7 @@ void IRCServer::startServer()
     while (true)
     {
         int readySockets;
-        // int max_socket_fd;
+        // int max_socket_fd; // niet meer nodig bij poll(), wel nodig voor select() (voorganger)
         int client_socket;
         std::string username;
         std::string welcomeMessage;
