@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:12:24 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/22 19:52:33 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 19:33:18 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,12 +14,12 @@
 
 #include <iostream>
 #include <cstdlib> // atoi
-#include "IRCServer.hpp"
+#include "Server.hpp"
 #include <cstdio> // printf
 #include "splash.hpp"
 #include <unistd.h>
 #include <algorithm>
-#include "User.hpp"
+#include "Client.hpp"
 #include "Command.hpp"
 #include "Channel.hpp"
 #include <cstring> // string.h
@@ -33,7 +33,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <netdb.h>
-#include "./../incs/IRCServer.hpp"
+#include "./../incs/Server.hpp"
 #include <cstdlib>
 #include <ctime>
 #include "./../incs/splash.hpp"

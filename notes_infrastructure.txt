@@ -1,4 +1,4 @@
-+ [IRCServer]
++ [Server]
 	+ this->initServer()
 		+ Initializes the server
 			+ socket()

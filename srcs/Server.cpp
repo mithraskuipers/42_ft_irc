@@ -1,23 +1,41 @@
-#include "./../incs/IRCServer.hpp" // Include your IRCServer.hpp file after the necessary system
-#include "IRCServer.hpp"
 
-#include "Command.hpp"
 #include <poll.h>
+#include "./../incs/Server.hpp"
+#include "./../incs/Command.hpp"
+#include "./../incs/Client.hpp"
+#include "./../incs/Channel.hpp"
 
-class IRCServer;
 
-IRCServer::IRCServer(int port, const std::string &password) : active_users(0), port(port), clients(), password(password), command(clients, *this), server_listening_socket(0), IP(), socket_address(), channels(), welcomeMessage("Welcome to the IRC server!") {}
+class Server;
 
-std::string IRCServer::getPass()
+
+
+Server::Server(int port, const std::string &password)
+    : password(password),
+      active_users(0),
+      port(port),
+      command(clients, channels, *this),  // Pass clients and channels vectors and a reference to the current server object
+      server_listening_socket(/* initialize your listening socket here */),
+      IP(/* initialize your IP here */),
+      socket_address(/* initialize your socket address here */),
+      clients(/* initialize your clients vector here */),
+      channels(/* initialize your channels vector here */),
+      welcomeMessage("Welcome to the IRC server!")
+{
+    // Your constructor implementation
+}
+
+
+std::string Server::getPass()
 {
 	return (this->password);
 }
 
-IRCServer::~IRCServer()
+Server::~Server()
 {
 }
 
-void IRCServer::getHostIP()
+void Server::getHostIP()
 {
 	char host[256];
 	gethostname(host, sizeof(host));
@@ -28,7 +46,7 @@ void IRCServer::getHostIP()
 	this->IP = inet_ntoa(*((struct in_addr *)host_entry->h_addr_list[0]));
 }
 
-void IRCServer::initServer()
+void Server::initServer()
 {
 	int opt = 1;
 	this->server_listening_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -67,7 +85,7 @@ void IRCServer::initServer()
 /*
 generateRandomCode() for creating a random code for the "Guest" username.
 */
-std::string IRCServer::generateRandomCode()
+std::string Server::generateRandomCode()
 {
 	std::string randomCode;
 	srand(time(0)); // Seed for random number generation based on current time
@@ -82,7 +100,7 @@ std::string IRCServer::generateRandomCode()
 	return randomCode;
 }
 
-std::string IRCServer::getClientIP(int clientSocket)
+std::string Server::getClientIP(int clientSocket)
 {
 	for (const auto &user : clients)
 	{
@@ -94,7 +112,7 @@ std::string IRCServer::getClientIP(int clientSocket)
 	return ("Unknown IP"); // Return a default value if client IP is not found
 }
 
-int IRCServer::getClientPort(int clientSocket)
+int Server::getClientPort(int clientSocket)
 {
 	for (const auto &user : clients)
 	{
@@ -106,7 +124,7 @@ int IRCServer::getClientPort(int clientSocket)
 	return 0; // IP niet gevonden
 }
 
-std::string IRCServer::usernameFromSocket(int clientSocket)
+std::string Server::usernameFromSocket(int clientSocket)
 {
 	for (const auto &user : clients)
 	{
@@ -121,11 +139,11 @@ std::string IRCServer::usernameFromSocket(int clientSocket)
 /*
 isNicknameInUse() checks if a username has already been taken.
 */
-int IRCServer::isNicknameInUse(const std::string &nickname) const
+int Server::isNicknameInUse(const std::string &nickname) const
 {
-	for (const auto &User : clients)
+	for (const auto &Client : clients)
 	{
-		if (User.getNick() == nickname)
+		if (Client.getNick() == nickname)
 		{
 			return (1);
 		}
@@ -137,15 +155,15 @@ int IRCServer::isNicknameInUse(const std::string &nickname) const
 updateMaxSocketDescriptor() Finds maximum socket descriptor value among all connected clients.
 Essential for select(), which is used to monitor multiple file descriptors for read readiness.
 */
-int IRCServer::updateMaxSocketDescriptor()
+int Server::updateMaxSocketDescriptor()
 {
 	int maxSocket = server_listening_socket;
 
-	for (const auto &User : clients)
+	for (const auto &Client : clients)
 	{
-		if (User.getSocketDescriptor() > maxSocket)
+		if (Client.getSocketDescriptor() > maxSocket)
 		{
-			maxSocket = User.getSocketDescriptor();
+			maxSocket = Client.getSocketDescriptor();
 		}
 	}
 	return (maxSocket);
@@ -154,7 +172,7 @@ int IRCServer::updateMaxSocketDescriptor()
 
 
 
-std::string IRCServer::addClientSocket(int clientSocket)
+std::string Server::addClientSocket(int clientSocket)
 {
     std::string welcomeMessage;
     const std::string defaultNickname = "Guest";
@@ -162,7 +180,7 @@ std::string IRCServer::addClientSocket(int clientSocket)
     std::string username = defaultNickname + randomCode;
 
     // Check if the client already exists in clients vector
-    auto existingClient = std::find_if(clients.begin(), clients.end(), [clientSocket](const User &user) {
+    auto existingClient = std::find_if(clients.begin(), clients.end(), [clientSocket](const Client &user) {
         return user.getSocketDescriptor() == clientSocket;
     });
 
@@ -180,7 +198,7 @@ std::string IRCServer::addClientSocket(int clientSocket)
         username = defaultNickname + randomCode;
     }
 
-    clients.push_back(User(clientSocket, username));
+    clients.push_back(Client(clientSocket, username));
 
     welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
     send(clientSocket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
@@ -191,7 +209,7 @@ std::string IRCServer::addClientSocket(int clientSocket)
 
 
 
-User &IRCServer::getClientByUsername(const std::string &username)
+Client &Server::getClientByUsername(const std::string &username)
 {
 	for (auto &user : clients)
 	{
@@ -200,10 +218,10 @@ User &IRCServer::getClientByUsername(const std::string &username)
 			return (user);
 		}
 	}
-	throw std::runtime_error("User not found with the specified username");
+	throw std::runtime_error("Client not found with the specified username");
 }
 
-void IRCServer::sendMotdMessage(int client_socket, const std::string &username)
+void Server::sendMotdMessage(int client_socket, const std::string &username)
 {
 	std::string welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
 	send(client_socket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
@@ -218,15 +236,15 @@ void IRCServer::sendMotdMessage(int client_socket, const std::string &username)
 }
 
 
-void IRCServer::handleNewConnection(int client_socket)
+void Server::handleNewConnection(int client_socket)
 {
     std::string username = addClientSocket(client_socket);
-    std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
+    std::cout << "New Client connected. Total clients: " << clients.size() << std::endl;
     sendMotdMessage(client_socket, username);
 }
 
 
-void IRCServer::checkIfDataReceivedFromClient(int client_socket, std::vector<char> &buffer)
+void Server::checkIfDataReceivedFromClient(int client_socket, std::vector<char> &buffer)
 {
 	// BUG FIX! Buffer resetting required for preventing server thinking new clients are constantly connecting
 	buffer.clear();
@@ -254,7 +272,7 @@ void IRCServer::checkIfDataReceivedFromClient(int client_socket, std::vector<cha
 			std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
 		}
 		close(client_socket);
-		auto it = std::remove_if(clients.begin(), clients.end(), [client_socket](const User &user)
+		auto it = std::remove_if(clients.begin(), clients.end(), [client_socket](const Client &user)
 		{
 			return user.getSocketDescriptor() == client_socket;
 		});
@@ -262,7 +280,7 @@ void IRCServer::checkIfDataReceivedFromClient(int client_socket, std::vector<cha
 	}
 }
 
-void IRCServer::startServer()
+void Server::startServer()
 {
 	std::vector<char> buffer(2048);
 	int readySockets;
@@ -275,10 +293,10 @@ void IRCServer::startServer()
 		serverSocket.events = POLLIN;
 		fds.push_back(serverSocket);
 
-		for (const auto &User : clients)
+		for (const auto &Client : clients)
 		{
 			pollfd clientSocket;
-			clientSocket.fd = User.getSocketDescriptor();
+			clientSocket.fd = Client.getSocketDescriptor();
 			clientSocket.events = POLLIN;
 			fds.push_back(clientSocket);
 		}

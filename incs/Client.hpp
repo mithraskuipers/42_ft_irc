@@ -2,8 +2,9 @@
 #define USER_HPP
 
 #include <string>
+#include "./../incs/Channel.hpp"
 
-class User
+class Client
 {
 	private:
 		int socket_descriptor;
@@ -13,11 +14,12 @@ class User
 		bool registered;
 		std::string ip;
 		std::string _realname;
+		std::vector<Channel> channels;
 
 	public:
-		void sendToClient(const std::string &data);
 
-		User(int socket_descriptor, const std::string &nick = "");
+		void sendToClient(const std::string &data);
+		Client(int socket_descriptor, const std::string &nick = "");
 		int getSocketDescriptor() const;
 		std::string &getBuff();
 		void setNick(const std::string &newNick);
@@ -31,6 +33,7 @@ class User
 		std::string getNick() const;
 		bool getRegisteredStatus() const;
 		void setRegistered(bool value);
+		void addChannel(const Channel& channel) {channels.push_back(channel);}
 };
 
 #endif // USER_HPP

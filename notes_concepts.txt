@@ -3,7 +3,7 @@ This is the socket used by the server program to listen for incoming connections
 It's also known as the listening socket. The server socket is passive and waits for clients to connect to it.
 
 [user socket]
-This is the socket used by the User program to initiate a connection to the server.
+This is the socket used by the Client program to initiate a connection to the server.
 It's an active socket that initiates the communication by connecting to the server's listening socket.
 
 [socket]

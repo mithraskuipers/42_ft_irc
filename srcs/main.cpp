@@ -6,16 +6,16 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/24 14:43:31 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 19:30:41 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 /*
 
-
-./brew install bitchx
-./brew install ircii
+[KVIRC]
+/LIST
+/join kip -> maakt #kip
 
 
 irssi settings
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
 		return (err_msg_and_return("Error: <port #> must be an int >= 1024 and =< 65535", 1));
 
-	IRCServer server(port, password);
+	Server server(port, password);
 	try
 	{
 		server.initServer();
