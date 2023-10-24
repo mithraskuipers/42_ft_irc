@@ -6,9 +6,23 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/22 19:46:43 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 14:43:31 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
+
+
+/*
+
+
+./brew install bitchx
+./brew install ircii
+
+
+irssi settings
+/set rejoin_channels_on_reconnect off
+/set channels_rejoin_unavailable off
+
+*/
 
 #include "./../incs/includes.hpp"
 

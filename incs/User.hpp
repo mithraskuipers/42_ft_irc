@@ -22,6 +22,7 @@ class User
 		std::string &getBuff();
 		void setNick(const std::string &newNick);
 		void setRealName(const std::string &newRealName);
+		std::string getRealName() const;
 		void send(const std::string &data);
 		std::string getIP() const;
 		void setIP(const std::string &clientIP);

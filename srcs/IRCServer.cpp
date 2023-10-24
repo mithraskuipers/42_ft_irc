@@ -151,29 +151,45 @@ int IRCServer::updateMaxSocketDescriptor()
 	return (maxSocket);
 }
 
+
+
+
 std::string IRCServer::addClientSocket(int clientSocket)
 {
-	std::string welcomeMessage;
-	const std::string defaultNickname = "Guest";
-	std::string randomCode = generateRandomCode();
-	std::string username = defaultNickname + randomCode;
+    std::string welcomeMessage;
+    const std::string defaultNickname = "Guest";
+    std::string randomCode = generateRandomCode();
+    std::string username = defaultNickname + randomCode;
 
-	welcomeMessage = "IRC : To register please use commands PASS - NICK - USER(user, mode, unused, realname)\r\n";
-	send(clientSocket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
+    // Check if the client already exists in clients vector
+    auto existingClient = std::find_if(clients.begin(), clients.end(), [clientSocket](const User &user) {
+        return user.getSocketDescriptor() == clientSocket;
+    });
 
-	while (isNicknameInUse(username))
-	{
-		randomCode = generateRandomCode();
-		username = defaultNickname + randomCode;
-	}
+    if (existingClient != clients.end()) {
+        // Client already exists, return the existing usernam
+        return existingClient->getNick();
+    }
 
-	clients.push_back(User(clientSocket, username));
+    welcomeMessage = "IRC : To register please use commands PASS - NICK - USER(user, mode, unused, realname)\r\n";
+    send(clientSocket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
 
-	welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
-	send(clientSocket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
+    while (isNicknameInUse(username))
+    {
+        randomCode = generateRandomCode();
+        username = defaultNickname + randomCode;
+    }
 
-	return (username);
+    clients.push_back(User(clientSocket, username));
+
+    welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
+    send(clientSocket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
+
+    return username;
 }
+
+
+
 
 User &IRCServer::getClientByUsername(const std::string &username)
 {
@@ -189,6 +205,8 @@ User &IRCServer::getClientByUsername(const std::string &username)
 
 void IRCServer::sendMotdMessage(int client_socket, const std::string &username)
 {
+	std::string welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
+	send(client_socket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
 	std::string motdMessage = ":" + std::string(SERVER_NAME) + " 375 " + username + " :- " + std::string(SERVER_NAME) + " Message of the Day -\r\n";
 	send(client_socket, motdMessage.c_str(), motdMessage.size(), 0);
 
@@ -199,21 +217,21 @@ void IRCServer::sendMotdMessage(int client_socket, const std::string &username)
 	send(client_socket, endMotdMessage.c_str(), endMotdMessage.size(), 0);
 }
 
+
 void IRCServer::handleNewConnection(int client_socket)
 {
-	std::string username = addClientSocket(client_socket);
-	std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
-
-	// Send IRC welcome messages to the client
-	std::string welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
-	send(client_socket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
-
-	// Send MOTD message to client
-	sendMotdMessage(client_socket, username);
+    std::string username = addClientSocket(client_socket);
+    std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
+    sendMotdMessage(client_socket, username);
 }
 
-void IRCServer::checkIfReceivedDataFromClient(int client_socket, std::vector<char> &buffer)
+
+void IRCServer::checkIfDataReceivedFromClient(int client_socket, std::vector<char> &buffer)
 {
+	// BUG FIX! Buffer resetting required for preventing server thinking new clients are constantly connecting
+	buffer.clear();
+	buffer.resize(2048);
+
 	int bytes_received;
 	
 	// Receive data from client socket
@@ -299,7 +317,7 @@ void IRCServer::startServer()
 				// Existing client
 				else
 				{
-					checkIfReceivedDataFromClient(fds[i].fd, buffer);
+					checkIfDataReceivedFromClient(fds[i].fd, buffer);
 				}
 			}
 		}

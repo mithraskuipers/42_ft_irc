@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/09/01 17:56:34 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/24 11:56:48 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 12:54:48 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,7 +39,7 @@ private:
 
 public:
 	void handleNewConnection(int client_socket);
-	void checkIfReceivedDataFromClient(int client_socket, std::vector<char> &buffer);
+	void checkIfDataReceivedFromClient(int client_socket, std::vector<char> &buffer);
 
 	std::string getPass();
 	IRCServer(int port, const std::string &password); // Constructor takes port and password as arguments

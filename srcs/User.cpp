@@ -90,6 +90,11 @@ bool User::getRegisteredStatus() const
 	return registered;
 }
 
+std::string User::getRealName() const
+{
+	return (_realname);
+}
+
 // Setter function to set the User's IP address
 void User::setIP(const std::string &clientIP)
 {

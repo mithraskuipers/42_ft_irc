@@ -29,8 +29,14 @@ private:
 	std::vector<User> &clients;
 	std::vector<Channel> channels;
 	IRCServer &ircServer;
+	void privatmsg(std::vector<std::string> cmds, User &sender);
 
+	void handlePartCommand(const std::vector<std::string> &command, User &client);
+	// void away(std::vector<std::string> const & cmds, User & client);
+	// void notice(std::vector<std::string> const & cmds, User & client);
+	void handlePingCommand(const std::vector<std::string> &command, User &client);
 	void handlePassCommand(const std::vector<std::string> &command, User &client);
+	void handleWhoisCommand(const std::vector<std::string> &command, User &client);
 	void handleNickCommand(const std::vector<std::string> &command, User &client);
 	void handleListCommand(const std::vector<std::string> &command, User &client);
 	void handleUserCommand(const std::vector<std::string> &command, User &client);

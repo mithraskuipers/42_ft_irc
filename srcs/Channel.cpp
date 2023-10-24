@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/21 20:49:24 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/22 15:08:09 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 15:45:29 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,31 +18,33 @@ Channel::Channel() : topic(""), topicAuthor("") {}
 
 Channel::~Channel() {}
 
-Channel::Channel(const std::string &name) : channelName(name) {}
+Channel::Channel(const std::string &name) : channelName(name), topic(""), topicAuthor("") {}
 
 void Channel::addUser(User *user)
 {
 	users.push_back(user);
 }
 
-
-void Channel::broadcastMessage(const std::string& message, User* sender) {
-    for (auto& user : users) {
-        if (user != sender) {
-            user->sendToClient(message);
-        }
-    }
+void Channel::removeUser(User *user)
+{
+	auto it = std::remove(users.begin(), users.end(), user);
+	users.erase(it, users.end());
 }
 
-
-int Channel::getUsersCount() const
+bool Channel::isUserInChannel(const User *user) const
 {
-	return users.size();
+	return std::find(users.begin(), users.end(), user) != users.end();
 }
 
-bool Channel::isEmpty() const
+void Channel::broadcastMessage(const std::string &message, User *sender)
 {
-	return users.empty();
+	for (auto &user : users)
+	{
+		if (user != sender)
+		{
+			user->sendToClient(message);
+		}
+	}
 }
 
 std::string Channel::getName() const
@@ -50,18 +52,10 @@ std::string Channel::getName() const
 	return channelName;
 }
 
-#include <string> // Include the necessary header for std::string
-
-// Assuming USER_IDENTIFIER is a std::string
-std::string USER_IDENTIFIER = "User:";
-
-// Inside your setTopic function
-void Channel::setTopic(const std::string &topic, User *user)
+void Channel::setTopic(const std::string &newTopic, User *user)
 {
-	// Assuming getNick() returns a C-style string
-	topicAuthor = USER_IDENTIFIER + " " + std::string(user->getNick());
-	(void)topic;
-	// Rest of your code
+	topic = newTopic;
+	topicAuthor = user->getNick();
 }
 
 std::string Channel::getTopic() const
@@ -73,6 +67,21 @@ std::string Channel::getTopicAuthor() const
 {
 	return topicAuthor;
 }
+
+int Channel::getUsersCount() const
+{
+	return users.size();
+}
+
+bool Channel::isEmpty() const
+{
+	return users.empty();
+}
+
+#include <string> // Include the necessary header for std::string
+
+// Assuming USER_IDENTIFIER is a std::string
+std::string USER_IDENTIFIER = "User:";
 
 bool Channel::isOperator(User *user) const
 {
@@ -94,33 +103,11 @@ void Channel::removeOperator(User *user)
 	}
 }
 
-
-void Channel::listUsers() const {
-    std::cout << "Users currently in the channel " << channelName << ":\n";
-    for (const auto& user : users) {
-        std::cout << "- " << user->getNick() << "\n";
-    }
-}
-
-
-bool Channel::isUserInChannel(const User* user) const {
-	    std::cout << "Checking if user is in the channel..." << std::endl;
-		listUsers();
-        for (const auto& u : users) {
-            if (u == user) {
-                return true;
-            }
-        }
-        return false;
-}
-
-void Channel::removeUser(User *user)
+void Channel::listUsers() const
 {
-	    std::cout << "Removing user from the channel..." << std::endl;
-		listUsers();
-    auto it = std::find(users.begin(), users.end(), user);
-    if (it != users.end())
-    {
-        users.erase(it);
-    }
+	std::cout << "Users currently in the channel " << channelName << ":\n";
+	for (const auto &user : users)
+	{
+		std::cout << "- " << user->getNick() << "\n";
+	}
 }
