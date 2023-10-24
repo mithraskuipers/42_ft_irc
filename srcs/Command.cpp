@@ -39,62 +39,55 @@ void Command::handlePassCommand(const std::vector<std::string> &command, User &c
 	}
 }
 
-
-
-
 void Command::handleNickCommand(const std::vector<std::string> &command, User &client)
 {
-    if (command.size() >= 2)
-    {
-        std::string newNick = command[1];
+	if (command.size() >= 2)
+	{
+		std::string newNick = command[1];
 
-        // Remove newline characters from the newNick string
-        newNick.erase(std::remove(newNick.begin(), newNick.end(), '\n'), newNick.end());
+		// Remove newline characters from the newNick string
+		newNick.erase(std::remove(newNick.begin(), newNick.end(), '\n'), newNick.end());
 
-        if (!newNick.empty() && newNick != client.getNick()) // Check if newNick is not empty and different from the current nickname
-        {
-            bool nicknameInUse = std::any_of(clients.begin(), clients.end(), [&newNick](const User &user)
-                                             { return user.getNick() == newNick; });
+		if (!newNick.empty() && newNick != client.getNick()) // Check if newNick is not empty and different from the current nickname
+		{
+			bool nicknameInUse = std::any_of(clients.begin(), clients.end(), [&newNick](const User &user)
+											 { return user.getNick() == newNick; });
 
-            if (!nicknameInUse)
-            {
-                std::string oldNick = client.getNick(); // Get the current nickname before the change
-                client.setNick(newNick);
+			if (!nicknameInUse)
+			{
+				std::string oldNick = client.getNick(); // Get the current nickname before the change
+				client.setNick(newNick);
 
-                for (auto &channel : channels)
-                {
-                    if (channel.isUserInChannel(&client))
-                    {
-                        std::string nickChangeMessage = ":" + oldNick + " NICK " + newNick + "\r\n";
-                        channel.broadcastMessage(nickChangeMessage, &client);
-                    }
-                }
+				for (auto &channel : channels)
+				{
+					if (channel.isUserInChannel(&client))
+					{
+						std::string nickChangeMessage = ":" + oldNick + " NICK " + newNick + "\r\n";
+						channel.broadcastMessage(nickChangeMessage, &client);
+					}
+				}
 
-                // Inform the client about the nickname change
-                std::string nickChangeResponse = ":" + oldNick + " NICK " + newNick + "\r\n";
-                client.sendToClient(nickChangeResponse);
+				// Inform the client about the nickname change
+				std::string nickChangeResponse = ":" + oldNick + " NICK " + newNick + "\r\n";
+				client.sendToClient(nickChangeResponse);
 
-                std::cout << "User " << oldNick << " has changed their nickname to " << newNick << std::endl;
-            }
-            else
-            {
-                client.sendToClient(":server 433 * " + newNick + " :Nickname is already in use\r\n");
-            }
-        }
-        else
-        {
-            client.sendToClient(":server 432 * :Erroneous Nickname\r\n");
-        }
-    }
-    else
-    {
-        client.sendToClient(":server 431 * :No nickname given\r\n");
-    }
+				std::cout << "User " << oldNick << " has changed their nickname to " << newNick << std::endl;
+			}
+			else
+			{
+				client.sendToClient(":server 433 * " + newNick + " :Nickname is already in use\r\n");
+			}
+		}
+		else
+		{
+			client.sendToClient(":server 432 * :Erroneous Nickname\r\n");
+		}
+	}
+	else
+	{
+		client.sendToClient(":server 431 * :No nickname given\r\n");
+	}
 }
-
-
-
-
 
 void Command::handleUserCommand(const std::vector<std::string> &command, User &client)
 {
@@ -149,30 +142,52 @@ void Command::handleQuitCommand(const std::vector<std::string> &command, User &c
 	std::cout << "User " << client.getNick() << " has quit the server. Reason: " << quitMessage << std::endl;
 }
 
-void Command::handleJoinCommand(const std::vector<std::string> &command, User &client) {
-    if (command.size() >= 2) {
-        std::string channelName = command[1];
+void Command::handleJoinCommand(const std::vector<std::string> &command, User &client)
+{
+	if (command.size() >= 2)
+	{
+		std::string channelName = command[1];
 
-        auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel) {
-            return channel.getName() == channelName;
-        });
+		// Ensure channel name starts with '#'
+		if (channelName[0] != '#')
+		{
+			client.sendToClient(":server 403 " + client.getNick() + " " + channelName + " :Invalid channel name\r\n");
+			return;
+		}
 
-        if (it != channels.end()) {
-            // Check if the user is already in the channel
-            if (!it->isUserInChannel(&client)) {
-                it->addUser(&client);
-                std::string joinMessage = ":" + client.getNick() + " JOIN " + channelName + "\r\n";
-                it->broadcastMessage(joinMessage, &client);
-                client.sendToClient("Joined channel: " + channelName + "\n");
-            } else {
-                client.sendToClient("You are already in the channel " + channelName + ".\n");
-            }
-        } else {
-            client.sendToClient("Channel not found: " + channelName + ".\n");
-        }
-    } else {
-        client.sendToClient(":server 461 " + client.getNick() + " JOIN :Not enough parameters\r\n");
-    }
+		auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
+							   { return channel.getName() == channelName; });
+
+		if (it == channels.end())
+		{
+			// Channel doesn't exist, create it
+			Channel newChannel(channelName);
+			newChannel.addUser(&client);
+			channels.push_back(newChannel);
+
+			// Notify the client about channel creation
+			std::string joinMessage = ":" + client.getNick() + " JOIN " + channelName + "\r\n";
+			client.sendToClient(joinMessage);
+		}
+		else
+		{
+			if (!it->isUserInChannel(&client))
+			{
+				it->addUser(&client);
+				std::string joinMessage = ":" + client.getNick() + " JOIN " + channelName + "\r\n";
+				it->broadcastMessage(joinMessage, &client);
+				client.sendToClient(":" + client.getNick() + " JOIN " + channelName + "\r\n");
+			}
+			else
+			{
+				client.sendToClient(":server 443 " + client.getNick() + " " + channelName + " :is already on channel\r\n");
+			}
+		}
+	}
+	else
+	{
+		client.sendToClient(":server 461 " + client.getNick() + " JOIN :Not enough parameters\r\n");
+	}
 }
 
 void Command::handleLeaveCommand(const std::vector<std::string> &command, User &client)
@@ -208,61 +223,60 @@ void Command::handleLeaveCommand(const std::vector<std::string> &command, User &
 
 void Command::privatmsg(std::vector<std::string> cmds, User &sender)
 {
-    if (!sender.getRegisteredStatus())
-    {
-        sender.sendToClient("451 :You have not registered\r\n");
-        return;
-    }
+	if (!sender.getRegisteredStatus())
+	{
+		sender.sendToClient("451 :You have not registered\r\n");
+		return;
+	}
 
-    if (cmds.size() < 3)
-    {
-        sender.sendToClient("412 :No text to send\r\n");
-        return;
-    }
+	if (cmds.size() < 3)
+	{
+		sender.sendToClient("412 :No text to send\r\n");
+		return;
+	}
 
-    std::string target = cmds[1];
-    std::string message = cmds[2];
+	std::string target = cmds[1];
+	std::string message = cmds[2];
 
-    // Handle private messages to channels
-    if (target[0] == '#')
-    {
-        auto it = std::find_if(channels.begin(), channels.end(), [&target](const Channel &channel)
-                               { return channel.getName() == target; });
+	// Handle private messages to channels
+	if (target[0] == '#')
+	{
+		auto it = std::find_if(channels.begin(), channels.end(), [&target](const Channel &channel)
+							   { return channel.getName() == target; });
 
-        if (it != channels.end())
-        {
-            if (it->isUserInChannel(&sender))
-            {
-                std::string formattedMessage = ":" + sender.getNick() + " PRIVMSG " + target + " :" + message + "\r\n";
-                it->broadcastMessage(formattedMessage, &sender);
-            }
-            else
-            {
-                sender.sendToClient("404 " + target + " :Cannot send message to channel\r\n");
-            }
-        }
-        else
-        {
-            sender.sendToClient("401 " + target + " :No such channel\r\n");
-        }
-    }
-    else // Handle private messages to users
-    {
-        auto it = std::find_if(clients.begin(), clients.end(), [&target](const User &user)
-                               { return user.getNick() == target; });
+		if (it != channels.end())
+		{
+			if (it->isUserInChannel(&sender))
+			{
+				std::string formattedMessage = ":" + sender.getNick() + " PRIVMSG " + target + " :" + message + "\r\n";
+				it->broadcastMessage(formattedMessage, &sender);
+			}
+			else
+			{
+				sender.sendToClient("404 " + target + " :Cannot send message to channel\r\n");
+			}
+		}
+		else
+		{
+			sender.sendToClient("401 " + target + " :No such channel\r\n");
+		}
+	}
+	else // Handle private messages to users
+	{
+		auto it = std::find_if(clients.begin(), clients.end(), [&target](const User &user)
+							   { return user.getNick() == target; });
 
-        if (it != clients.end())
-        {
-            std::string formattedMessage = ":" + sender.getNick() + " PRIVMSG " + target + " :" + message + "\r\n";
-            it->sendToClient(formattedMessage);
-        }
-        else
-        {
-            sender.sendToClient("401 " + target + " :No such nick\r\n");
-        }
-    }
+		if (it != clients.end())
+		{
+			std::string formattedMessage = ":" + sender.getNick() + " PRIVMSG " + target + " :" + message + "\r\n";
+			it->sendToClient(formattedMessage);
+		}
+		else
+		{
+			sender.sendToClient("401 " + target + " :No such nick\r\n");
+		}
+	}
 }
-
 
 void Command::addChannel(const std::string &channelName)
 {
@@ -315,18 +329,26 @@ void Command::sendChannelList(User &user)
 
 void Command::handleListCommand(const std::vector<std::string> &command, User &client)
 {
-    (void)command; // Unused parameter
+	(void)command; // Unused parameter
 
-    // Send the list of active channels to the client
-    sendChannelList(client);
+	// Send the list of active channels to the client
+	sendChannelList(client);
 }
-
 
 void Command::handleCreateCommand(const std::vector<std::string> &command, User &client)
 {
 	if (command.size() >= 2)
 	{
 		std::string channelName = command[1];
+
+		// Ensure channel name starts with '#'
+		if (channelName[0] != '#')
+		{
+			client.sendToClient(":server 403 " + client.getNick() + " " + channelName + " :Invalid channel name\r\n");
+			return;
+		}
+
+		// Check if the channel already exists
 		bool channelExists = std::any_of(channels.begin(), channels.end(), [&channelName](const Channel &channel)
 										 { return channel.getName() == channelName; });
 
@@ -336,6 +358,7 @@ void Command::handleCreateCommand(const std::vector<std::string> &command, User 
 			newChannel.addUser(&client);
 			channels.push_back(newChannel);
 
+			// Notify the client about channel creation
 			std::string joinMessage = ":" + client.getNick() + " JOIN :" + channelName + "\r\n";
 			std::string topicMessage = ":" + client.getNick() + " TOPIC " + channelName + " :Welcome to " + channelName + " channel!\r\n";
 			std::string endOfNamesMessage = ":server 366 " + client.getNick() + " " + channelName + " :End of NAMES list\r\n";
@@ -388,88 +411,95 @@ void Command::handleWhoisCommand(const std::vector<std::string> &command, User &
 
 void Command::handlePartCommand(const std::vector<std::string> &command, User &client)
 {
-    if (command.size() >= 2)
-    {
-        std::string channelName = command[1];
+	if (command.size() >= 2)
+	{
+		std::string channelName = command[1];
 
-        auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
-                               { return channel.getName() == channelName; });
+		auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
+							   { return channel.getName() == channelName; });
 
-        if (it != channels.end())
-        {
-            if (it->isUserInChannel(&client))
-            {
-                // Notify the client about the PART command
-                std::string partMessage = ":" + client.getNick() + " PART " + channelName + " :Leaving channel\r\n";
-                client.sendToClient(partMessage);
+		if (it != channels.end())
+		{
+			if (it->isUserInChannel(&client))
+			{
+				// Notify the client about the PART command
+				std::string partMessage = ":" + client.getNick() + " PART " + channelName + " :Leaving channel\r\n";
+				client.sendToClient(partMessage);
 
-                // Notify other users in the channel about the departure
-                std::string kickMessage = ":" + client.getNick() + " KICK " + channelName + " " + client.getNick() + " :You have been kicked from the channel\r\n";
-                it->broadcastMessage(kickMessage, &client);
+				// Notify other users in the channel about the departure
+				std::string kickMessage = ":" + client.getNick() + " KICK " + channelName + " " + client.getNick() + " :You have been kicked from the channel\r\n";
+				it->broadcastMessage(kickMessage, &client);
 
-                // Remove the user from the channel
-                it->removeUser(&client);
+				// Remove the user from the channel
+				it->removeUser(&client);
 
-                client.sendToClient("You left channel: " + channelName + "\n");
-            }
-            else
-            {
-                client.sendToClient("You are not in channel: " + channelName + ".\n");
-            }
-        }
-        else
-        {
-            client.sendToClient("Channel not found: " + channelName + ".\n");
-        }
-    }
-    else
-    {
-        client.sendToClient(":server 461 " + client.getNick() + " PART :Not enough parameters\r\n");
-    }
+				client.sendToClient("You left channel: " + channelName + "\n");
+			}
+			else
+			{
+				client.sendToClient("You are not in channel: " + channelName + ".\n");
+			}
+		}
+		else
+		{
+			client.sendToClient("Channel not found: " + channelName + ".\n");
+		}
+	}
+	else
+	{
+		client.sendToClient(":server 461 " + client.getNick() + " PART :Not enough parameters\r\n");
+	}
 }
 
-void Command::handlePingCommand(const std::vector<std::string> &command, User &client) {
-    if (command.size() >= 2) {
-        std::string pingMessage = "PONG :" + command[1] + "\r\n";
-        client.sendToClient(pingMessage);
-    } else {
-        client.sendToClient(":server 461 " + client.getNick() + " PING :Not enough parameters\r\n");
-    }
+void Command::handlePingCommand(const std::vector<std::string> &command, User &client)
+{
+	if (command.size() >= 2)
+	{
+		std::string pingMessage = "PONG :" + command[1] + "\r\n";
+		client.sendToClient(pingMessage);
+	}
+	else
+	{
+		client.sendToClient(":server 461 " + client.getNick() + " PING :Not enough parameters\r\n");
+	}
 }
-
 
 void Command::processRawClientData(const std::string &input, User &client)
 {
 	// Split the input into command and arguments
 	(void)client;
-	
 
 	std::vector<std::string> command;
 	size_t spacePos = input.find(' ');
 	command.push_back(input.substr(0, spacePos));
-	if (spacePos != std::string::npos){command.push_back(input.substr(spacePos + 1));}
+	if (spacePos != std::string::npos)
+	{
+		command.push_back(input.substr(spacePos + 1));
+	}
 
-    std::cout << "Command::processRawClientData: raw input: " << input;
-    std::cout << "Command::processRawClientData: command[0]: " << command[0] << std::endl;
+	std::cout << "Command::processRawClientData: raw input: " << input;
+	std::cout << "Command::processRawClientData: command[0]: " << command[0] << std::endl;
 
-    if (command[0] == "PING") {
-        handlePingCommand(command, client);
-    }
+	if (command[0] == "PING")
+	{
+		handlePingCommand(command, client);
+	}
 	else if (command[0] == "NICK") // irssi interpreteert /nick input als NICK en stuurt dat terug naar server
 	{
 		handleNickCommand(command, client);
 	}
-    if (command[0] == "PRIVMSG") { // irssi interpreteert /msg input als PRIVMSG en stuurt dat terug naar server
-        privatmsg(command, client);
-    }
+	if (command[0] == "PRIVMSG")
+	{ // irssi interpreteert /msg input als PRIVMSG en stuurt dat terug naar server
+		privatmsg(command, client);
+	}
 	// else if (command[0] == "AWAY")
 	// {
-    //     away(command, client);
-    // }
+	//     away(command, client);
+	// }
 	// else if (command[0] == "NOTICE")
 	// {
-    //     notice(command, client);
-    // }
+	//     notice(command, client);
+	// }
 	// if (command[0] == "PASS")
 	// {
 	// 	handlePassCommand(command, client);
