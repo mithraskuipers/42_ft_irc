@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/09/01 17:56:34 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/22 21:22:02 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 10:48:48 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,9 @@ private:
 	std::string welcomeMessage;
 
 public:
+void handleNewConnection(int client_socket);
+void handleClientData(int client_socket, std::vector<char>& buffer);
+
 	std::string getPass();
 	IRCServer(int port, const std::string &password); // Constructor takes port and password as arguments
 	~IRCServer();
@@ -54,7 +57,8 @@ public:
 	int getPort() const;
 	std::string addClientSocket(int clientSocket); // Update the declaration
 	std::string generateRandomCode();
-	bool isNicknameInUse(const std::string &nickname) const;
+	int isNicknameInUse(const std::string &nickname) const;
+	void sendMotdMessage(int client_socket, const std::string &username);
 };
 
 #endif

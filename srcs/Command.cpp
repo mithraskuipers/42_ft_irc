@@ -307,53 +307,49 @@ void Command::handleCreateCommand(const std::vector<std::string> &command, User 
 void Command::commandHandler(const std::string &input, User &client)
 {
 	// Split the input into command and arguments
-
-	std::cout << "DEBUG: commandHandler raw input: " << input << std::endl;
+	(void)client;
+	std::cout << "Command::commandHandler: raw input: " << input << std::endl;
 
 	std::vector<std::string> command;
 	size_t spacePos = input.find(' ');
-	command.push_back(input.substr(0, spacePos)); // Extract the command
+	command.push_back(input.substr(0, spacePos));
+	if (spacePos != std::string::npos){command.push_back(input.substr(spacePos + 1));}
 
-	if (spacePos != std::string::npos)
-	{
-		command.push_back(input.substr(spacePos + 1)); // Extract the arguments
-	}
-
-	if (command[0] == "pass")
-	{
-		handlePassCommand(command, client);
-	}
-	else if (command[0] == "nick")
-	{
-		handleNickCommand(command, client);
-	}
-	else if (command[0] == "user")
-	{
-		handleUserCommand(command, client);
-	}
-	else if (command[0] == "quit")
-	{
-		handleQuitCommand(command, client);
-	}
-	else if (command[0] == "join")
-	{
-		handleJoinCommand(command, client);
-	}
-	else if (command[0] == "leave")
-	{
-		handleLeaveCommand(command, client);
-	}
-	else if (command[0] == "list")
-	{
-		handleListCommand(command, client);
-	}
-	else if (command[0] == "create")
-	{
-		handleCreateCommand(command, client);
-	}
-	else
-	{
-		// Handle unknown command logic or send an error message
-		client.sendToClient(":server ERROR :Unknown command\r\n");
-	}
+	// if (command[0] == "PASS")
+	// {
+	// 	handlePassCommand(command, client);
+	// }
+	// else if (command[0] == "nick")
+	// {
+	// 	handleNickCommand(command, client);
+	// }
+	// else if (command[0] == "user")
+	// {
+	// 	handleUserCommand(command, client);
+	// }
+	// else if (command[0] == "quit")
+	// {
+	// 	handleQuitCommand(command, client);
+	// }
+	// else if (command[0] == "join")
+	// {
+	// 	handleJoinCommand(command, client);
+	// }
+	// else if (command[0] == "leave")
+	// {
+	// 	handleLeaveCommand(command, client);
+	// }
+	// else if (command[0] == "list")
+	// {
+	// 	handleListCommand(command, client);
+	// }
+	// else if (command[0] == "create")
+	// {
+	// 	handleCreateCommand(command, client);
+	// }
+	// else
+	// {
+	// 	// Handle unknown command logic or send an error message
+	// 	client.sendToClient(":server ERROR :Unknown command\r\n");
+	// }
 }
