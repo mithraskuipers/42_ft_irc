@@ -15,9 +15,8 @@ class Client
 		std::string ip;
 		std::string _realname;
 		std::vector<Channel> channels;
-
+	
 	public:
-
 		void sendToClient(const std::string &data);
 		Client(int socket_descriptor, const std::string &nick = "");
 		int getSocketDescriptor() const;
@@ -33,7 +32,7 @@ class Client
 		std::string getNick() const;
 		bool getRegisteredStatus() const;
 		void setRegistered(bool value);
-		void addChannel(const Channel& channel) {channels.push_back(channel);}
+		void addChannel(const Channel &channel) { channels.push_back(channel); }
 };
 
-#endif // USER_HPP
+#endif

@@ -6,10 +6,9 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/24 21:43:31 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 22:32:09 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
-
 
 /*
 [irssi]

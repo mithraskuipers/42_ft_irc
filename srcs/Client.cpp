@@ -6,13 +6,12 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/17 22:22:03 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/24 19:37:14 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 22:31:55 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../incs/Client.hpp"
 #include <iostream>
-
 
 #include <arpa/inet.h>	// For inet_ntop
 #include <netinet/in.h> // For sockaddr_in
@@ -38,7 +37,6 @@ std::string &Client::getBuff()
 {
 	return (buff);
 }
-
 
 void Client::setNick(const std::string &newNick)
 {

@@ -7,7 +7,6 @@
 
 class Server;
 
-
 void Server::initServer()
 {
 	int opt = 1;
@@ -111,7 +110,7 @@ void Server::handleNewConnection(int client_socket)
 	std::string username = addClientSocket(client_socket);
 	std::cout << "New client connected. ";
 	std::cout << "Total clients: " << clients.size() << std::endl;
-	sendMotdMessage(client_socket, username);									// Toegevoegd want is gangbaar in IRC
+	sendMotdMessage(client_socket, username); // Toegevoegd want is gangbaar in IRC
 }
 
 std::string Server::addClientSocket(int clientSocket)
@@ -183,7 +182,6 @@ int Server::isNicknameInUse(const std::string &nickname) const
 	return (0);
 }
 
-
 void Server::sendMotdMessage(int client_socket, const std::string &username)
 {
 	std::string welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
@@ -238,7 +236,7 @@ Orthodox canonical form
 ********************************************************************************
 */
 
-Server::Server(int port, const std::string &password): password(password),active_users(0),port(port),command(clients, channels, *this), server_listening_socket(),IP(),socket_address(),clients(),channels(),welcomeMessage("Welkom bij de yugioh > magic")
+Server::Server(int port, const std::string &password) : password(password), active_users(0), port(port), command(clients, channels, *this), server_listening_socket(), IP(), socket_address(), clients(), channels(), welcomeMessage("Welkom bij de yugioh > magic")
 {
 	// command(clients, channels, *this) = Pass clients and channels vectors and a reference to the current server object
 }
@@ -278,7 +276,7 @@ std::string Server::getClientIP(int clientSocket)
 			return user.getIP();
 		}
 	}
-	return ("Unknown IP");														// Return a default value if client IP is not found
+	return ("Unknown IP"); // Return a default value if client IP is not found
 }
 
 int Server::getClientPort(int clientSocket)
@@ -287,11 +285,15 @@ int Server::getClientPort(int clientSocket)
 	{
 		if (user.getSocketDescriptor() == clientSocket)
 		{
-			return user.getPort();
+			return (user.getPort());
 		}
 	}
-	return 0;																	// IP niet gevonden
+	return (0); // IP niet gevonden
 }
+
+/*
+Returns client username from socket
+*/
 
 std::string Server::usernameFromSocket(int clientSocket)
 {
@@ -302,12 +304,12 @@ std::string Server::usernameFromSocket(int clientSocket)
 			return user.getNick();
 		}
 	}
-	return ("UnknownUsername");													// Username niet gevonden
+	return ("UnknownUsername"); // Username niet gevonden
 }
 
-
-
-
+/*
+Returns entire client object
+*/
 
 Client &Server::getClientByUsername(const std::string &username)
 {
@@ -320,4 +322,3 @@ Client &Server::getClientByUsername(const std::string &username)
 	}
 	throw std::runtime_error("Client not found with the specified username");
 }
-

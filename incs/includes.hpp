@@ -6,14 +6,14 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:12:24 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/24 19:33:18 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 22:28:58 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef INCLUDES_HPP
 
-#include <iostream>
-#include <cstdlib> // atoi
+#include <iostream> // cout
+#include <cstdlib>	// atoi
 #include "Server.hpp"
 #include <cstdio> // printf
 #include "splash.hpp"
@@ -41,9 +41,6 @@
 #define QUEUE_SIZE 10
 #define TRUE 1
 #define FALSE 0
-#define MAX_CLIENTS 10
-#define ESC_KEY 27
-#define BUFF_LIMIT 1024
 
 #define SERVER_NAME "chat.debugdivas.nl"
 
