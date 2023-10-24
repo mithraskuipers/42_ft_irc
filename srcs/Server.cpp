@@ -45,17 +45,23 @@ void Server::initServer()
 
 void Server::startServer()
 {
+	// Buffer
 	std::vector<char> buffer(2048);
 	int readySockets;
 
+	// Infinite loop om server actief te houden
 	while (true)
 	{
+		// Vector voor poll structs
 		std::vector<pollfd> fds;
+
+		// Voeg poll struct toe aan bovenstaande vector. Configureer deze voor de server.
 		pollfd serverSocket;
 		serverSocket.fd = server_listening_socket;
 		serverSocket.events = POLLIN;
 		fds.push_back(serverSocket);
 
+		// Voeg meer poll structs toe aan bovenstaande vector. Configureer deze voor de clients.
 		for (const auto &Client : clients)
 		{
 			pollfd clientSocket;
@@ -64,27 +70,30 @@ void Server::startServer()
 			fds.push_back(clientSocket);
 		}
 
+		// Voer poll() uit op de fds in de vector. Wacht op events voor server socket (i.e. new client connections) en bestaande client sockets (i.e. incoming data van clients).
 		readySockets = poll(fds.data(), fds.size(), -1);
 
+		// Check voor fouten
 		if (readySockets == -1)
 		{
-			std::cerr << "Error: Failed to poll sockets: " << strerror(errno) << std::endl;
+			std::cerr << "Fout: Kon sockets niet poll'en: " << strerror(errno) << std::endl;
 			break;
 		}
 
+		// Iterate over readySockets en process events
 		for (size_t i = 0; i < fds.size(); ++i)
 		{
 			int returned_events;
-			returned_events = fds[i].revents;
+			returned_events = fds[i].revents; // Dit zijn events die werkelijk zijn gebeurd
 
+			// Controleer of POLLIN-gebeurtenis heeft plaatsgevonden (gegevens beschikbaar om te lezen)
 			if ((returned_events & POLLIN))
 			{
-				// New client trying to connect.
-				// Check whether current fd poll() is processing is server socket. If so, we have new incoming connection.
+				// Als de huidige fd overeenkomt met de server socket, betekent dit dat er een nieuwe client probeert te verbinden.
 				if (fds[i].fd == server_listening_socket)
 				{
+					// Controleer of accept() succesvol was (accepteer de verbinding)
 					int client_socket = accept(server_listening_socket, NULL, NULL);
-
 					if (client_socket != -1)
 					{
 						handleNewConnection(client_socket);
@@ -95,7 +104,7 @@ void Server::startServer()
 						continue;
 					}
 				}
-				// Existing client detected. Let's check if we received data from him.
+				// Huidige fd bevat een client socket. Check of er data van hem is ontvangen
 				else
 				{
 					checkIfDataReceivedFromClient(fds[i].fd, buffer);
