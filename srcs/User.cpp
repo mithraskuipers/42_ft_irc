@@ -57,11 +57,15 @@ void User::send(const std::string &data)
 	}
 }
 
-void User::sendToClient(const std::string &message)
+void User::setRegistered(bool value)
 {
-    ::send(this->getSocketDescriptor(), message.c_str(), message.length(), 0);
+	registered = value;
 }
 
+void User::sendToClient(const std::string &message)
+{
+	::send(this->getSocketDescriptor(), message.c_str(), message.length(), 0);
+}
 
 // Getter function for the User's IP address
 std::string User::getIP() const

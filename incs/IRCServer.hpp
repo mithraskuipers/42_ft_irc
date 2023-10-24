@@ -6,7 +6,7 @@
 /*   By: mkuipers <mkuipers@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/09/01 17:56:34 by mkuipers      #+#    #+#                 */
-/*   Updated: 2023/10/24 11:03:44 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 11:56:48 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,8 +38,8 @@ private:
 	std::string welcomeMessage;
 
 public:
-void handleNewConnection(int client_socket);
-void handleClientRawInput(int client_socket, std::vector<char>& buffer);
+	void handleNewConnection(int client_socket);
+	void checkIfReceivedDataFromClient(int client_socket, std::vector<char> &buffer);
 
 	std::string getPass();
 	IRCServer(int port, const std::string &password); // Constructor takes port and password as arguments
@@ -48,11 +48,10 @@ void handleClientRawInput(int client_socket, std::vector<char>& buffer);
 	void startServer(); // start server
 	void getHostIP();	// get host ip
 	std::string getIP() const;
-	User& getClientByUsername(const std::string &username);
-
+	User &getClientByUsername(const std::string &username);
 	std::string getClientIP(int clientSocket);
-    int getClientPort(int clientSocket);
-    std::string usernameFromSocket(int clientSocket);
+	int getClientPort(int clientSocket);
+	std::string usernameFromSocket(int clientSocket);
 	int updateMaxSocketDescriptor();
 	int getPort() const;
 	std::string addClientSocket(int clientSocket); // Update the declaration

@@ -21,7 +21,7 @@ public:
 	Command(std::vector<User> &clients, IRCServer &server);
 	~Command();
 	void addChannel(const std::string &channelName);
-	void commandHandler(const std::string &input, User &client);
+	void processRawClientData(const std::string &input, User &client);
 	bool leaveChannel(const std::string &channelName, User &user);
 	bool joinChannel(const std::string &channelName, User &user);
 
@@ -33,7 +33,6 @@ private:
 	void handlePassCommand(const std::vector<std::string> &command, User &client);
 	void handleNickCommand(const std::vector<std::string> &command, User &client);
 	void handleListCommand(const std::vector<std::string> &command, User &client);
-
 	void handleUserCommand(const std::vector<std::string> &command, User &client);
 	void handleQuitCommand(const std::vector<std::string> &command, User &client);
 	void handleJoinCommand(const std::vector<std::string> &command, User &client);

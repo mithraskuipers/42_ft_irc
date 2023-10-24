@@ -212,11 +212,20 @@ void IRCServer::handleNewConnection(int client_socket)
 	sendMotdMessage(client_socket, username);
 }
 
-void IRCServer::handleClientRawInput(int client_socket, std::vector<char> &buffer)
+void IRCServer::checkIfReceivedDataFromClient(int client_socket, std::vector<char> &buffer)
 {
-	int bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
+	int bytes_received;
+	
+	// Receive data from client socket
+	bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
 
-	if (bytes_received <= 0)
+	if (bytes_received > 0)
+	{
+		// Process received data from the client
+		std::string complete_command(buffer.data(), bytes_received);
+		command.processRawClientData(complete_command, getClientByUsername(usernameFromSocket(client_socket)));
+	}
+	else
 	{
 		if (bytes_received == 0)
 		{
@@ -233,17 +242,12 @@ void IRCServer::handleClientRawInput(int client_socket, std::vector<char> &buffe
 		});
 		clients.erase(it, clients.end());
 	}
-	else
-	{
-		// Process received data from the client
-		std::string complete_command(buffer.data(), bytes_received);
-		command.commandHandler(complete_command, getClientByUsername(usernameFromSocket(client_socket)));
-	}
 }
 
 void IRCServer::startServer()
 {
 	std::vector<char> buffer(2048);
+	int readySockets;
 
 	while (true)
 	{
@@ -261,7 +265,7 @@ void IRCServer::startServer()
 			fds.push_back(clientSocket);
 		}
 
-		int readySockets = poll(fds.data(), fds.size(), -1);
+		readySockets = poll(fds.data(), fds.size(), -1);
 
 		if (readySockets == -1)
 		{
@@ -295,7 +299,7 @@ void IRCServer::startServer()
 				// Existing client
 				else
 				{
-					handleClientRawInput(fds[i].fd, buffer);
+					checkIfReceivedDataFromClient(fds[i].fd, buffer);
 				}
 			}
 		}

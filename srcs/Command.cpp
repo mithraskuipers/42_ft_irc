@@ -304,11 +304,12 @@ void Command::handleCreateCommand(const std::vector<std::string> &command, User 
 
 
 
-void Command::commandHandler(const std::string &input, User &client)
+void Command::processRawClientData(const std::string &input, User &client)
 {
 	// Split the input into command and arguments
 	(void)client;
-	std::cout << "Command::commandHandler: raw input: " << input << std::endl;
+	//std::cout << "Command::processRawClientData: raw input: " << input << std::endl;
+	
 
 	std::vector<std::string> command;
 	size_t spacePos = input.find(' ');
