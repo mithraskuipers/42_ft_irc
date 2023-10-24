@@ -4,7 +4,6 @@
 #include "Command.hpp"
 #include <poll.h>
 
-
 class IRCServer;
 
 IRCServer::IRCServer(int port, const std::string &password) : active_users(0), port(port), clients(), password(password), command(clients, *this), server_listening_socket(0), IP(), socket_address(), channels(), welcomeMessage("Welcome to the IRC server!") {}
@@ -200,100 +199,105 @@ void IRCServer::sendMotdMessage(int client_socket, const std::string &username)
 	send(client_socket, endMotdMessage.c_str(), endMotdMessage.size(), 0);
 }
 
-
 void IRCServer::handleNewConnection(int client_socket)
 {
-    std::string username = addClientSocket(client_socket);
-    std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
+	std::string username = addClientSocket(client_socket);
+	std::cout << "New User connected. Total clients: " << clients.size() << std::endl;
 
-    // Send IRC welcome messages to the client
-    std::string welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
-    send(client_socket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
+	// Send IRC welcome messages to the client
+	std::string welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
+	send(client_socket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
 
-    // Send MOTD message to client
-    sendMotdMessage(client_socket, username);
+	// Send MOTD message to client
+	sendMotdMessage(client_socket, username);
 }
 
-void IRCServer::handleClientData(int client_socket, std::vector<char>& buffer)
+void IRCServer::handleClientRawInput(int client_socket, std::vector<char> &buffer)
 {
-    int bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
+	int bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
 
-    if (bytes_received <= 0)
+	if (bytes_received <= 0)
 	{
-        if (bytes_received == 0)
+		if (bytes_received == 0)
 		{
-            std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
-        }
+			std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
+		}
 		else
 		{
-            std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
-        }
-        close(client_socket);
-        auto it = std::remove_if(clients.begin(), clients.end(), [client_socket](const User &user) {
-            return user.getSocketDescriptor() == client_socket;
-        });
-        clients.erase(it, clients.end());
-    }
+			std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
+		}
+		close(client_socket);
+		auto it = std::remove_if(clients.begin(), clients.end(), [client_socket](const User &user)
+		{
+			return user.getSocketDescriptor() == client_socket;
+		});
+		clients.erase(it, clients.end());
+	}
 	else
 	{
-        // Process received data from the client
-        std::string complete_command(buffer.data(), bytes_received);
-        std::cout << "Command received, socket fd: " << client_socket << ", IP: " << getClientIP(client_socket) << ", port: " << getClientPort(client_socket) << std::endl;
-        command.commandHandler(complete_command, getClientByUsername(usernameFromSocket(client_socket)));
-    }
+		// Process received data from the client
+		std::string complete_command(buffer.data(), bytes_received);
+		command.commandHandler(complete_command, getClientByUsername(usernameFromSocket(client_socket)));
+	}
 }
 
 void IRCServer::startServer()
 {
-    std::vector<char> buffer(2048);
+	std::vector<char> buffer(2048);
 
-    while (true) {
-        std::vector<pollfd> fds;
-        pollfd serverSocket;
-        serverSocket.fd = server_listening_socket;
-        serverSocket.events = POLLIN;
-        fds.push_back(serverSocket);
+	while (true)
+	{
+		std::vector<pollfd> fds;
+		pollfd serverSocket;
+		serverSocket.fd = server_listening_socket;
+		serverSocket.events = POLLIN;
+		fds.push_back(serverSocket);
 
-        for (const auto &User : clients
-		 {
-            pollfd clientSocket;
-            clientSocket.fd = User.getSocketDescriptor();
-            clientSocket.events = POLLIN;
-            fds.push_back(clientSocket);
-        }
-
-        int readySockets = poll(fds.data(), fds.size(), -1);
-
-        if (readySockets == -1) {
-            std::cerr << "Error: Failed to poll sockets: " << strerror(errno) << std::endl;
-            break;
-        }
-
-        for (size_t i = 0; i < fds.size(); ++i)
+		for (const auto &User : clients)
 		{
-            int returned_events = fds[i].revents;
+			pollfd clientSocket;
+			clientSocket.fd = User.getSocketDescriptor();
+			clientSocket.events = POLLIN;
+			fds.push_back(clientSocket);
+		}
 
-            if ((returned_events & POLLIN))
+		int readySockets = poll(fds.data(), fds.size(), -1);
+
+		if (readySockets == -1)
+		{
+			std::cerr << "Error: Failed to poll sockets: " << strerror(errno) << std::endl;
+			break;
+		}
+
+		for (size_t i = 0; i < fds.size(); ++i)
+		{
+			int returned_events;
+			returned_events = fds[i].revents;
+
+			if ((returned_events & POLLIN))
 			{
-                if (fds[i].fd == server_listening_socket)
+				// New client trying to connect.
+				// Check whether current fd poll() is processing is server socket. If so, new incoming connection.
+				if (fds[i].fd == server_listening_socket)
 				{
-                    int client_socket = accept(server_listening_socket, NULL, NULL);
+					int client_socket = accept(server_listening_socket, NULL, NULL);
 
-                    if (client_socket == -1)
+					if (client_socket != -1)
 					{
-                        std::cerr << "Error: Failed to accept client connection: " << strerror(errno) << std::endl;
-                        continue;
-                    }
+						handleNewConnection(client_socket);
+					}
 					else
 					{
-                        handleNewConnection(client_socket);
-                    }
-                }
+						std::cerr << "Error: Failed to accept client connection: " << strerror(errno) << std::endl;
+						continue;
+					}
+				}
+				// Existing client
 				else
 				{
-                    handleClientData(fds[i].fd, buffer);
-                }
-            }
-        }
-    }
+					handleClientRawInput(fds[i].fd, buffer);
+				}
+			}
+		}
+	}
 }
