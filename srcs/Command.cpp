@@ -343,6 +343,13 @@ void Command::handlePartCommand(const std::vector<std::string> &command, Client 
                 
                 // Remove user from the channel
                 it->removeUser(&client);
+
+                // If there are no users left in the channel, remove the channel
+                if (it->getUsersCount() == 0)
+                {
+                    channels.erase(it);
+                    std::cout << "Channel " << channelName << " has been removed due to lack of users." << std::endl;
+                }
             }
             else
             {
