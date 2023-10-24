@@ -6,22 +6,15 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/24 19:30:41 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/24 21:43:31 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 
 /*
-
-[KVIRC]
-/LIST
-/join kip -> maakt #kip
-
-
-irssi settings
+[irssi]
 /set rejoin_channels_on_reconnect off
 /set channels_rejoin_unavailable off
-
 */
 
 #include "./../incs/includes.hpp"

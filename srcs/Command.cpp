@@ -9,9 +9,10 @@
 
 class Server; // Forward declaration of Server class
 
-Command::Command(std::vector<Client> &clients, std::vector<Channel> &channels, Server &server) 
-    : clients(clients), channels(channels), ircServer(server) {
-    // Constructor implementation here
+Command::Command(std::vector<Client> &clients, std::vector<Channel> &channels, Server &server)
+	: clients(clients), channels(channels), ircServer(server)
+{
+	// Constructor implementation here
 }
 
 Command::~Command() {}
@@ -39,10 +40,8 @@ void Command::handlePassCommand(const std::vector<std::string> &command, Client 
 	else
 	{
 		client.sendToClient(":server 461 " + client.getNick() + " PASS :Not enough parameters\r\n");
-	}        
+	}
 }
-
-
 
 void Command::handleNickCommand(const std::vector<std::string> &command, Client &client)
 {
@@ -309,66 +308,60 @@ void Command::handleListCommand(const std::vector<std::string> &command, Client 
 	sendChannelList(client);
 }
 
-
-
-
 void Command::handlePartCommand(const std::vector<std::string> &command, Client &client)
 {
-    std::cout << "Now inside Command::handlePartCommand()" << std::endl;
+	std::cout << "Now inside Command::handlePartCommand()" << std::endl;
 
-    if (command.size() >= 2)
-    {
-        std::string channelName = command[1];
+	if (command.size() >= 2)
+	{
+		std::string channelName = command[1];
 
-        // Ensure channel name starts with '#'
-        if (channelName[0] != '#')
-        {
-            client.sendToClient(":server 403 " + client.getNick() + " " + channelName + " :Invalid channel name\r\n");
-            return;
-        }
+		// Ensure channel name starts with '#'
+		if (channelName[0] != '#')
+		{
+			client.sendToClient(":server 403 " + client.getNick() + " " + channelName + " :Invalid channel name\r\n");
+			return;
+		}
 
-        auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
-                               { return channel.getName() == channelName; });
+		auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
+							   { return channel.getName() == channelName; });
 
-        if (it != channels.end())
-        {
-            if (it->isUserInChannel(&client))
-            {
-                // Debugging information
-                std::cout << "User " << client.getNick() << " is leaving channel " << channelName << std::endl;
-                
-                // Notify about leaving the channel
-                std::string leaveMessage = ":" + client.getNick() + " PART " + channelName + " :Leaving the channel\r\n";
-                it->broadcastMessage(leaveMessage, nullptr); // Broadcast to all users in the channel
-                
-                // Remove user from the channel
-                it->removeUser(&client);
+		if (it != channels.end())
+		{
+			if (it->isUserInChannel(&client))
+			{
+				// Debugging information
+				std::cout << "User " << client.getNick() << " is leaving channel " << channelName << std::endl;
 
-                // If there are no users left in the channel, remove the channel
-                if (it->getUsersCount() == 0)
-                {
-                    channels.erase(it);
-                    std::cout << "Channel " << channelName << " has been removed due to lack of users." << std::endl;
-                }
-            }
-            else
-            {
-                client.sendToClient(":server 442 " + client.getNick() + " " + channelName + " :You're not on that channel\r\n");
-            }
-        }
-        else
-        {
-            client.sendToClient(":server 403 " + client.getNick() + " " + channelName + " :No such channel\r\n");
-        }
-    }
-    else
-    {
-        client.sendToClient(":server 461 " + client.getNick() + " PART :Not enough parameters\r\n");
-    }
+				// Notify about leaving the channel
+				std::string leaveMessage = ":" + client.getNick() + " PART " + channelName + " :Leaving the channel\r\n";
+				it->broadcastMessage(leaveMessage, nullptr); // Broadcast to all users in the channel
+
+				// Remove user from the channel
+				it->removeUser(&client);
+
+				// If there are no users left in the channel, remove the channel
+				if (it->getUsersCount() == 0)
+				{
+					channels.erase(it);
+					std::cout << "Channel " << channelName << " has been removed due to lack of users." << std::endl;
+				}
+			}
+			else
+			{
+				client.sendToClient(":server 442 " + client.getNick() + " " + channelName + " :You're not on that channel\r\n");
+			}
+		}
+		else
+		{
+			client.sendToClient(":server 403 " + client.getNick() + " " + channelName + " :No such channel\r\n");
+		}
+	}
+	else
+	{
+		client.sendToClient(":server 461 " + client.getNick() + " PART :Not enough parameters\r\n");
+	}
 }
-
-
-
 
 void Command::processRawClientData(const std::string &input, Client &client)
 {
