@@ -15,6 +15,7 @@
 #include "./../incs/Command.hpp"
 #include "./../incs/Client.hpp"
 #include "./../incs/Channel.hpp"
+#include "./../incs/get_next_line.hpp"
 
 class Server;
 
@@ -56,10 +57,6 @@ void Server::initServer()
 
 void Server::startServer()
 {
-	// Buffer
-	std::vector<char> buffer(2048);
-	int readySockets;
-
 	// Infinite loop om server actief te houden
 	while (true)
 	{
@@ -68,6 +65,7 @@ void Server::startServer()
 
 		// Voeg poll struct toe aan bovenstaande vector. Configureer deze voor de server.
 		pollfd serverSocket;
+
 		serverSocket.fd = server_listening_socket;
 		serverSocket.events = POLLIN;
 		fds.push_back(serverSocket);
@@ -81,11 +79,8 @@ void Server::startServer()
 			fds.push_back(clientSocket);
 		}
 
-		// Voer poll() uit op de fds in de vector. Wacht op events voor server socket (i.e. new client connections) en bestaande client sockets (i.e. incoming data van clients).
-		readySockets = poll(fds.data(), fds.size(), -1);
-
-		// Check voor fouten
-		if (readySockets == -1)
+		// Voer poll() uit op de fds in de vector en kijk of error
+		if (poll(fds.data(), fds.size(), -1) == -1)
 		{
 			std::cerr << "Error: Failed to perform poll() on socket: " << strerror(errno) << std::endl;
 			break;
@@ -96,41 +91,32 @@ void Server::startServer()
 		{
 			int returned_events;
 			returned_events = fds[i].revents; // Dit zijn events die werkelijk zijn gebeurd
-
-			// Controleer of POLLIN-gebeurtenis heeft plaatsgevonden (gegevens beschikbaar om te lezen)
-			if ((returned_events & POLLIN))
+			// POLLIN heeft plaatsgevonden en fd komt overeen met server. betekent POLLIN van nieuwe client
+			if ((returned_events & POLLIN) && (fds[i].fd == server_listening_socket))
 			{
-				// Als de huidige fd overeenkomt met de server socket, betekent dit dat er een nieuwe client probeert te verbinden.
-				if (fds[i].fd == server_listening_socket)
+				// probeer accept()
+				if (handleNewConnection(accept(server_listening_socket, NULL, NULL)) == -1)
 				{
-					// Controleer of accept() succesvol was (accepteer de verbinding)
-					int client_socket = accept(server_listening_socket, NULL, NULL);
-					if (client_socket != -1)
-					{
-						handleNewConnection(client_socket);
-					}
-					else
-					{
-						std::cerr << "Error: Failed to accept client connection: " << strerror(errno) << std::endl;
-						continue;
-					}
+					std::cerr << "Error: Failed to accept client connection: " << strerror(errno) << std::endl;
+					continue;
 				}
-				// Huidige fd bevat een client socket. Check of er data van hem is ontvangen
-				else
-				{
-					checkIfDataReceivedFromClient(fds[i].fd, buffer);
-				}
-			}
+			}	
+			// POLLIN heeft plaatsgevonden en fd komt NIET overeen met server. betekent POLLIN van oude client
+			else if ((returned_events & POLLIN) && (fds[i].fd != server_listening_socket))
+				checkWhatReceivedFromClient(fds[i].fd);
 		}
 	}
 }
 
-void Server::handleNewConnection(int client_socket)
+int Server::handleNewConnection(int client_socket)
 {
+	if (client_socket == -1)
+		return (-1);
 	std::string username = addClientSocket(client_socket);
 	std::cout << "New client connected. ";
 	std::cout << "Total clients: " << clients.size() << std::endl;
 	sendMotdMessage(client_socket, username); // Toegevoegd want is gangbaar in IRC
+	return (0);
 }
 
 std::string Server::addClientSocket(int clientSocket)
@@ -216,26 +202,53 @@ void Server::sendMotdMessage(int client_socket, const std::string &username)
 	send(client_socket, endMotdMessage.c_str(), endMotdMessage.size(), 0);
 }
 
-void Server::checkIfDataReceivedFromClient(int client_socket, std::vector<char> &buffer)
+// void Server::checkWhatReceivedFromClient(int client_socket)
+// {
+// 	std::vector<char> buffer(2048);
+// 	int bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
+// 	std::cout << "bytes received: " << bytes_received << std::endl;
+// 	if (bytes_received > 0)
+// 	{
+// 		std::string complete_command(buffer.data(), bytes_received);
+// 		command.processRawClientData(complete_command, \
+// 		getClientByUsername(usernameFromSocket(client_socket)));
+// 	}
+// 	else
+// 	{
+// 		if (bytes_received == 0)
+// 		{
+// 			std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
+// 		}
+// 		else
+// 		{
+// 			std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
+// 		}
+// 		close(client_socket);
+// 		auto it = std::remove_if(clients.begin(), clients.end(), [client_socket](const Client &user)
+// 		{ return user.getSocketDescriptor() == client_socket; });
+// 		clients.erase(it, clients.end());
+// 	}
+// }
+
+void Server::checkWhatReceivedFromClient(int client_socket)
 {
-	// BUG FIX! Buffer resetting required for preventing server thinking new clients are constantly connecting
-	buffer.clear();
-	buffer.resize(2048);
+	std::vector<char> buffer(2048);
+	// int bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
+	// if (bytes_received > 0)
 
-	int bytes_received;
-
-	// Receive data from client socket
-	bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
-
-	if (bytes_received > 0)
+	std::string message;
+	recv(client_socket, buffer.data(), buffer.size(), 0);
+	message.append(buffer.data());
+	std::cout << "message size: " << message.size() << std::endl;
+	if (message.size() > 0)
 	{
-		// Process received data from the client
-		std::string complete_command(buffer.data(), bytes_received);
-		command.processRawClientData(complete_command, getClientByUsername(usernameFromSocket(client_socket)));
+		// std::string complete_command(buffer.data(), bytes_received);
+		command.processRawClientData(message, \
+		getClientByUsername(usernameFromSocket(client_socket)));
 	}
 	else
 	{
-		if (bytes_received == 0)
+		if (message.size() == 0)
 		{
 			std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
 		}
@@ -245,9 +258,10 @@ void Server::checkIfDataReceivedFromClient(int client_socket, std::vector<char> 
 		}
 		close(client_socket);
 		auto it = std::remove_if(clients.begin(), clients.end(), [client_socket](const Client &user)
-								 { return user.getSocketDescriptor() == client_socket; });
+		{ return user.getSocketDescriptor() == client_socket; });
 		clients.erase(it, clients.end());
 	}
+	message.clear();
 }
 
 /*

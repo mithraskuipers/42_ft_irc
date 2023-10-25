@@ -26,8 +26,8 @@ class Server
 		std::string welcomeMessage;
 	
 	public:
-		void handleNewConnection(int client_socket);
-		void checkIfDataReceivedFromClient(int client_socket, std::vector<char> &buffer);
+		int handleNewConnection(int client_socket);
+		void checkWhatReceivedFromClient(int client_socket);
 	
 		std::string getPass();
 		Server(int port, const std::string &password); // Constructor takes port and password as arguments
