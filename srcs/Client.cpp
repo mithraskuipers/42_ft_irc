@@ -21,7 +21,7 @@
 // Constructor
 // Other necessary includes
 
-Client::Client(int socket_descriptor, const std::string &nick) : socket_descriptor(socket_descriptor), port(0), _nickname(nick), registered(false), ip("Unknown IP")
+Client::Client(int socket_descriptor, const std::string &nick) : polledFD.events(POLLIN), polledFD.fd(socket_descriptor), socket_descriptor(socket_descriptor), port(0), _nickname(nick), registered(false), ip("Unknown IP")
 {
 	// Constructor implementation
 }
@@ -30,6 +30,12 @@ Client::Client(int socket_descriptor, const std::string &nick) : socket_descript
 int Client::getSocketDescriptor() const
 {
 	return (socket_descriptor);
+}
+
+// Getter function for the socket descriptor
+pollfd Client::getPolledFD() const
+{
+	return (polledFD);
 }
 
 // Getter function for the buffer

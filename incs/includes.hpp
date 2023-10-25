@@ -22,7 +22,6 @@
 #include "Client.hpp"
 #include "Command.hpp"
 #include "Channel.hpp"
-#include "get_next_line.hpp"
 #include <cstring> // string.h
 #include <algorithm>
 #include <unistd.h>

@@ -1,6 +1,7 @@
 #ifndef USER_HPP
 #define USER_HPP
 
+#include <poll.h>
 #include <string>
 #include "./../incs/Channel.hpp"
 
@@ -15,6 +16,7 @@ class Client
 		std::string ip;
 		std::string _realname;
 		std::vector<Channel> channels;
+		pollfd polledFD;
 	
 	public:
 		void sendToClient(const std::string &data);
@@ -28,6 +30,7 @@ class Client
 		std::string getIP() const;
 		void setIP(const std::string &clientIP);
 		int getPort() const;
+		pollfd getPolledFD() const;
 		void setPort(int clientPort);
 		std::string getNick() const;
 		bool getRegisteredStatus() const;

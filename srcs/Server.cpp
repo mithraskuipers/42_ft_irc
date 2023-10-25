@@ -15,7 +15,6 @@
 #include "./../incs/Command.hpp"
 #include "./../incs/Client.hpp"
 #include "./../incs/Channel.hpp"
-#include "./../incs/get_next_line.hpp"
 
 class Server;
 
@@ -58,7 +57,7 @@ void Server::initServer()
 void Server::startServer()
 {
 	// Infinite loop om server actief te houden
-	while (true)
+	while (true) # WIP
 	{
 		// Vector voor poll structs
 		std::vector<pollfd> fds;
@@ -73,10 +72,10 @@ void Server::startServer()
 		// Voeg meer poll structs toe aan bovenstaande vector. Configureer deze voor de clients.
 		for (const auto &Client : clients)
 		{
-			pollfd clientSocket;
-			clientSocket.fd = Client.getSocketDescriptor();
-			clientSocket.events = POLLIN;
-			fds.push_back(clientSocket);
+			// pollfd clientSocket;
+			// clientSocket.fd = Client.getSocketDescriptor();
+			// clientSocket.events = POLLIN;
+			fds.push_back(Client.getPolledFD());
 		}
 
 		// Voer poll() uit op de fds in de vector en kijk of error
@@ -161,14 +160,12 @@ std::string Server::generateRandomCode()
 {
 	std::string randomCode;
 	srand(time(0)); // Seed for random number generation based on current time
-
 	// Generate a random code with a length of 4 digits
 	for (int i = 0; i < 4; ++i)
 	{
 		char randomDigit = '0' + rand() % 10; // Generate a random digit
 		randomCode.push_back(randomDigit);
 	}
-
 	return randomCode;
 }
 
@@ -202,39 +199,9 @@ void Server::sendMotdMessage(int client_socket, const std::string &username)
 	send(client_socket, endMotdMessage.c_str(), endMotdMessage.size(), 0);
 }
 
-// void Server::checkWhatReceivedFromClient(int client_socket)
-// {
-// 	std::vector<char> buffer(2048);
-// 	int bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
-// 	std::cout << "bytes received: " << bytes_received << std::endl;
-// 	if (bytes_received > 0)
-// 	{
-// 		std::string complete_command(buffer.data(), bytes_received);
-// 		command.processRawClientData(complete_command, \
-// 		getClientByUsername(usernameFromSocket(client_socket)));
-// 	}
-// 	else
-// 	{
-// 		if (bytes_received == 0)
-// 		{
-// 			std::cout << "Client disconnected. Total clients: " << clients.size() - 1 << std::endl;
-// 		}
-// 		else
-// 		{
-// 			std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
-// 		}
-// 		close(client_socket);
-// 		auto it = std::remove_if(clients.begin(), clients.end(), [client_socket](const Client &user)
-// 		{ return user.getSocketDescriptor() == client_socket; });
-// 		clients.erase(it, clients.end());
-// 	}
-// }
-
 void Server::checkWhatReceivedFromClient(int client_socket)
 {
 	std::vector<char> buffer(2048);
-	// int bytes_received = recv(client_socket, buffer.data(), buffer.size(), 0);
-	// if (bytes_received > 0)
 
 	std::string message;
 	recv(client_socket, buffer.data(), buffer.size(), 0);
