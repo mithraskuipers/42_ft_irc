@@ -387,13 +387,13 @@ void Command::handleNickCommand(const std::vector<std::string> &command, Client 
 		// Check if newNick is not empty and different from the current nickname
 		else if (!newNick.empty() && newNick != client.getNick())
 		{
-			nicknameInUse = isNicknameInUse(newNick);
+			nicknameInUse = this->isNicknameInUse(newNick);
 			if (!nicknameInUse)
 			{
 				std::string oldNick = client.getNick(); // Get the current nickname before the change
 				client.setNick(newNick);
 
-				for (auto &channel : channels)
+				for (auto &channel : this->channels)
 				{
 					if (channel.isUserInChannel(&client))
 					{

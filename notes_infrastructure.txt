@@ -6,7 +6,7 @@
 #    By: mikuiper <mikuiper@student.codam.nl>         +#+                      #
 #                                                    +#+                       #
 #    Created: 2023/10/25 08:01:37 by mikuiper      #+#    #+#                  #
-#    Updated: 2023/10/25 09:40:56 by mikuiper      ########   odam.nl          #
+#    Updated: 2023/10/25 10:08:44 by mikuiper      ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -60,8 +60,22 @@
 									- Uses client object and command[1]
 									- Cleans up the command[1]
 									- Checks if new nickname is not empty and if it is different from current nickname
-								+ ???()
-									-
+										+ sendToClient()
+										+ isNicknameInUse()
+										+ isUserInChannel(). Channel member function.
+										+ broadcastMessage(). Channel member function.
+								+ handleJoinCommand()
+									- Makes the client join a channel.
+									- If the channel does not exist, it creates the channel first and then connects to the channel.
+										+ XXX()
+										+ XXX()
+										+ XXX()
+								+ XXX
+									- XXX
+									- XXX
+										+ XXX()
+										+ XXX()
+										+ XXX()
 								+ ???()
 									-
 + [X]
