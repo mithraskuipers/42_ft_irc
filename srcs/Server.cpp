@@ -1,3 +1,14 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Server.cpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2023/10/25 08:01:52 by mikuiper      #+#    #+#                 */
+/*   Updated: 2023/10/25 08:26:53 by mikuiper      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
 
 #include <poll.h>
 #include "./../incs/Server.hpp"
@@ -76,7 +87,7 @@ void Server::startServer()
 		// Check voor fouten
 		if (readySockets == -1)
 		{
-			std::cerr << "Fout: Kon sockets niet poll'en: " << strerror(errno) << std::endl;
+			std::cerr << "Error: Failed to perform poll() on socket: " << strerror(errno) << std::endl;
 			break;
 		}
 

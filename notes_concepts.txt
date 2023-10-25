@@ -1,3 +1,15 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         ::::::::             #
+#    notes_concepts.txt                                 :+:    :+:             #
+#                                                      +:+                     #
+#    By: mikuiper <mikuiper@student.codam.nl>         +#+                      #
+#                                                    +#+                       #
+#    Created: 2023/10/25 08:01:40 by mikuiper      #+#    #+#                  #
+#    Updated: 2023/10/25 08:01:41 by mikuiper      ########   odam.nl          #
+#                                                                              #
+# **************************************************************************** #
+
 [server socket]
 This is the socket used by the server program to listen for incoming connections from clients.
 It's also known as the listening socket. The server socket is passive and waits for clients to connect to it.

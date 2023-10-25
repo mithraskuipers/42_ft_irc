@@ -1,33 +1,56 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         ::::::::             #
+#    notes_infrastructure.txt                           :+:    :+:             #
+#                                                      +:+                     #
+#    By: mikuiper <mikuiper@student.codam.nl>         +#+                      #
+#                                                    +#+                       #
+#    Created: 2023/10/25 08:01:37 by mikuiper      #+#    #+#                  #
+#    Updated: 2023/10/25 08:32:30 by mikuiper      ########   odam.nl          #
+#                                                                              #
+# **************************************************************************** #
+
 + [Server]
 	+ this->initServer()
-		+ Initializes the server
+		- Initializes the server
 			+ socket()
-				+ Creates a server socket.
+				- Creates a server socket.
 			+ setsockopt()
-				+ Sets the socket options (reusing address, buffering options).
+				- Sets the socket options (reusing address, buffering options).
 			+ fcntl()
-				+ Managing fd.
+				- Managing fd.
 			+ bind()
-				+ Associate a socket with a IP address and port.
+				- Associate a socket with a IP address and port.
 			+ listen()
-				+ Tells socket to accept incoming connections.
-				+ Second param specifies max number of queued connections.
+				- Tells socket to accept incoming connections.
+				- Second param specifies max number of queued connections.
 	+ this->startServer()
-		+ Starts server. Responsible to handling incoming client connections and managing data transfer.
+		- Starts server. Responsible to handling incoming client connections and managing data transfer.
 			+ poll()
-				+ Monitors multiple fd for read readiness. Waits until an event occurs on any of the specified file descriptors. (poll() is bit similar to select()).
+				- Monitors multiple fd for read readiness. Waits until an event occurs on any of the specified file descriptors. (poll() is bit similar to select()).
 			+ accept()
-				+ System call to accept new incoming connection from a client. Creates new socket descriptor for that specific client.
-			+ send()
-				+ To send data over a connected socket. Used by both server and client to send data to eachother.
-			+ FD_ISSET()
-				+ Checks status of fd in the sets provided to select(). Allows program to hdnle multiple I/O operations simultaneously without having to block/wait each operation individually. Returns 1 if fd is set, else 0.
-			+ recv()
-				+ Used for checking if client has disconnected. If recv() returns 0 bytes, client has disconnected.
-			+ FD_ZERO()
-				+ Initialize a set of fd for use with select() to be an empty set. Clears all fd from the set.
-			+ FD_SET()
-				+  Adds a fd to the fd set.
+				- System call to accept new incoming connection from a client. Creates new socket descriptor for that specific client.
+				+ handleNewConnection()
+						- Wrapper for creating a new client using client socket and username.
+						- Wrapper for sending out welcome message.
+						- Wrapper for sending out MOTD message.
+							+ addClientSocket()
+								- Create new client object using Client constructor + client socket + username.
+								- It creates this username randomly. Performs checks to ensure unique username.
+									+ generateRandomCode()
+										- Creates random 4 number string suffix to add to initial "Guest" username.
+									+ isNicknameInUse()
+										- Checks if current randomly created nickname (e.g. Guest1717) is already in use.
+							+ sendMotdMessage()
+								- Sends MOTD message to specific client on basis of its socket and username.
+					+ checkIfDataReceivedFromClient()
+						- Important function for checking if client has disconnect server (= bytes).
+						- Important function for checking if client has sent input.
+						+ recv()
+							- To receive data from a socket.
+							- Here it is used to check if client has disconnected (i.e. recv returns 0 bytes).
+						+ processRawClientData()
+							- This function processes the bytes received by the server from the client.
 + [X]
 	+	+	X
 + [X]
@@ -36,3 +59,16 @@
 	+	+	X
 + [X]
 	+	+	X
+
+
+
+[GENERAL]
+
++ send()
+	- To send data over a connected socket. Used by both server and client to send data to eachother.
++
+	-
++
+	-
++
+	-

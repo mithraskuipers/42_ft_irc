@@ -366,7 +366,6 @@ void Command::handlePartCommand(const std::vector<std::string> &command, Client 
 void Command::processRawClientData(const std::string &input, Client &client)
 {
 	// Split the input into command and arguments
-	(void)client;
 
 	std::vector<std::string> command;
 	size_t spacePos = input.find(' ');
