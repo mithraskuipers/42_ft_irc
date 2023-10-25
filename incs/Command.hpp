@@ -19,7 +19,9 @@ class Command
 		void processRawClientData(const std::string &input, Client &client);
 		bool leaveChannel(const std::string &channelName, Client &user);
 		bool joinChannel(const std::string &channelName, Client &user);
-	
+		bool isNicknameInUse(const std::string &nickname);
+
+
 	private:
 		std::vector<Client> &clients;
 		std::vector<Channel> &channels;

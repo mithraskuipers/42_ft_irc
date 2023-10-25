@@ -43,56 +43,6 @@ void Command::handlePassCommand(const std::vector<std::string> &command, Client 
 	}
 }
 
-void Command::handleNickCommand(const std::vector<std::string> &command, Client &client)
-{
-	if (command.size() >= 2)
-	{
-		std::string newNick = command[1];
-
-		// Remove newline characters from the newNick string
-		newNick.erase(std::remove(newNick.begin(), newNick.end(), '\n'), newNick.end());
-
-		if (!newNick.empty() && newNick != client.getNick()) // Check if newNick is not empty and different from the current nickname
-		{
-			bool nicknameInUse = std::any_of(clients.begin(), clients.end(), [&newNick](const Client &user)
-											 { return user.getNick() == newNick; });
-
-			if (!nicknameInUse)
-			{
-				std::string oldNick = client.getNick(); // Get the current nickname before the change
-				client.setNick(newNick);
-
-				for (auto &channel : channels)
-				{
-					if (channel.isUserInChannel(&client))
-					{
-						std::string nickChangeMessage = ":" + oldNick + " NICK " + newNick + "\r\n";
-						channel.broadcastMessage(nickChangeMessage, &client);
-					}
-				}
-
-				// Inform the client about the nickname change
-				std::string nickChangeResponse = ":" + oldNick + " NICK " + newNick + "\r\n";
-				client.sendToClient(nickChangeResponse);
-
-				std::cout << "Client " << oldNick << " has changed their nickname to " << newNick << std::endl;
-			}
-			else
-			{
-				client.sendToClient(":server 433 * " + newNick + " :Nickname is already in use\r\n");
-			}
-		}
-		else
-		{
-			client.sendToClient(":server 432 * :Erroneous Nickname\r\n");
-		}
-	}
-	else
-	{
-		client.sendToClient(":server 431 * :No nickname given\r\n");
-	}
-}
-
 void Command::handleUserCommand(const std::vector<std::string> &command, Client &client)
 {
 	if (command.size() >= 5)
@@ -366,7 +316,7 @@ void Command::handlePartCommand(const std::vector<std::string> &command, Client 
 void Command::processRawClientData(const std::string &input, Client &client)
 {
 	// Split the input into command and arguments
-
+	// TODO MAKE NICE STRING SPLITTER?
 	std::vector<std::string> command;
 	size_t spacePos = input.find(' ');
 	command.push_back(input.substr(0, spacePos));
@@ -378,26 +328,97 @@ void Command::processRawClientData(const std::string &input, Client &client)
 	std::cout << "Command::processRawClientData: raw input: " << input;
 	std::cout << "Command::processRawClientData: command[0]: " << command[0] << std::endl;
 
-	if (command[0] == "NICK") // irssi interpreteert /nick input als NICK en stuurt dat terug naar server
+	if (command[0] == "NICK") 													// irssi interpreteert /nick input als NICK en stuurt dat terug naar server
 	{
 		handleNickCommand(command, client);
 	}
-	if (command[0] == "PRIVMSG")
-	{ // irssi interpreteert /msg input als PRIVMSG en stuurt dat terug naar server
-		privatmsg(command, client);
-	}
-
-	else if (command[0] == "PART")
-	{
-		handlePartCommand(command, client);
-	}
-	else if (command[0] == "JOIN")
+	else if (command[0] == "JOIN")												// irssi interpreteert /join input als JOIN en stuurt dat terug naar server
 	{
 		handleJoinCommand(command, client);
 	}
+	else if (command[0] == "PART")												// irssi interpreteert /part input (en /leave input) als PART en stuurt dat terug naar server
+	{
+		handlePartCommand(command, client);
+	}
 
-	else if (command[0] == "LIST")
+	else if (command[0] == "LIST")												// irssi interpreteert "/list -YES" als LIST en stuurt dat terug naar server
 	{
 		handleListCommand(command, client);
+	}
+	// if (command[0] == "PRIVMSG")
+	// {
+	// 	// irssi interpreteert /msg input als PRIVMSG en stuurt dat terug naar server
+	// 	privatmsg(command, client);
+	// }
+}
+
+/*
+********************************************************************************
+Command Handlers
+********************************************************************************
+*/
+
+bool Command::isNicknameInUse(const std::string &nickname)
+{
+	for (const auto &user : clients)
+	{
+		if (user.getNick() == nickname)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void Command::handleNickCommand(const std::vector<std::string> &command, Client &client)
+{
+	bool nicknameInUse;
+	if (command.size() == 2)
+	{
+		std::string newNick = command[1];
+
+		// Remove newline characters from the newNick string
+		newNick.erase(std::remove(newNick.begin(), newNick.end(), '\n'), newNick.end());
+
+		if (newNick == client.getNick())
+		{
+			client.sendToClient(":server 433 * " + newNick + " :Nickname is already in use\r\n");
+		}
+		// Check if newNick is not empty and different from the current nickname
+		else if (!newNick.empty() && newNick != client.getNick())
+		{
+			nicknameInUse = isNicknameInUse(newNick);
+			if (!nicknameInUse)
+			{
+				std::string oldNick = client.getNick(); // Get the current nickname before the change
+				client.setNick(newNick);
+
+				for (auto &channel : channels)
+				{
+					if (channel.isUserInChannel(&client))
+					{
+						std::string nickChangeMessage = ":" + oldNick + " NICK " + newNick + "\r\n";
+						channel.broadcastMessage(nickChangeMessage, &client);
+					}
+				}
+				// Inform the client about the nickname change
+				std::string nickChangeResponse = ":" + oldNick + " NICK " + newNick + "\r\n";
+				client.sendToClient(nickChangeResponse);
+
+				std::cout << "Client " << oldNick << " has changed their nickname to " << newNick << std::endl;
+			}
+			else
+			{
+				client.sendToClient(":server 433 * " + newNick + " :Nickname is already in use\r\n");
+			}
+		}
+		else
+		{
+			client.sendToClient(":server 432 * :Erroneous Nickname\r\n");
+		}
+	}
+	else
+	{
+		client.sendToClient(":server 431 * :No nickname given\r\n");
 	}
 }

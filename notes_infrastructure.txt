@@ -6,7 +6,7 @@
 #    By: mikuiper <mikuiper@student.codam.nl>         +#+                      #
 #                                                    +#+                       #
 #    Created: 2023/10/25 08:01:37 by mikuiper      #+#    #+#                  #
-#    Updated: 2023/10/25 08:32:30 by mikuiper      ########   odam.nl          #
+#    Updated: 2023/10/25 09:40:56 by mikuiper      ########   odam.nl          #
 #                                                                              #
 # **************************************************************************** #
 
@@ -51,6 +51,19 @@
 							- Here it is used to check if client has disconnected (i.e. recv returns 0 bytes).
 						+ processRawClientData()
 							- This function processes the bytes received by the server from the client.
+							- It splits received input string into parts vector named 'command'. TODO make this nicer and more failure proof?
+							- Performans literal direct comparisons between command[0] and received command from IRC client.
+							- Important: This is not the user client input (e.g. /nick), but what the IRC client sends to the server (e.g. NICK) on the basis of what the user had sent (e.g. /nick).
+							- Tons of "handleXxxCommand" functions to perform the command.
+								+ handleNickCommand()
+									- Command for changing current client's nickname.
+									- Uses client object and command[1]
+									- Cleans up the command[1]
+									- Checks if new nickname is not empty and if it is different from current nickname
+								+ ???()
+									-
+								+ ???()
+									-
 + [X]
 	+	+	X
 + [X]
