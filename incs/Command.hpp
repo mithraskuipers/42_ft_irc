@@ -17,8 +17,8 @@ class Command
 		~Command();
 		void addChannel(const std::string &channelName);
 		void processRawClientData(const std::string &input, Client &client);
-		bool leaveChannel(const std::string &channelName, Client &user);
-		bool joinChannel(const std::string &channelName, Client &user);
+		bool leaveChannel(const std::string &channelName, Client &client);
+		bool joinChannel(const std::string &channelName, Client &client);
 		bool isNicknameInUse(const std::string &nickname);
 
 
@@ -33,11 +33,11 @@ class Command
 		void handleWhoisCommand(const std::vector<std::string> &command, Client &client);
 		void handleNickCommand(const std::vector<std::string> &command, Client &client);
 		void handleListCommand(const std::vector<std::string> &command, Client &client);
-		void handleUserCommand(const std::vector<std::string> &command, Client &client);
+		void handleClientCommand(const std::vector<std::string> &command, Client &client);
 		void handleQuitCommand(const std::vector<std::string> &command, Client &client);
 		void handleJoinCommand(const std::vector<std::string> &command, Client &client);
 		void handleLeaveCommand(const std::vector<std::string> &command, Client &client);
-		void sendChannelList(Client &user);
+		void sendChannelList(Client &client);
 };
 
 #endif

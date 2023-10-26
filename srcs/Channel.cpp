@@ -13,7 +13,6 @@
 #include "./../incs/Channel.hpp"
 #include "./../incs/Client.hpp"
 #include "./../incs/includes.hpp"
-#include <string> // Include the necessary header for std::string
 
 /*
 ********************************************************************************
@@ -21,7 +20,7 @@ Orthodox canonical form
 ********************************************************************************
 */
 
-Channel::Channel() : topic(""), topicAuthor("")
+Channel::Channel() : topicAuthor(""), topic("")
 {
 }
 
@@ -29,7 +28,7 @@ Channel::~Channel()
 {
 }
 
-Channel::Channel(const std::string &name) : channelName(name), topic(""), topicAuthor("")
+Channel::Channel(const std::string &name) : channelName(name), topicAuthor(""), topic("")
 {
 }
 
@@ -41,22 +40,22 @@ Getters
 
 std::string Channel::getName() const
 {
-	return channelName;
+	return (channelName);
 }
 
 std::string Channel::getTopic() const
 {
-	return topic;
+	return (topic);
 }
 
 std::string Channel::getTopicAuthor() const
 {
-	return topicAuthor;
+	return (topicAuthor);
 }
 
-int Channel::getUsersCount() const
+int Channel::getClientsCount() const
 {
-	return users.size();
+	return (_clients.size());
 }
 
 /*
@@ -65,10 +64,10 @@ Setters
 ********************************************************************************
 */
 
-void Channel::setTopic(const std::string &newTopic, Client *user)
+void Channel::setTopic(const std::string &newTopic, Client *client)
 {
 	topic = newTopic;
-	topicAuthor = user->getNick();
+	topicAuthor = client->getNick();
 }
 
 /*
@@ -77,63 +76,65 @@ Member functions
 ********************************************************************************
 */
 
-void Channel::addUser(Client *user)
+void Channel::addClient(Client *client)
 {
-	users.push_back(user);
+	_clients.push_back(client);
 }
 
-void Channel::removeUser(Client *user)
+void Channel::removeClient(Client *client)
 {
-	auto it = std::remove(users.begin(), users.end(), user);
-	users.erase(it, users.end());
+	if (isClientInChannel(client))
+		_clients.erase(std::find(_clients.begin(), _clients.end(), client));
 }
 
-bool Channel::isUserInChannel(const Client *user) const
+bool Channel::isClientInChannel(const Client *client) const
 {
-	return std::find(users.begin(), users.end(), user) != users.end();
+	if (std::find(_clients.begin(), _clients.end(), client) != _clients.end())
+		return (TRUE);
+	return (FALSE);
 }
 
 void Channel::broadcastMessage(const std::string &message, Client *sender)
 {
-	for (auto &user : users)
+	for (auto &client : _clients)
 	{
-		if (user != sender)
+		if (client != sender)
 		{
-			user->sendToClient(message);
+			client->sendToClient(message);
 		}
 	}
 }
 
 bool Channel::isEmpty() const
 {
-	return users.empty();
+	return (_clients.empty());
 }
 
-bool Channel::isOperator(Client *user) const
+bool Channel::isOperator(Client *client) const
 {
-	auto it = std::find(operators.begin(), operators.end(), user);
-	return it != operators.end();
+	auto it = std::find(operators.begin(), operators.end(), client);
+	return (it != operators.end());
 }
 
-void Channel::addOperator(Client *user)
+void Channel::addOperator(Client *client)
 {
-	operators.push_back(user);
+	operators.push_back(client);
 }
 
-void Channel::removeOperator(Client *user)
+void Channel::removeOperator(Client *client)
 {
-	auto it = std::find(operators.begin(), operators.end(), user);
+	auto it = std::find(operators.begin(), operators.end(), client);
 	if (it != operators.end())
 	{
 		operators.erase(it);
 	}
 }
 
-void Channel::listUsers() const
+void Channel::listClients() const
 {
-	std::cout << "Users currently in the channel " << channelName << ":\n";
-	for (const auto &user : users)
+	std::cout << "Clients currently in the channel " << channelName << ":\n";
+	for (const auto &client : _clients)
 	{
-		std::cout << "- " << user->getNick() << "\n";
+		std::cout << "- " << client->getNick() << "\n";
 	}
 }

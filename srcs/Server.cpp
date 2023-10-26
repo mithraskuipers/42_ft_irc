@@ -111,10 +111,10 @@ int Server::handleNewConnection(int client_socket)
 {
 	if (client_socket == -1)
 		return (-1);
-	std::string username = addClientSocket(client_socket);
+	std::string clientname = addClientSocket(client_socket);
 	std::cout << "New client connected. ";
 	std::cout << "Total clients: " << clients.size() << std::endl;
-	sendMotdMessage(client_socket, username); // Toegevoegd want is gangbaar in IRC
+	sendMotdMessage(client_socket, clientname); // Toegevoegd want is gangbaar in IRC
 	return (0);
 }
 
@@ -123,37 +123,37 @@ std::string Server::addClientSocket(int clientSocket)
 	std::string welcomeMessage;
 	const std::string defaultNickname = "Guest";
 	std::string randomCode = generateRandomCode();
-	std::string username = defaultNickname + randomCode;
+	std::string clientname = defaultNickname + randomCode;
 
 	// Check if the client already exists in clients vector
-	auto existingClient = std::find_if(clients.begin(), clients.end(), [clientSocket](const Client &user)
-									   { return user.getSocketDescriptor() == clientSocket; });
+	auto existingClient = std::find_if(clients.begin(), clients.end(), [clientSocket](const Client &client)
+									   { return client.getSocketDescriptor() == clientSocket; });
 
 	if (existingClient != clients.end())
 	{
-		// Client already exists, return the existing usernam
+		// Client already exists, return the existing clientnam
 		return existingClient->getNick();
 	}
 
-	welcomeMessage = "IRC : To register please use commands PASS - NICK - USER(user, mode, unused, realname)\r\n";
+	welcomeMessage = "IRC : To register please use commands PASS - NICK - USER(client, mode, unused, realname)\r\n";
 	send(clientSocket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
 
-	while (isNicknameInUse(username))
+	while (isNicknameInUse(clientname))
 	{
 		randomCode = generateRandomCode();
-		username = defaultNickname + randomCode;
+		clientname = defaultNickname + randomCode;
 	}
 
-	clients.push_back(Client(clientSocket, username));
+	clients.push_back(Client(clientSocket, clientname));
 
-	welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
+	welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + clientname + " :Welcome to the IRC server, " + clientname + "!\r\n";
 	send(clientSocket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
 
-	return (username);
+	return (clientname);
 }
 
 /*
-generateRandomCode() for creating a random code for the "Guest" username.
+generateRandomCode() for creating a random code for the "Guest" clientname.
 */
 
 std::string Server::generateRandomCode()
@@ -170,7 +170,7 @@ std::string Server::generateRandomCode()
 }
 
 /*
-isNicknameInUse() checks if a username has already been taken.
+isNicknameInUse() checks if a clientname has already been taken.
 */
 
 int Server::isNicknameInUse(const std::string &nickname) const
@@ -185,17 +185,17 @@ int Server::isNicknameInUse(const std::string &nickname) const
 	return (0);
 }
 
-void Server::sendMotdMessage(int client_socket, const std::string &username)
+void Server::sendMotdMessage(int client_socket, const std::string &clientname)
 {
-	std::string welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + username + " :Welcome to the IRC server, " + username + "!\r\n";
+	std::string welcomeMessage = ":" + std::string(SERVER_NAME) + " 001 " + clientname + " :Welcome to the IRC server, " + clientname + "!\r\n";
 	send(client_socket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
-	std::string motdMessage = ":" + std::string(SERVER_NAME) + " 375 " + username + " :- " + std::string(SERVER_NAME) + " Message of the Day -\r\n";
+	std::string motdMessage = ":" + std::string(SERVER_NAME) + " 375 " + clientname + " :- " + std::string(SERVER_NAME) + " Message of the Day -\r\n";
 	send(client_socket, motdMessage.c_str(), motdMessage.size(), 0);
 
-	std::string motdContent = ":" + std::string(SERVER_NAME) + " 372 " + username + " :- Welcome to our awesome IRC server! yugioh > magic!!! Enjoy your stay.\r\n";
+	std::string motdContent = ":" + std::string(SERVER_NAME) + " 372 " + clientname + " :- Welcome to our awesome IRC server! yugioh > magic!!! Enjoy your stay.\r\n";
 	send(client_socket, motdContent.c_str(), motdContent.size(), 0);
 
-	std::string endMotdMessage = ":" + std::string(SERVER_NAME) + " 376 " + username + " :End of /MOTD command.\r\n";
+	std::string endMotdMessage = ":" + std::string(SERVER_NAME) + " 376 " + clientname + " :End of /MOTD command.\r\n";
 	send(client_socket, endMotdMessage.c_str(), endMotdMessage.size(), 0);
 }
 
@@ -213,7 +213,7 @@ void Server::checkWhatReceivedFromClient(int client_socket)
 	{
 		// std::string complete_command(buffer.data(), bytes_received);
 		command.processRawClientData(message, \
-		getClientByUsername(usernameFromSocket(client_socket)));
+		getClientByClientname(clientnameFromSocket(client_socket)));
 	}
 	else
 	{
@@ -226,8 +226,8 @@ void Server::checkWhatReceivedFromClient(int client_socket)
 			std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
 		}
 		close(client_socket);
-		auto it = std::remove_if(clients.begin(), clients.end(), [client_socket](const Client &user)
-		{ return user.getSocketDescriptor() == client_socket; });
+		auto it = std::remove_if(clients.begin(), clients.end(), [client_socket](const Client &client)
+		{ return client.getSocketDescriptor() == client_socket; });
 		clients.erase(it, clients.end());
 	}
 	message.clear();
@@ -239,7 +239,7 @@ Orthodox canonical form
 ********************************************************************************
 */
 
-Server::Server(int port, const std::string &password) : password(password), active_users(0), port(port), command(clients, channels, *this), server_listening_socket(), IP(), socket_address(), clients(), channels(), welcomeMessage("Welkom bij de yugioh > magic")
+Server::Server(int port, const std::string &password) : password(password), active_clients(0), port(port), command(clients, channels, *this), server_listening_socket(), IP(), socket_address(), clients(), channels(), welcomeMessage("Welkom bij de yugioh > magic")
 {
 	// command(clients, channels, *this) = Pass clients and channels vectors and a reference to the current server object
 }
@@ -272,11 +272,11 @@ void Server::getHostIP()
 
 std::string Server::getClientIP(int clientSocket)
 {
-	for (const auto &user : clients)
+	for (const auto &client : clients)
 	{
-		if (user.getSocketDescriptor() == clientSocket)
+		if (client.getSocketDescriptor() == clientSocket)
 		{
-			return user.getIP();
+			return client.getIP();
 		}
 	}
 	return ("Unknown IP"); // Return a default value if client IP is not found
@@ -284,44 +284,44 @@ std::string Server::getClientIP(int clientSocket)
 
 int Server::getClientPort(int clientSocket)
 {
-	for (const auto &user : clients)
+	for (const auto &client : clients)
 	{
-		if (user.getSocketDescriptor() == clientSocket)
+		if (client.getSocketDescriptor() == clientSocket)
 		{
-			return (user.getPort());
+			return (client.getPort());
 		}
 	}
 	return (0); // IP niet gevonden
 }
 
 /*
-Returns client username from socket
+Returns client clientname from socket
 */
 
-std::string Server::usernameFromSocket(int clientSocket)
+std::string Server::clientnameFromSocket(int clientSocket)
 {
-	for (const auto &user : clients)
+	for (const auto &client : clients)
 	{
-		if (user.getSocketDescriptor() == clientSocket)
+		if (client.getSocketDescriptor() == clientSocket)
 		{
-			return user.getNick();
+			return client.getNick();
 		}
 	}
-	return ("UnknownUsername"); // Username niet gevonden
+	return ("UnknownClientname"); // Clientname niet gevonden
 }
 
 /*
 Returns entire client object
 */
 
-Client &Server::getClientByUsername(const std::string &username)
+Client &Server::getClientByClientname(const std::string &clientname)
 {
-	for (auto &user : clients)
+	for (auto &client : clients)
 	{
-		if (user.getNick() == username)
+		if (client.getNick() == clientname)
 		{
-			return (user);
+			return (client);
 		}
 	}
-	throw std::runtime_error("Client not found with the specified username");
+	throw std::runtime_error("Client not found with the specified clientname");
 }

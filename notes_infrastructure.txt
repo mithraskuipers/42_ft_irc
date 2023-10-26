@@ -31,18 +31,18 @@
 			+ accept()
 				- System call to accept new incoming connection from a client. Creates new socket descriptor for that specific client.
 				+ handleNewConnection()
-						- Wrapper for creating a new client using client socket and username.
+						- Wrapper for creating a new client using client socket and clientname.
 						- Wrapper for sending out welcome message.
 						- Wrapper for sending out MOTD message.
 							+ addClientSocket()
-								- Create new client object using Client constructor + client socket + username.
-								- It creates this username randomly. Performs checks to ensure unique username.
+								- Create new client object using Client constructor + client socket + clientname.
+								- It creates this clientname randomly. Performs checks to ensure unique clientname.
 									+ generateRandomCode()
-										- Creates random 4 number string suffix to add to initial "Guest" username.
+										- Creates random 4 number string suffix to add to initial "Guest" clientname.
 									+ isNicknameInUse()
 										- Checks if current randomly created nickname (e.g. Guest1717) is already in use.
 							+ sendMotdMessage()
-								- Sends MOTD message to specific client on basis of its socket and username.
+								- Sends MOTD message to specific client on basis of its socket and clientname.
 					+ checkWhatReceivedFromClient()
 						- reads client output, sees message or disconnect
 						+ recv()
@@ -52,7 +52,7 @@
 							- This function processes the bytes received by the server from the client.
 							- It splits received input string into parts vector named 'command'. TODO make this nicer and more failure proof?
 							- Performans literal direct comparisons between command[0] and received command from IRC client.
-							- Important: This is not the user client input (e.g. /nick), but what the IRC client sends to the server (e.g. NICK) on the basis of what the user had sent (e.g. /nick).
+							- Important: This is not the client client input (e.g. /nick), but what the IRC client sends to the server (e.g. NICK) on the basis of what the client had sent (e.g. /nick).
 							- Tons of "handleXxxCommand" functions to perform the command.
 								+ handleNickCommand()
 									- Command for changing current client's nickname.
@@ -61,7 +61,7 @@
 									- Checks if new nickname is not empty and if it is different from current nickname
 										+ sendToClient()
 										+ isNicknameInUse()
-										+ isUserInChannel(). Channel member function.
+										+ isClientInChannel(). Channel member function.
 										+ broadcastMessage(). Channel member function.
 								+ handleJoinCommand()
 									- Makes the client join a channel.

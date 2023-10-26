@@ -43,6 +43,7 @@
 #define FALSE 0
 #define BUFFER_SIZE 2048
 #define DEBUG 1
+#define BUFFER_SIZE 2048
 
 
 #define SERVER_NAME "chat.debugdivas.nl"

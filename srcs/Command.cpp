@@ -43,19 +43,19 @@ void Command::handlePassCommand(const std::vector<std::string> &command, Client 
 	}
 }
 
-void Command::handleUserCommand(const std::vector<std::string> &command, Client &client)
+void Command::handleClientCommand(const std::vector<std::string> &command, Client &client)
 {
 	if (command.size() >= 5)
 	{
-		std::string username = command[1];
+		std::string clientname = command[1];
 		std::string realname = command[4];
 
-		client.setNick(username);
+		client.setNick(clientname);
 		client.setRealName(realname);
 
 		client.sendToClient(":server 001 " + client.getNick() + " :Welcome to the IRC server, " + client.getNick() + "!\r\n");
 
-		std::cout << "Client " << client.getNick() << " registered with username: " << username << " and real name: " << realname << std::endl;
+		std::cout << "Client " << client.getNick() << " registered with clientname: " << clientname << " and real name: " << realname << std::endl;
 	}
 	else
 	{
@@ -74,26 +74,23 @@ void Command::handleQuitCommand(const std::vector<std::string> &command, Client 
 	{
 		quitMessage = "Client quit";
 	}
-
-	auto iterator = std::find_if(clients.begin(), clients.end(), [&client](const Client &user)
-								 { return user.getSocketDescriptor() == client.getSocketDescriptor(); });
-
-	if (iterator != clients.end())
-	{
-		clients.erase(iterator);
-	}
-
-	close(client.getSocketDescriptor());
-
-	auto it = std::find_if(clients.begin(), clients.end(), [&client](const Client &user)
-						   { return user.getSocketDescriptor() == client.getSocketDescriptor(); });
-
-	if (it != clients.end())
-	{
-		clients.erase(it);
-	}
-
 	std::cout << "Client " << client.getNick() << " has quit the server. Reason: " << quitMessage << std::endl;
+
+	// NOT WORKING
+
+	// close(client.getSocketDescriptor());
+	// auto iterator = std::find(clients.begin(), clients.end(), client);
+	// if (iterator != clients.end())
+	// 	clients.erase(iterator);
+
+	// auto it = std::find_if(clients.begin(), clients.end(), [&client](const Client &client)
+	// 					   { return client.getSocketDescriptor() == client.getSocketDescriptor(); });
+
+	// if (it != clients.end())
+	// {
+	// 	clients.erase(it);
+	// }
+
 }
 
 void Command::handleJoinCommand(const std::vector<std::string> &command, Client &client)
@@ -116,7 +113,7 @@ void Command::handleJoinCommand(const std::vector<std::string> &command, Client 
 		{
 			// Channel doesn't exist, create it
 			Channel newChannel(channelName);
-			newChannel.addUser(&client);
+			newChannel.addClient(&client);
 			channels.push_back(newChannel);
 
 			// Notify the client about channel creation
@@ -125,9 +122,9 @@ void Command::handleJoinCommand(const std::vector<std::string> &command, Client 
 		}
 		else
 		{
-			if (!it->isUserInChannel(&client))
+			if (!it->isClientInChannel(&client))
 			{
-				it->addUser(&client);
+				it->addClient(&client);
 				std::string joinMessage = ":" + client.getNick() + " JOIN " + channelName + "\r\n";
 				it->broadcastMessage(joinMessage, &client);
 				client.sendToClient(":" + client.getNick() + " JOIN " + channelName + "\r\n");
@@ -169,7 +166,7 @@ void Command::privatmsg(std::vector<std::string> cmds, Client &sender)
 
 		if (it != channels.end())
 		{
-			if (it->isUserInChannel(&sender))
+			if (it->isClientInChannel(&sender))
 			{
 				std::string formattedMessage = ":" + sender.getNick() + " PRIVMSG " + target + " :" + message + "\r\n";
 				it->broadcastMessage(formattedMessage, &sender);
@@ -184,10 +181,10 @@ void Command::privatmsg(std::vector<std::string> cmds, Client &sender)
 			sender.sendToClient("401 " + target + " :No such channel\r\n");
 		}
 	}
-	else // Handle private messages to users
+	else // Handle private messages to clients
 	{
-		auto it = std::find_if(clients.begin(), clients.end(), [&target](const Client &user)
-							   { return user.getNick() == target; });
+		auto it = std::find_if(clients.begin(), clients.end(), [&target](const Client &client)
+							   { return client.getNick() == target; });
 
 		if (it != clients.end())
 		{
@@ -207,46 +204,46 @@ void Command::addChannel(const std::string &channelName)
 	channels.push_back(newChannel);
 }
 
-bool Command::joinChannel(const std::string &channelName, Client &user)
+bool Command::joinChannel(const std::string &channelName, Client &client)
 {
 	for (auto &channel : channels)
 	{
 		if (channel.getName() == channelName)
 		{
-			channel.addUser(&user);
+			channel.addClient(&client);
 			return true; // Successfully joined the channel
 		}
 	}
 	return false; // Channel not found
 }
 
-bool Command::leaveChannel(const std::string &channelName, Client &user)
+bool Command::leaveChannel(const std::string &channelName, Client &client)
 {
 	auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
 						   { return channel.getName() == channelName; });
 
 	if (it != channels.end())
 	{
-		it->removeUser(&user);
+		it->removeClient(&client);
 		return true; // Successfully left the channel
 	}
 	return false; // Channel not found
 }
 
-void Command::sendChannelList(Client &user)
+void Command::sendChannelList(Client &client)
 {
 	if (channels.empty())
 	{
-		user.sendToClient("There are no channels in this server.\n");
+		client.sendToClient("There are no channels in this server.\n");
 	}
 	else
 	{
 		std::string channelList = "Channel List:\n";
 		for (const auto &channel : channels)
 		{
-			channelList += channel.getName() + " (" + std::to_string(channel.getUsersCount()) + " users)\n";
+			channelList += channel.getName() + " (" + std::to_string(channel.getClientsCount()) + " clients)\n";
 		}
-		user.sendToClient(channelList);
+		client.sendToClient(channelList);
 	}
 }
 
@@ -278,23 +275,23 @@ void Command::handlePartCommand(const std::vector<std::string> &command, Client 
 
 		if (it != channels.end())
 		{
-			if (it->isUserInChannel(&client))
+			if (it->isClientInChannel(&client))
 			{
 				// Debugging information
-				std::cout << "User " << client.getNick() << " is leaving channel " << channelName << std::endl;
+				std::cout << "Client " << client.getNick() << " is leaving channel " << channelName << std::endl;
 
 				// Notify about leaving the channel
 				std::string leaveMessage = ":" + client.getNick() + " PART " + channelName + " :Leaving the channel\r\n";
-				it->broadcastMessage(leaveMessage, nullptr); // Broadcast to all users in the channel
+				it->broadcastMessage(leaveMessage, nullptr); // Broadcast to all clients in the channel
 
-				// Remove user from the channel
-				it->removeUser(&client);
+				// Remove client from the channel
+				it->removeClient(&client);
 
-				// If there are no users left in the channel, remove the channel
-				if (it->getUsersCount() == 0)
+				// If there are no clients left in the channel, remove the channel
+				if (it->getClientsCount() == 0)
 				{
 					channels.erase(it);
-					std::cout << "Channel " << channelName << " has been removed due to lack of users." << std::endl;
+					std::cout << "Channel " << channelName << " has been removed due to lack of clients." << std::endl;
 				}
 			}
 			else
@@ -360,9 +357,9 @@ Command Handlers
 
 bool Command::isNicknameInUse(const std::string &nickname)
 {
-	for (const auto &user : clients)
+	for (const auto &client : clients)
 	{
-		if (user.getNick() == nickname)
+		if (client.getNick() == nickname)
 		{
 			return true;
 		}
@@ -395,7 +392,7 @@ void Command::handleNickCommand(const std::vector<std::string> &command, Client 
 
 				for (auto &channel : this->channels)
 				{
-					if (channel.isUserInChannel(&client))
+					if (channel.isClientInChannel(&client))
 					{
 						std::string nickChangeMessage = ":" + oldNick + " NICK " + newNick + "\r\n";
 						channel.broadcastMessage(nickChangeMessage, &client);

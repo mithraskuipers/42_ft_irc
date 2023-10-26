@@ -15,7 +15,7 @@ class Server
 {
 	private:
 		std::string password;
-		unsigned int active_users;
+		unsigned int active_clients;
 		int port;
 		Command command;
 		int server_listening_socket;
@@ -36,16 +36,16 @@ class Server
 		void startServer();
 		void getHostIP();
 		std::string getIP() const;
-		Client &getClientByUsername(const std::string &username);
+		Client &getClientByClientname(const std::string &clientname);
 		std::string getClientIP(int clientSocket);
 		int getClientPort(int clientSocket);
-		std::string usernameFromSocket(int clientSocket);
+		std::string clientnameFromSocket(int clientSocket);
 		int updateMaxSocketDescriptor();
 		int getPort() const;
 		std::string addClientSocket(int clientSocket);
 		std::string generateRandomCode();
 		int isNicknameInUse(const std::string &nickname) const;
-		void sendMotdMessage(int client_socket, const std::string &username);
+		void sendMotdMessage(int client_socket, const std::string &clientname);
 };
 
 #endif

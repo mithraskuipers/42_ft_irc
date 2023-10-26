@@ -3,38 +3,41 @@
 
 #include <vector>
 #include <string>
-#include <algorithm> // Include the necessary header for std::remove
+#include <algorithm> // std::remove
 
 class Client;
 
 class Channel
 {
 	public:
-		Channel();
-		~Channel();
 		Channel(const std::string &name);
-		void addUser(Client *user);
-		void removeUser(Client *user);
+		~Channel();
+		Channel();
+
+		bool isClientInChannel(const Client *client) const;
+		bool isOperator(Client *client) const;
+		void removeOperator(Client *client);
+		void addOperator(Client *client);
+		void removeClient(Client *client);
+		void addClient(Client *client);
+		void listClients() const;
 		bool isEmpty() const;
-		void listUsers() const;
-		std::string getName() const;
-		void setTopic(const std::string &topic, Client *user);
-		std::string getTopic() const;
-		std::string getTopicAuthor() const;
-		bool isOperator(Client *user) const;
-		void addOperator(Client *user);
-		void removeOperator(Client *user);
-		int getUsersCount() const;
-		bool isUserInChannel(const Client *user) const;
-		const std::vector<Client *> &getUsers() const { return users; }
+
 		void broadcastMessage(const std::string &message, Client *sender);
+		void setTopic(const std::string &topic, Client *client);
+
+		const std::vector<Client *> &getClients() const { return _clients; }
+		std::string getTopicAuthor() const;
+		std::string getTopic() const;
+		std::string getName() const;
+		int getClientsCount() const;
 
 	private:
-		std::vector<Client *> users;
-		std::string channelName;
-		std::string topic;
-		std::string topicAuthor;
 		std::vector<Client *> operators;
+		std::vector<Client *> _clients;
+		std::string channelName;
+		std::string topicAuthor;
+		std::string topic;
 };
 
 #endif
