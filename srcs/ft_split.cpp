@@ -12,6 +12,8 @@
 
 #include "./../incs/includes.hpp"
 
+// SPLIT ISN'T USED RIGHT NOW
+
 std::vector<std::string> ft_split(const std::string& input, const std::string& delimiter)
 {
 	std::vector<std::string> tokens;

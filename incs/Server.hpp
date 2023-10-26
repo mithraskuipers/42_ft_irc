@@ -14,38 +14,40 @@ class Client;
 class Server
 {
 	private:
-		std::string password;
-		unsigned int active_clients;
-		int port;
-		Command command;
-		int server_listening_socket;
-		std::string IP;
-		struct sockaddr_in socket_address;
-		std::vector<Client> clients;
-		std::vector<Channel> channels;
-		std::string welcomeMessage;
+		std::string _password;
+		unsigned int _activeClients;
+		int _port;
+		Command _command;
+		int _serverListeningSocket;
+		std::string _IP;
+		struct sockaddr_in _socketAddress;
+		std::vector<Client> _clients;
+		std::vector<Channel> _channels;
+		std::string _welcomeMessage;
 	
 	public:
-		int handleNewConnection(int client_socket);
-		void checkWhatReceivedFromClient(int client_socket);
-	
-		std::string getPass();
 		Server(int port, const std::string &password); // Constructor takes port and password as arguments
 		~Server();
-		void initServer();
+		
+		void setMachineIP();
 		void startServer();
-		void getHostIP();
-		std::string getIP() const;
-		Client &getClientByClientname(const std::string &clientname);
+		void initServer();
+
+		void sendMotdMessage(int clientSocket, const std::string &userName);
+		int isNickNameInUse(const std::string &nickName) const;
+		void checkWhatReceivedFromClient(int clientSocket);
+		std::string clientNameFromSocket(int clientSocket);
+		std::string addClientSocket(int clientSocket);
+		int handleNewConnection(int clientSocket);
+		std::string generateRandomCode();
+		int updateMaxSocketDescriptor();
+		
+		Client &getClientByClientName(const std::string &clientName);
 		std::string getClientIP(int clientSocket);
 		int getClientPort(int clientSocket);
-		std::string clientnameFromSocket(int clientSocket);
-		int updateMaxSocketDescriptor();
+		std::string getIP() const;
+		std::string getPass();
 		int getPort() const;
-		std::string addClientSocket(int clientSocket);
-		std::string generateRandomCode();
-		int isNicknameInUse(const std::string &nickname) const;
-		void sendMotdMessage(int client_socket, const std::string &clientname);
 };
 
 #endif

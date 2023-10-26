@@ -325,7 +325,7 @@ void Command::processRawClientData(const std::string &input, Client &client)
 	std::cout << "Command::processRawClientData: raw input: " << input;
 	std::cout << "Command::processRawClientData: command[0]: " << command[0] << std::endl;
 
-	if (command[0] == "NICK") 													// irssi interpreteert /nick input als NICK en stuurt dat terug naar server
+	if (command[0] == "NICK") 										// irssi interpreteert /nick input als NICK en stuurt dat terug naar server
 	{
 		handleNickCommand(command, client);
 	}
