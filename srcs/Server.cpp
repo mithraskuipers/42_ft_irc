@@ -57,7 +57,7 @@ void Server::initServer()
 void Server::startServer()
 {
 	// Infinite loop om server actief te houden
-	while (true) # WIP
+	while (true)
 	{
 		// Vector voor poll structs
 		std::vector<pollfd> fds;
@@ -201,12 +201,14 @@ void Server::sendMotdMessage(int client_socket, const std::string &username)
 
 void Server::checkWhatReceivedFromClient(int client_socket)
 {
-	std::vector<char> buffer(2048);
+	std::vector<char> buffer(BUFFER_SIZE);
 
 	std::string message;
 	recv(client_socket, buffer.data(), buffer.size(), 0);
 	message.append(buffer.data());
-	std::cout << "message size: " << message.size() << std::endl;
+	// DEBUG
+	if (DEBUG)
+		std::cout << "message size: " << message.size() << std::endl;
 	if (message.size() > 0)
 	{
 		// std::string complete_command(buffer.data(), bytes_received);

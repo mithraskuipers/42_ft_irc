@@ -41,6 +41,9 @@
 #define QUEUE_SIZE 10
 #define TRUE 1
 #define FALSE 0
+#define BUFFER_SIZE 2048
+#define DEBUG 1
+
 
 #define SERVER_NAME "chat.debugdivas.nl"
 

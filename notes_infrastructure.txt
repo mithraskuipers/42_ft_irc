@@ -43,9 +43,8 @@
 										- Checks if current randomly created nickname (e.g. Guest1717) is already in use.
 							+ sendMotdMessage()
 								- Sends MOTD message to specific client on basis of its socket and username.
-					+ checkIfDataReceivedFromClient()
-						- Important function for checking if client has disconnect server (= bytes).
-						- Important function for checking if client has sent input.
+					+ checkWhatReceivedFromClient()
+						- reads client output, sees message or disconnect
 						+ recv()
 							- To receive data from a socket.
 							- Here it is used to check if client has disconnected (i.e. recv returns 0 bytes).

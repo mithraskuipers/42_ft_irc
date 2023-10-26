@@ -21,8 +21,10 @@
 // Constructor
 // Other necessary includes
 
-Client::Client(int socket_descriptor, const std::string &nick) : polledFD.events(POLLIN), polledFD.fd(socket_descriptor), socket_descriptor(socket_descriptor), port(0), _nickname(nick), registered(false), ip("Unknown IP")
+Client::Client(int socket_descriptor, const std::string &nick) : socket_descriptor(socket_descriptor), port(0), _nickname(nick), registered(false), ip("Unknown IP")
 {
+	polledFD.events = POLLIN;
+	polledFD.fd = socket_descriptor;
 	// Constructor implementation
 }
 
