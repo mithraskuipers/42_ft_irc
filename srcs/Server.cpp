@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/25 08:01:52 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/25 08:26:53 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/27 22:34:49 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,10 @@
 #include "./../incs/Command.hpp"
 #include "./../incs/Client.hpp"
 #include "./../incs/Channel.hpp"
+#include <mutex>
+
+
+std::mutex clientsMutex;
 
 class Server;
 
@@ -104,14 +108,36 @@ void Server::startServer()
 
 int Server::handleNewConnection(int clientSocket)
 {
-	if (clientSocket == -1)
-		return (-1);
-	std::string clientName = addClientSocket(clientSocket);
-	std::cout << "New client connected. ";
-	std::cout << "Total clients: " << this->_clients.size() << std::endl;
-	sendMotdMessage(clientSocket, clientName); // Toegevoegd want is gangbaar in IRC
-	return (0);
+    if (clientSocket == -1)
+        return (-1);
+        
+    std::string clientName = addClientSocket(clientSocket);
+
+    // Check if the channel name is valid
+    if (!isValidChannelName(clientName))
+    {
+        // Invalid channel name, send an error message to the client and close the connection
+        std::string errorMessage = "421 " + clientName + " :Invalid channel name\r\n";
+        send(clientSocket, errorMessage.c_str(), errorMessage.size(), 0);
+        close(clientSocket);
+        // Handle the rest of the processing or return an error code as needed
+        return (-1);
+    }
+
+    std::cout << "New client connected. ";
+    std::cout << "Total clients: " << this->_clients.size() << std::endl;
+    sendMotdMessage(clientSocket, clientName); // Send Message of the Day to the client
+    // Handle the rest of the processing or return a success code as needed
+    return (0);
 }
+
+bool Server::isValidChannelName(const std::string &channelName)
+{
+    // Implement your channel name validation logic here
+    // For example, allow only letters and digits in the channel name
+    return std::all_of(channelName.begin(), channelName.end(), ::isalnum);
+}
+
 
 std::string Server::addClientSocket(int clientSocket)
 {
@@ -196,37 +222,26 @@ void Server::sendMotdMessage(int clientSocket, const std::string &clientName)
 
 void Server::checkWhatReceivedFromClient(int clientSocket)
 {
-	std::vector<char> buffer(BUFFER_SIZE);
+    std::vector<char> buffer(BUFFER_SIZE);
+    int bytes_received = recv(clientSocket, buffer.data(), buffer.size(), 0);
 
-	std::string message;
-	recv(clientSocket, buffer.data(), buffer.size(), 0);
-	message.append(buffer.data());
-	// DEBUG
-	if (DEBUG)
-		std::cout << "message size: " << message.size() << std::endl;
-	if (message.size() > 0)
-	{
-		// std::string complete_command(buffer.data(), bytes_received);
-		this->_command.processRawClientData(message, \
-		getClientByClientName(clientNameFromSocket(clientSocket)));
-	}
-	else
-	{
-		if (message.size() == 0)
-		{
-			std::cout << "Client disconnected. Total clients: " << this->_clients.size() - 1 << std::endl;
-		}
-		else
-		{
-			std::cerr << "Error: Failed to receive data from client: " << strerror(errno) << std::endl;
-		}
-		close(clientSocket);
-		auto it = std::remove_if(this->_clients.begin(), this->_clients.end(), [clientSocket](const Client &client)
-		{ return client.getSocketDescriptor() == clientSocket; });
-		this->_clients.erase(it, this->_clients.end());
-	}
-	message.clear();
+    if (bytes_received <= 0)
+    {
+        // Handle disconnection or error
+        std::string clientName = clientNameFromSocket(clientSocket);
+        std::cout << "Client " << clientName << " disconnected. Total clients: " << this->_clients.size() - 1 << std::endl;
+        close(clientSocket);
+        auto it = std::remove_if(this->_clients.begin(), this->_clients.end(), [clientSocket](const Client &client)
+        { return client.getSocketDescriptor() == clientSocket; });
+        this->_clients.erase(it, this->_clients.end());
+        return;
+    }
+
+    std::string receivedData(buffer.data(), bytes_received);
+    this->_command.processRawClientData(receivedData, getClientByClientName(clientNameFromSocket(clientSocket)));
 }
+
+
 
 /*
 ********************************************************************************

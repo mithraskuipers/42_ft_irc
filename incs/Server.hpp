@@ -32,6 +32,7 @@ class Server
 		void setMachineIP();
 		void startServer();
 		void initServer();
+		bool isValidChannelName(const std::string &channelName);
 
 		void sendMotdMessage(int clientSocket, const std::string &userName);
 		int isNickNameInUse(const std::string &nickName) const;
