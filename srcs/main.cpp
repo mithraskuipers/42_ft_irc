@@ -6,12 +6,14 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:09:49 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/24 22:32:09 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/28 00:03:22 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 /*
 [irssi]
+irssi -c 127.0.0.1 -p 6667
+
 /set rejoin_channels_on_reconnect off
 /set channels_rejoin_unavailable off
 */

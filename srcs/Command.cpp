@@ -17,6 +17,17 @@ Command::Command(std::vector<Client> &clients, std::vector<Channel> &channels, S
 
 Command::~Command() {}
 
+#include <algorithm>
+#include <cctype>
+
+std::string sanitizeInput(const std::string &input)
+{
+	std::string sanitizedInput = input;
+	// Remove all whitespace characters from the input string
+	sanitizedInput.erase(std::remove_if(sanitizedInput.begin(), sanitizedInput.end(), ::isspace), sanitizedInput.end());
+	return sanitizedInput;
+}
+
 void Command::handlePassCommand(const std::vector<std::string> &command, Client &client)
 {
 	if (command.size() >= 2)
@@ -102,14 +113,45 @@ void Command::handleQuitCommand(const std::vector<std::string> &command, Client 
 	// }
 }
 
+bool isChannelNameValid(const std::string &channelName)
+{
+
+	if (channelName.length() < 4 || channelName.length() > 22)
+	{
+		return false;
+	}
+
+	// Kijk of eerste # is. Automatisch gemaakt door irssi.
+	if (channelName[0] != '#')
+	{
+		return false;
+	}
+
+	// Sla eerste over. Sla laatste twee over. Alles tussenin moet alfanumeriek.
+	if (!std::all_of(channelName.begin() + 1, channelName.end() - 2, [](unsigned char c)
+					 { return std::isalnum(c); }))
+	{
+		return false;
+	}
+
+	// Kijk of laatste twee \r\n zijn.
+	if (channelName.substr(channelName.length() - 2) != "\r\n")
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void Command::handleJoinCommand(const std::vector<std::string> &command, Client &client)
 {
 	if (command.size() >= 2)
 	{
 		std::string channelName = command[1];
+		std::cout << channelName << std::endl;
+		std::cout << channelName.size() << std::endl;
 
-		// Ensure channel name starts with '#'
-		if (channelName[0] != '#')
+		if (!isChannelNameValid(channelName))
 		{
 			client.sendToClient(":server 403 " + client.getNick() + " " + channelName + " :Invalid channel name\r\n");
 			return;
@@ -358,17 +400,6 @@ void Command::processRawClientData(const std::string &input, Client &client)
 Command Handlers
 ********************************************************************************
 */
-
-#include <algorithm>
-#include <cctype>
-
-std::string sanitizeInput(const std::string &input)
-{
-	std::string sanitizedInput = input;
-	// Remove all whitespace characters from the input string
-	sanitizedInput.erase(std::remove_if(sanitizedInput.begin(), sanitizedInput.end(), ::isspace), sanitizedInput.end());
-	return sanitizedInput;
-}
 
 bool Command::isNicknameInUse(const std::string &nickname)
 {
