@@ -90,7 +90,6 @@ void Command::handleQuitCommand(const std::vector<std::string> &command, Client 
 	// {
 	// 	clients.erase(it);
 	// }
-
 }
 
 void Command::handleJoinCommand(const std::vector<std::string> &command, Client &client)
@@ -257,8 +256,6 @@ void Command::handleListCommand(const std::vector<std::string> &command, Client 
 
 void Command::handlePartCommand(const std::vector<std::string> &command, Client &client)
 {
-	std::cout << "Now inside Command::handlePartCommand()" << std::endl;
-
 	if (command.size() >= 2)
 	{
 		std::string channelName = command[1];
@@ -277,10 +274,7 @@ void Command::handlePartCommand(const std::vector<std::string> &command, Client 
 		{
 			if (it->isClientInChannel(&client))
 			{
-				// Debugging information
-				std::cout << "Client " << client.getNick() << " is leaving channel " << channelName << std::endl;
-
-				// Notify about leaving the channel
+				// Inform about leaving the channel
 				std::string leaveMessage = ":" + client.getNick() + " PART " + channelName + " :Leaving the channel\r\n";
 				it->broadcastMessage(leaveMessage, nullptr); // Broadcast to all clients in the channel
 
@@ -325,20 +319,20 @@ void Command::processRawClientData(const std::string &input, Client &client)
 	std::cout << "Command::processRawClientData: raw input: " << input;
 	std::cout << "Command::processRawClientData: command[0]: " << command[0] << std::endl;
 
-	if (command[0] == "NICK") 										// irssi interpreteert /nick input als NICK en stuurt dat terug naar server
+	if (command[0] == "NICK") // irssi interpreteert /nick input als NICK en stuurt dat terug naar server
 	{
 		handleNickCommand(command, client);
 	}
-	else if (command[0] == "JOIN")												// irssi interpreteert /join input als JOIN en stuurt dat terug naar server
+	else if (command[0] == "JOIN") // irssi interpreteert /join input als JOIN en stuurt dat terug naar server
 	{
 		handleJoinCommand(command, client);
 	}
-	else if (command[0] == "PART")												// irssi interpreteert /part input (en /leave input) als PART en stuurt dat terug naar server
+	else if (command[0] == "PART") // irssi interpreteert /part input (en /leave input) als PART en stuurt dat terug naar server
 	{
 		handlePartCommand(command, client);
 	}
 
-	else if (command[0] == "LIST")												// irssi interpreteert "/list -YES" als LIST en stuurt dat terug naar server
+	else if (command[0] == "LIST") // irssi interpreteert "/list -YES" als LIST en stuurt dat terug naar server
 	{
 		handleListCommand(command, client);
 	}
