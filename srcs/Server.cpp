@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/25 08:01:52 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/28 11:34:36 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/28 12:06:01 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -106,6 +106,7 @@ void Server::startServer()
 		}
 	}
 }
+
 
 int Server::handleNewConnection(int clientSocket)
 {
