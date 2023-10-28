@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/25 08:01:52 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/27 22:34:49 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/28 11:34:36 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,6 @@
 #include "./../incs/Client.hpp"
 #include "./../incs/Channel.hpp"
 #include <mutex>
-
 
 std::mutex clientsMutex;
 
@@ -60,84 +59,85 @@ void Server::initServer()
 
 void Server::startServer()
 {
-	// Infinite loop om server actief te houden
+	// Infinite loop to keep the server active
 	while (true)
 	{
-		// Vector voor poll structs
 		std::vector<pollfd> fds;
 
-		// Voeg poll struct toe aan bovenstaande vector. Configureer deze voor de server.
+		// Add server socket and client sockets to fds vector
 		pollfd serverSocket;
-
 		serverSocket.fd = this->_serverListeningSocket;
 		serverSocket.events = POLLIN;
 		fds.push_back(serverSocket);
 
-		// Voeg meer poll structs toe aan bovenstaande vector. Configureer deze voor de clients.
-		for (const auto &Client : this->_clients)
-			fds.push_back(Client.getPolledFD());
+		{
+			std::unique_lock<std::mutex> lock(clientsMutex);
+			for (const auto &client : this->_clients)
+				fds.push_back(client.getPolledFD());
+		}
 
-		// Voer poll() uit op de fds in de vector en kijk of error
-		if (poll(fds.data(), fds.size(), -1) == -1)
+		// Perform poll() on the fds in the vector and check for errors
+		if (poll(fds.data(), fds.size(), TIMEOUT_IN_MILLISECONDS) == -1)
 		{
 			std::cerr << "Error: Failed to perform poll() on socket: " << strerror(errno) << std::endl;
 			break;
 		}
 
-		// Iterate over readySockets en process events
+		// Iterate over readySockets and process events
 		for (size_t i = 0; i < fds.size(); ++i)
 		{
-			int returned_events;
-			returned_events = fds[i].revents; // Dit zijn events die werkelijk zijn gebeurd
-			// POLLIN heeft plaatsgevonden en fd komt overeen met server. betekent POLLIN van nieuwe client
+			int returned_events = fds[i].revents;
+
+			// POLLIN event occurred and fd corresponds to the server socket, indicating a new client connection
 			if ((returned_events & POLLIN) && (fds[i].fd == this->_serverListeningSocket))
 			{
-				// probeer accept()
+				// Attempt to accept() the new client connection
 				if (handleNewConnection(accept(this->_serverListeningSocket, NULL, NULL)) == -1)
 				{
 					std::cerr << "Error: Failed to accept client connection: " << strerror(errno) << std::endl;
 					continue;
 				}
-			}	
-			// POLLIN heeft plaatsgevonden en fd komt NIET overeen met server. betekent POLLIN van oude client
+			}
+			// POLLIN event occurred and fd does not correspond to the server socket, indicating data from an existing client
 			else if ((returned_events & POLLIN) && (fds[i].fd != this->_serverListeningSocket))
+			{
 				checkWhatReceivedFromClient(fds[i].fd);
+			}
 		}
 	}
 }
 
 int Server::handleNewConnection(int clientSocket)
 {
-    if (clientSocket == -1)
-        return (-1);
-        
-    std::string clientName = addClientSocket(clientSocket);
+	if (clientSocket == -1)
+		return (-1);
 
-    // Check if the channel name is valid
-    if (!isValidChannelName(clientName))
-    {
-        // Invalid channel name, send an error message to the client and close the connection
-        std::string errorMessage = "421 " + clientName + " :Invalid channel name\r\n";
-        send(clientSocket, errorMessage.c_str(), errorMessage.size(), 0);
-        close(clientSocket);
-        // Handle the rest of the processing or return an error code as needed
-        return (-1);
-    }
+	std::string clientName = addClientSocket(clientSocket);
 
-    std::cout << "New client connected. ";
-    std::cout << "Total clients: " << this->_clients.size() << std::endl;
-    sendMotdMessage(clientSocket, clientName); // Send Message of the Day to the client
-    // Handle the rest of the processing or return a success code as needed
-    return (0);
+	// Check if the channel name is valid
+	if (!isValidChannelName(clientName))
+	{
+		// Invalid channel name, send an error message to the client and close the connection
+		std::string errorMessage = "421 " + clientName + " :Invalid channel name\r\n";
+		send(clientSocket, errorMessage.c_str(), errorMessage.size(), 0);
+		close(clientSocket);
+		// Handle the rest of the processing or return an error code as needed
+		return (-1);
+	}
+
+	std::cout << "New client connected. ";
+	std::cout << "Total clients: " << this->_clients.size() << std::endl;
+	sendMotdMessage(clientSocket, clientName); // Send Message of the Day to the client
+	// Handle the rest of the processing or return a success code as needed
+	return (0);
 }
 
 bool Server::isValidChannelName(const std::string &channelName)
 {
-    // Implement your channel name validation logic here
-    // For example, allow only letters and digits in the channel name
-    return std::all_of(channelName.begin(), channelName.end(), ::isalnum);
+	// Implement your channel name validation logic here
+	// For example, allow only letters and digits in the channel name
+	return std::all_of(channelName.begin(), channelName.end(), ::isalnum);
 }
-
 
 std::string Server::addClientSocket(int clientSocket)
 {
@@ -222,26 +222,30 @@ void Server::sendMotdMessage(int clientSocket, const std::string &clientName)
 
 void Server::checkWhatReceivedFromClient(int clientSocket)
 {
-    std::vector<char> buffer(BUFFER_SIZE);
-    int bytes_received = recv(clientSocket, buffer.data(), buffer.size(), 0);
+	std::vector<char> buffer(BUFFER_SIZE);
+	int bytes_received = recv(clientSocket, buffer.data(), buffer.size(), 0);
 
-    if (bytes_received <= 0)
-    {
-        // Handle disconnection or error
-        std::string clientName = clientNameFromSocket(clientSocket);
-        std::cout << "Client " << clientName << " disconnected. Total clients: " << this->_clients.size() - 1 << std::endl;
-        close(clientSocket);
-        auto it = std::remove_if(this->_clients.begin(), this->_clients.end(), [clientSocket](const Client &client)
-        { return client.getSocketDescriptor() == clientSocket; });
-        this->_clients.erase(it, this->_clients.end());
-        return;
-    }
+	if (bytes_received <= 0)
+	{
+		// Handle disconnection or error
+		std::string clientName = clientNameFromSocket(clientSocket);
+		{
+			std::unique_lock<std::mutex> lock(clientsMutex);
+			std::cout << "Client " << clientName << " disconnected. Total clients: " << this->_clients.size() - 1 << std::endl;
+			close(clientSocket);
+			auto it = std::remove_if(this->_clients.begin(), this->_clients.end(), [clientSocket](const Client &client)
+									 { return client.getSocketDescriptor() == clientSocket; });
+			this->_clients.erase(it, this->_clients.end());
+		}
+		return;
+	}
 
-    std::string receivedData(buffer.data(), bytes_received);
-    this->_command.processRawClientData(receivedData, getClientByClientName(clientNameFromSocket(clientSocket)));
+	std::string receivedData(buffer.data(), bytes_received);
+	{
+		std::unique_lock<std::mutex> lock(clientsMutex);
+		this->_command.processRawClientData(receivedData, getClientByClientName(clientNameFromSocket(clientSocket)));
+	}
 }
-
-
 
 /*
 ********************************************************************************

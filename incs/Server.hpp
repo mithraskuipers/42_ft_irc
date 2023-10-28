@@ -8,6 +8,11 @@
 #include "Channel.hpp"
 #include "Client.hpp"
 
+
+#include <mutex>
+#include <condition_variable>
+
+
 class Command;
 class Client;
 

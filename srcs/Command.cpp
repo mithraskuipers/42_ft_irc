@@ -432,6 +432,17 @@ bool Command::isNicknameValid(const std::string &nickname)
 	return true;
 }
 
+
+/*
+Belangrijk!
+De isNicknameValid() is belangrijk omdat het kijkt of de nickname volledig alphanumeric is.
+Als dat het niet is, dan rejecten we de nickname change. Waarom? Omdat we anders in de backend
+opslaan dat de nickname non-alphanumeric characters in zich heeft. Dit zorgt voor een out of sync
+probleem omdat irssi zelf automatisch de non-alphanumeric characters van de nickname lijkt te verwijderen.
+Dit probleem heeft dus weer te maken met een verschil tussen wat je als user invoert en de vertaalslag van
+irssi naar onze server.
+*/
+
 void Command::handleNickCommand(const std::vector<std::string> &command, Client &client)
 {
 	if (command.size() == 2)

@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/07/08 14:12:24 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/24 22:28:58 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/28 11:29:20 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,10 +41,9 @@
 #define QUEUE_SIZE 10
 #define TRUE 1
 #define FALSE 0
-#define BUFFER_SIZE 2048
+#define BUFFER_SIZE 4096
 #define DEBUG 1
-#define BUFFER_SIZE 2048
-
+#define TIMEOUT_IN_MILLISECONDS 100
 
 #define SERVER_NAME "chat.debugdivas.nl"
 
