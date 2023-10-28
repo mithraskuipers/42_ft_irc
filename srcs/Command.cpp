@@ -283,19 +283,27 @@ bool Command::leaveChannel(const std::string &channelName, Client &client)
 
 void Command::sendChannelList(Client &client)
 {
-	if (channels.empty())
-	{
-		client.sendToClient("There are no channels in this server.\n");
-	}
-	else
-	{
-		std::string channelList = "Channel List:\n";
-		for (const auto &channel : channels)
-		{
-			channelList += channel.getName() + " (" + std::to_string(channel.getClientsCount()) + " clients)\n";
-		}
-		client.sendToClient(channelList);
-	}
+    if (channels.empty())
+    {
+        client.sendToClient("There are no channels in this server.\n");
+    }
+    else
+    {
+        std::string channelList = "Channel List:\n";
+        for (const auto &channel : channels)
+        {
+            channelList += channel.getName() + " (" + std::to_string(channel.getClientsCount()) + " clients): ";
+
+            // Add nicknames of clients in the channel to the list
+            for (const auto &client : channel.getClients())
+            {
+                channelList += client->getNick() + " ";
+            }
+
+            channelList += "\n";
+        }
+        client.sendToClient(channelList);
+    }
 }
 
 void Command::handleListCommand(const std::vector<std::string> &command, Client &client)
@@ -306,94 +314,180 @@ void Command::handleListCommand(const std::vector<std::string> &command, Client 
 	sendChannelList(client);
 }
 
-void Command::handlePartCommand(const std::vector<std::string> &command, Client &client)
+#include <sstream>
+
+std::vector<std::string> Command::parseRawData(const std::string &data)
 {
-	if (command.size() >= 2)
-	{
-		std::string channelName = command[1];
-
-		// Ensure channel name starts with '#'
-		if (channelName[0] != '#')
-		{
-			client.sendToClient(":server 403 " + client.getNick() + " " + channelName + " :Invalid channel name\r\n");
-			return;
-		}
-
-		auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
-							   { return channel.getName() == channelName; });
-
-		if (it != channels.end())
-		{
-			if (it->isClientInChannel(&client))
-			{
-				// Inform about leaving the channel
-				std::string leaveMessage = ":" + client.getNick() + " PART " + channelName + " :Leaving the channel\r\n";
-				it->broadcastMessage(leaveMessage, nullptr); // Broadcast to all clients in the channel
-
-				// Remove client from the channel
-				it->removeClient(&client);
-
-				// If there are no clients left in the channel, remove the channel
-				if (it->getClientsCount() == 0)
-				{
-					channels.erase(it);
-					std::cout << "Channel " << channelName << " has been removed due to lack of clients." << std::endl;
-				}
-			}
-			else
-			{
-				client.sendToClient(":server 442 " + client.getNick() + " " + channelName + " :You're not on that channel\r\n");
-			}
-		}
-		else
-		{
-			client.sendToClient(":server 403 " + client.getNick() + " " + channelName + " :No such channel\r\n");
-		}
-	}
-	else
-	{
-		client.sendToClient(":server 461 " + client.getNick() + " PART :Not enough parameters\r\n");
-	}
+    std::vector<std::string> result;
+    std::istringstream iss(data);
+    std::string token;
+    while (std::getline(iss, token, ' '))
+    {
+        result.push_back(token);
+    }
+    return result;
 }
 
-void Command::processRawClientData(const std::string &input, Client &client)
+Channel* Command::findChannelByName(const std::string &channelName)
 {
-	// Split the input into command and arguments
-	// TODO MAKE NICE STRING SPLITTER?
-	std::vector<std::string> command;
-	size_t spacePos = input.find(' ');
-	command.push_back(input.substr(0, spacePos));
-	if (spacePos != std::string::npos)
-	{
-		command.push_back(input.substr(spacePos + 1));
-	}
+    auto it = std::find_if(channels.begin(), channels.end(), [&channelName](const Channel &channel)
+    {
+        return channel.getName() == channelName;
+    });
 
-	std::cout << "Command::processRawClientData: raw input: " << input;
-	std::cout << "Command::processRawClientData: command[0]: " << command[0] << std::endl;
+    if (it != channels.end())
+    {
+        return &(*it);
+    }
 
-	if (command[0] == "NICK") // irssi interpreteert /nick input als NICK en stuurt dat terug naar server
-	{
-		handleNickCommand(command, client);
-	}
-	else if (command[0] == "JOIN") // irssi interpreteert /join input als JOIN en stuurt dat terug naar server
-	{
-		handleJoinCommand(command, client);
-	}
-	else if (command[0] == "PART") // irssi interpreteert /part input (en /leave input) als PART en stuurt dat terug naar server
-	{
-		handlePartCommand(command, client);
-	}
-
-	else if (command[0] == "LIST") // irssi interpreteert "/list -YES" als LIST en stuurt dat terug naar server
-	{
-		handleListCommand(command, client);
-	}
-	// if (command[0] == "PRIVMSG")
-	// {
-	// 	// irssi interpreteert /msg input als PRIVMSG en stuurt dat terug naar server
-	// 	privatmsg(command, client);
-	// }
+    return nullptr; // Return nullptr if channel is not found
 }
+
+void Command::removeChannel(Channel* channel)
+{
+    auto it = std::remove_if(channels.begin(), channels.end(), [channel](const Channel &c)
+    {
+        return &c == channel;
+    });
+
+    channels.erase(it, channels.end()); // Erase the channel from the vector
+}
+
+
+
+void Command::handlePartCommand(Client *client, const std::vector<std::string> &command) {
+    if (command.size() >= 2) {
+        std::string channelName = command[1];
+
+        if (channelName[0] != '#') {
+            // Invalid channel name, send an error message to the client
+            std::string errorMessage = "403 " + client->getNick() + " " + channelName + " :Invalid channel name\r\n";
+            client->send(errorMessage);
+        } else {
+            Channel *channel = findChannelByName(channelName);
+            if (channel != nullptr) {
+                if (channel->isClientInChannel(client)) {
+                    // Inform about leaving the channel
+                    std::string leaveMessage = ":" + client->getNick() + " PART " + channelName + " :Leaving the channel\r\n";
+                    channel->broadcastMessage(leaveMessage, client);
+
+                    // Remove client from the channel
+                    channel->removeClient(client);
+
+                    // If there are no clients left in the channel, remove the channel
+                    if (channel->isEmpty()) {
+                        // Remove the channel from the list of channels
+                        removeChannel(channel);
+                    }
+                } else {
+                    // Client is not in the channel, send an error message to the client
+                    std::string errorMessage = "442 " + client->getNick() + " " + channelName + " :You're not on that channel\r\n";
+                    client->send(errorMessage);
+                }
+            } else {
+                // Channel not found, send an error message to the client
+                std::string errorMessage = "403 " + client->getNick() + " " + channelName + " :No such channel\r\n";
+                client->send(errorMessage);
+            }
+        }
+    } else {
+        // Invalid PART command, send an error message to the client
+        std::string errorMessage = "461 " + client->getNick() + " PART :Not enough parameters\r\n";
+        client->send(errorMessage);
+    }
+}
+
+
+
+// void Command::processRawClientData(const std::string &input, Client &client)
+// {
+// 	// Split the input into command and arguments
+// 	// TODO MAKE NICE STRING SPLITTER?
+// 	std::vector<std::string> command;
+// 	size_t spacePos = input.find(' ');
+// 	command.push_back(input.substr(0, spacePos));
+// 	if (spacePos != std::string::npos)
+// 	{
+// 		command.push_back(input.substr(spacePos + 1));
+// 	}
+
+// 	std::cout << "Command::processRawClientData: raw input: " << input;
+// 	std::cout << "Command::processRawClientData: command[0]: " << command[0] << std::endl;
+
+// 	if (command[0] == "NICK") // irssi interpreteert /nick input als NICK en stuurt dat terug naar server
+// 	{
+// 		handleNickCommand(command, client);
+// 	}
+// 	else if (command[0] == "JOIN") // irssi interpreteert /join input als JOIN en stuurt dat terug naar server
+// 	{
+// 		handleJoinCommand(command, client);
+// 	}
+// 	else if (command[0] == "PART") // irssi interpreteert /part input (en /leave input) als PART en stuurt dat terug naar server
+// 	{
+// 		handlePartCommand(command, client);
+// 	}
+
+// 	else if (command[0] == "LIST") // irssi interpreteert "/list -YES" als LIST en stuurt dat terug naar server
+// 	{
+// 		handleListCommand(command, client);
+// 	}
+// 	// if (command[0] == "PRIVMSG")
+// 	// {
+// 	// 	// irssi interpreteert /msg input als PRIVMSG en stuurt dat terug naar server
+// 	// 	privatmsg(command, client);
+// 	// }
+// }
+
+
+
+
+
+void Command::processRawClientData(const std::string &data, Client *client) {
+    // Parse the command and arguments from the raw data
+    std::vector<std::string> commandAndArgs = parseRawData(data);
+
+    // Check the command type and perform appropriate actions
+    if (commandAndArgs[0] == "PART") {
+        // Handle PART command
+        if (commandAndArgs.size() > 1) {
+            std::string channelName = commandAndArgs[1];
+            Channel *channel = findChannelByName(channelName);
+            if (channel != nullptr) {
+                // Check if the client is in the channel
+                if (channel->isClientInChannel(client)) {
+                    // Inform about leaving the channel
+                    std::string leaveMessage = ":" + client->getNick() + " PART " + channelName + " :Leaving the channel\r\n";
+                    channel->broadcastMessage(leaveMessage, client);
+
+                    // Remove client from the channel
+                    channel->removeClient(client);
+
+                    // If there are no clients left in the channel, remove the channel
+                    if (channel->isEmpty()) {
+                        // Remove the channel from the list of channels
+                        removeChannel(channel);
+                    }
+                } else {
+                    // Client is not in the channel, send an error message to the client
+                    std::string errorMessage = "442 " + client->getNick() + " " + channelName + " :You're not on that channel\r\n";
+                    client->send(errorMessage);
+                }
+            } else {
+                // Channel not found, send an error message to the client
+                std::string errorMessage = "403 " + client->getNick() + " " + channelName + " :No such channel\r\n";
+                client->send(errorMessage);
+            }
+        } else {
+            // Invalid PART command, send an error message to the client
+            std::string errorMessage = "461 " + client->getNick() + " PART :Not enough parameters\r\n";
+            client->send(errorMessage);
+        }
+    }
+
+    // ... (other command handling logic)
+}
+
+
 
 /*
 ********************************************************************************

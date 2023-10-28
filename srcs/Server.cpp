@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/25 08:01:52 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/28 12:06:01 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/28 16:40:43 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -221,32 +221,46 @@ void Server::sendMotdMessage(int clientSocket, const std::string &clientName)
 	send(clientSocket, endMotdMessage.c_str(), endMotdMessage.size(), 0);
 }
 
+
+
+
 void Server::checkWhatReceivedFromClient(int clientSocket)
 {
-	std::vector<char> buffer(BUFFER_SIZE);
-	int bytes_received = recv(clientSocket, buffer.data(), buffer.size(), 0);
+    std::vector<char> buffer(BUFFER_SIZE);
+    int bytes_received = recv(clientSocket, buffer.data(), buffer.size(), 0);
 
-	if (bytes_received <= 0)
-	{
-		// Handle disconnection or error
-		std::string clientName = clientNameFromSocket(clientSocket);
-		{
-			std::unique_lock<std::mutex> lock(clientsMutex);
-			std::cout << "Client " << clientName << " disconnected. Total clients: " << this->_clients.size() - 1 << std::endl;
-			close(clientSocket);
-			auto it = std::remove_if(this->_clients.begin(), this->_clients.end(), [clientSocket](const Client &client)
-									 { return client.getSocketDescriptor() == clientSocket; });
-			this->_clients.erase(it, this->_clients.end());
-		}
-		return;
-	}
+    if (bytes_received <= 0)
+    {
+        std::string clientName = clientNameFromSocket(clientSocket);
+        {
+            std::unique_lock<std::mutex> lock(clientsMutex);
+            std::cout << "Client " << clientName << " disconnected. Total clients: " << this->_clients.size() - 1 << std::endl;
 
-	std::string receivedData(buffer.data(), bytes_received);
-	{
-		std::unique_lock<std::mutex> lock(clientsMutex);
-		this->_command.processRawClientData(receivedData, getClientByClientName(clientNameFromSocket(clientSocket)));
-	}
+            // Remove client from channels
+            for (auto &channel : this->_channels)
+            {
+                channel.removeClient(&getClientByClientName(clientName));
+            }
+
+            close(clientSocket);
+            auto it = std::remove_if(this->_clients.begin(), this->_clients.end(), [clientSocket](const Client &client)
+                                    { return client.getSocketDescriptor() == clientSocket; });
+            this->_clients.erase(it, this->_clients.end());
+        }
+        return;
+    }
+
+    // Handle received data
+    std::string receivedData(buffer.data(), bytes_received);
+    {
+        std::unique_lock<std::mutex> lock(clientsMutex);
+        // this->_command.processRawClientData(receivedData, getClientByClientName(clientNameFromSocket(clientSocket)));
+		this->_command.processRawClientData(receivedData, &getClientByClientName(clientNameFromSocket(clientSocket)));
+
+    }
 }
+
+
 
 /*
 ********************************************************************************

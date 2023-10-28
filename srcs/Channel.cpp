@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/10/21 20:49:24 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/10/24 22:31:50 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/10/28 14:53:54 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,9 +83,13 @@ void Channel::addClient(Client *client)
 
 void Channel::removeClient(Client *client)
 {
-	if (isClientInChannel(client))
-		_clients.erase(std::find(_clients.begin(), _clients.end(), client));
+    auto it = std::find(_clients.begin(), _clients.end(), client);
+    if (it != _clients.end())
+    {
+        _clients.erase(it);
+    }
 }
+
 
 bool Channel::isClientInChannel(const Client *client) const
 {

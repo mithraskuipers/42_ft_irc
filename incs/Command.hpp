@@ -16,13 +16,20 @@ class Command
 public:
 	Command(std::vector<Client> &clients, std::vector<Channel> &channels, Server &server);
 	~Command();
+	void handlePartCommand(Client *client, const std::vector<std::string> &command);
+	Channel* findChannelByName(const std::string &channelName);
+    void removeChannel(Channel* channel);
 	void addChannel(const std::string &channelName);
-	void processRawClientData(const std::string &input, Client &client);
+	// void processRawClientData(const std::string &input, Client &client);
+	void processRawClientData(const std::string &data, Client *client);
+
 	bool leaveChannel(const std::string &channelName, Client &client);
 	bool joinChannel(const std::string &channelName, Client &client);
 	bool isNicknameInUse(const std::string &nickname);
 	std::unordered_set<std::string> registeredNicknames;
 	bool isNicknameValid(const std::string &nickname);
+	std::vector<std::string> parseRawData(const std::string &data);
+
 
 
 private:
