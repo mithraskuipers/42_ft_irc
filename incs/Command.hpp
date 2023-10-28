@@ -24,6 +24,7 @@ public:
 	std::unordered_set<std::string> registeredNicknames;
 	bool isNicknameValid(const std::string &nickname);
 
+
 private:
 	std::vector<Client> &clients;
 	std::vector<Channel> &channels;

@@ -406,37 +406,76 @@ bool Command::isNicknameInUse(const std::string &nickname)
 	return registeredNicknames.find(nickname) != registeredNicknames.end();
 }
 
+// Reused isChannelnameValid() func. Please turn it into a single re-used function called for multiple purposes
+// Note the pointer arithmetic for skipping first char in channelname usecase.
 bool Command::isNicknameValid(const std::string &nickname)
 {
-	// Check non-empty and length limit
-	if (nickname.empty() || nickname.length() > 20)
+
+	if (nickname.length() < 4 || nickname.length() > 22)
 	{
 		return false;
 	}
 
-	// Check if the first character is an alphabet letter
-	if (!std::isalpha(nickname[0]))
+	// Sla eerste over. Sla laatste twee over. Alles tussenin moet alfanumeriek.
+	if (!std::all_of(nickname.begin() + 0, nickname.end() - 2, [](unsigned char c)
+					 { return std::isalnum(c); }))
 	{
 		return false;
 	}
 
-	// Check if all characters are alphanumeric
-	return std::all_of(nickname.begin(), nickname.end(), [](unsigned char c)
-					   { return std::isalnum(c); });
+	// Kijk of laatste twee \r\n zijn.
+	if (nickname.substr(nickname.length() - 2) != "\r\n")
+	{
+		return false;
+	}
+
+	return true;
 }
 
 void Command::handleNickCommand(const std::vector<std::string> &command, Client &client)
 {
 	if (command.size() == 2)
 	{
-		std::string newNick = sanitizeInput(command[1]); // Sanitize the input
 
-		if (!newNick.empty() && isNicknameValid(newNick))
+		std::string newNick = command[1]; // Sanitize the input
+
+		newNick = sanitizeInput(newNick); // Sanitize the input
+
+
+		if (!isNicknameValid(command[1]))
+		{
+			client.sendToClient(":server 432 * :Erroneous Nickname\r\n");
+			return;
+		}
+		// std::string newNick = command[1];
+		if (DEBUG)
+		{
+			std::cout << command[1] << std::endl;
+			std::cout << command[1].size() << std::endl;
+		}
+		if (DEBUG)
+		{
+			std::cout << newNick << std::endl;
+			std::cout << newNick.size() << std::endl;
+		}
+
+
+		if (!newNick.empty())
 		{
 			if (!isNicknameInUse(newNick))
 			{
 				std::string oldNick = client.getNick(); // Get the current nickname before the change
+				if (DEBUG)
+				{
+					std::cout << oldNick << std::endl;
+					std::cout << oldNick.size() << std::endl;
+				}	
 				client.setNick(newNick);
+				if (DEBUG)
+				{
+					std::cout << client.getNick() << std::endl;
+					std::cout << client.getNick().size() << std::endl;
+				}
 
 				// Broadcast the nickname change to all channels
 				std::string nickChangeMessage = ":" + oldNick + " NICK " + newNick + "\r\n";
