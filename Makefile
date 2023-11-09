@@ -1,25 +1,29 @@
-# Executable name
-NAME = irc
+# Exe name
+NAME = ircserv
 
 # Compiler and flags
 CC = c++
 CFLAGS = -Wall -Werror -Wextra
-#-std=c++98
 
-# Color codes for messages
+# Color codes
 RESET = \033[0m
 GREEN = \033[32m
 YELLOW = \033[33m
 RED = \033[31m
 
 # Directories for source, object, and header files
-SRC_DIR = srcs/
+SRC_DIR = src/
 HDR_DIR = incs/
 OBJ_DIR = objs/
 
 # Source, object, and header files
-SRC_FILES = main.cpp Server.cpp splash.cpp Client.cpp Command.cpp ft_split.cpp Channel.cpp
-HDR_FILES = includes.hpp Server.hpp splash.hpp Client.hpp Command.hpp Channel.hpp
+SRC_FILES = main.cpp Server.cpp splash.cpp Client.cpp Command.cpp Channel.cpp InputParser.cpp \
+            cmdJoin.cpp cmdNick.cpp cmdPart.cpp \
+            cmdPass.cpp cmdPing.cpp cmdPong.cpp cmdPrivmsg.cpp cmdUser.cpp utils.cpp
+HDR_FILES = Channel.hpp Client.hpp splash.hpp InputParser.hpp cmdJoin.hpp cmdNick.hpp \
+            cmdPart.hpp cmdPass.hpp cmdPing.hpp cmdPong.hpp cmdPrivmsg.hpp \
+            cmdUser.hpp Command.hpp JoinCommand.hpp \
+            Replies.hpp Server.hpp utils.hpp
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 
 # Paths for source, object, and header files
@@ -60,6 +64,9 @@ fclean: clean
 # Rebuild rule
 re: fclean all
 
-# Declare phony targets (targets that do not represent files)
-.PHONY: all clean fclean re
+# Run rule
+run: $(NAME)
+	@./$(NAME) 6667 pw
 
+# Declare phony targets (targets that do not represent files)
+.PHONY: all clean fclean re run

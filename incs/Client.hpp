@@ -1,41 +1,56 @@
-#ifndef USER_HPP
-#define USER_HPP
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 
-#include <poll.h>
+
+
+class Client;
+
+#include <vector>
 #include <string>
+#include <sys/poll.h>
+#include <sys/socket.h>
 #include "./../incs/Channel.hpp"
 
 class Client
 {
-	private:
-		int socket_descriptor;
-		int port;
-		std::string _nickname;
-		std::string buff;
-		bool registered;
-		std::string ip;
-		std::string _realname;
-		std::vector<Channel> channels;
-		pollfd polledFD;
-	
-	public:
-		void sendToClient(const std::string &data);
-		Client(int socket_descriptor, const std::string &nick = "");
-		int getSocketDescriptor() const;
-		std::string &getBuff();
-		void setNick(const std::string &newNick);
-		void setRealName(const std::string &newRealName);
-		std::string getRealName() const;
-		void send(const std::string &data);
-		std::string getIP() const;
-		void setIP(const std::string &clientIP);
-		int getPort() const;
-		pollfd getPolledFD() const;
-		void setPort(int clientPort);
-		std::string getNick() const;
-		bool getRegisteredStatus() const;
-		void setRegistered(bool value);
-		void addChannel(const Channel &channel) { channels.push_back(channel); }
+
+	typedef std::vector<pollfd>::iterator pollfds_iterator;
+
+private:
+	int _fd;
+	std::string _hostname;
+	int port;
+
+	std::string clientNickname;
+	std::string clientUsername;
+	std::string clientRealname;
+
+	int clientRegistrationLevel;
+
+	Channel *_channel;
+
+public:
+	Client(int fd, const std::string &hostname, int port);
+	~Client();
+	int getFD() const;
+	std::string getHostname() const;
+	int getPort() const;
+	bool isRegistered() const;
+	std::string getNickname() const;
+	std::string getUsername() const;
+	std::string getRealName() const;
+	bool isInChannel(const std::string &channelName) const;
+	std::string getPrefix() const;
+	Channel *getChannelInstance() const;
+	void setNickname(const std::string &nickname);
+	void setUsername(const std::string &username);
+	void setRealName(const std::string &realname);
+	void setRegistrationLevel(int updatedRegistrationLevel);
+	void setChannel(Channel *channel);
+	void sendMessageToClientItself(const std::string &message) const;
+	void welcome();
+	void join(Channel *channel);
+	void leave();
 };
 
 #endif

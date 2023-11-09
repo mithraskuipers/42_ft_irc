@@ -1,59 +1,91 @@
-#ifndef IRCSERVER_HPP
-#define IRCSERVER_HPP
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Server.hpp                                         :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2023/11/06 11:56:18 by mikuiper      #+#    #+#                 */
+/*   Updated: 2023/11/08 18:51:11 by mikuiper      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
 
-#include "Command.hpp"
-#include "includes.hpp"
-#include <netinet/in.h>
-#include <list>
-#include "Channel.hpp"
-#include "Client.hpp"
+#ifndef SERVER_HPP
+#define SERVER_HPP
 
+class Server;
 
-#include <mutex>
-#include <condition_variable>
+#include <algorithm>
+#include <sys/poll.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <fcntl.h>
+#include <vector>
+#include <map>
+#include <poll.h>
+#include <unistd.h>
 
+#include "./../incs/InputParser.hpp"
+#include "./../incs/Client.hpp"
+#include "./../incs/Channel.hpp"
 
-class Command;
-class Client;
+#define MAX_CONNECTIONS 1000
+#define HOSTNAME "127.0.0.1" // TODO klopt dit wel voor irc? Moet hostname niet worden uitgelezen uit pc?
+#define MAX_BUFFER_SIZE 1024 // Voorkomen van buffer overflows
+
+// REGISTRATION LEVELS
+#define INIT_CONNECTION_PHASE 0
+#define LOGIN_PHASE 1
+#define CHATTING_PHASE 2
+#define DISCONNECTED 3
 
 class Server
 {
-	private:
-		std::string _password;
-		unsigned int _activeClients;
-		int _port;
-		Command _command;
-		int _serverListeningSocket;
-		std::string _IP;
-		struct sockaddr_in _socketAddress;
-		std::vector<Client> _clients;
-		std::vector<Channel> _channels;
-		std::string _welcomeMessage;
-	
-	public:
-		Server(int port, const std::string &password); // Constructor takes port and password as arguments
-		~Server();
-		
-		void setMachineIP();
-		void startServer();
-		void initServer();
-		bool isValidChannelName(const std::string &channelName);
+	typedef std::vector<pollfd>::iterator pollfds_iterator;
+	typedef std::map<int, Client *>::iterator clients_iterator;
+	typedef std::vector<Channel *>::iterator channels_iterator;
 
-		void sendMotdMessage(int clientSocket, const std::string &userName);
-		int isNickNameInUse(const std::string &nickName) const;
-		void checkWhatReceivedFromClient(int clientSocket);
-		std::string clientNameFromSocket(int clientSocket);
-		std::string addClientSocket(int clientSocket);
-		int handleNewConnection(int clientSocket);
-		std::string generateRandomCode();
-		int updateMaxSocketDescriptor();
-		
-		Client &getClientByClientName(const std::string &clientName);
-		std::string getClientIP(int clientSocket);
-		int getClientPort(int clientSocket);
-		std::string getIP() const;
-		std::string getPass();
-		int getPort() const;
+	int serverSocket;
+	const std::string hostname;
+	const std::string port;
+	const std::string password;
+	std::vector<pollfd> pollfds;
+	std::map<int, Client *> serverClients;										// fd and client instance pairs
+	std::vector<Channel *> serverChannels;
+	InputParser *parserObject;
+	void closeSocketWithMsg(int socket, const std::string &msg);
+
+public:
+	Server(const std::string &port, const std::string &password);
+	~Server();
+
+	void startServer();
+	void prepareServerSocket();
+	void processEvents();
+	void waitForEvents();
+	void initializeServer();
+	void closeServerSocket();
+
+	std::string getPassword() const { return password; };
+	Client *getClientInstance(const std::string &nickname);
+
+	Channel *getChannelInstance(const std::string &requestedChannelName);
+	Channel *createChannel(const std::string &name, const std::string &password, Client *client);
+
+	struct sockaddr_in serverAddress = {};
+	void handleClientDisconnect(int fd);
+	void handleClientConnection();
+	void handleClientInput(int fd);
+	std::string captureMessage(int fd);
+
+	// SERVER CONSTRUCTION
+	void createSocket();
+	void setSocketOptions();
+	void initServerAddress(int port);
+	void bindSocket();
+	void setNonBlocking();
+	void startListening();
 };
 
 #endif

@@ -1,53 +1,36 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   Command.hpp                                        :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2023/11/07 22:14:35 by mikuiper      #+#    #+#                 */
+/*   Updated: 2023/11/08 16:50:02 by mikuiper      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef COMMAND_HPP
 #define COMMAND_HPP
 
-#include <iostream>
-#include <vector>
 #include <string>
-#include "Client.hpp"
-#include "Channel.hpp"
-#include <unordered_set>
+#include <vector>
+#include "./../incs/Client.hpp"
+#include "./../incs/Server.hpp"
 
-class Channel; // Forward declaration of Channel class
-class Server;  // Forward declaration of Server class
+class Server;
 
 class Command
 {
-public:
-	Command(std::vector<Client> &clients, std::vector<Channel> &channels, Server &server);
-	~Command();
-	void handlePartCommand(Client *client, const std::vector<std::string> &command);
-	Channel* findChannelByName(const std::string &channelName);
-    void removeChannel(Channel* channel);
-	void addChannel(const std::string &channelName);
-	// void processRawClientData(const std::string &input, Client &client);
-	void processRawClientData(const std::string &data, Client *client);
+	protected:
+		Server *server;
+		bool _registrationRequired;													// Bool indicating if authentication is required for the command
 
-	bool leaveChannel(const std::string &channelName, Client &client);
-	bool joinChannel(const std::string &channelName, Client &client);
-	bool isNicknameInUse(const std::string &nickname);
-	std::unordered_set<std::string> registeredNicknames;
-	bool isNicknameValid(const std::string &nickname);
-	std::vector<std::string> parseRawData(const std::string &data);
-
-
-
-private:
-	std::vector<Client> &clients;
-	std::vector<Channel> &channels;
-	Server &ircServer;
-
-	void privatmsg(std::vector<std::string> cmds, Client &sender);
-	void handlePartCommand(const std::vector<std::string> &command, Client &client);
-	void handlePassCommand(const std::vector<std::string> &command, Client &client);
-	void handleWhoisCommand(const std::vector<std::string> &command, Client &client);
-	void handleNickCommand(const std::vector<std::string> &command, Client &client);
-	void handleListCommand(const std::vector<std::string> &command, Client &client);
-	void handleClientCommand(const std::vector<std::string> &command, Client &client);
-	void handleQuitCommand(const std::vector<std::string> &command, Client &client);
-	void handleJoinCommand(const std::vector<std::string> &command, Client &client);
-	void handleLeaveCommand(const std::vector<std::string> &command, Client &client);
-	void sendChannelList(Client &client);
+	public:
+		explicit Command(Server *server, bool registrationRequired);				// Constructor with optional registrationRequired parameter
+		virtual ~Command();															// Virtual destructor for proper cleanup
+		bool registrationRequired() const;											// Member function to check if authentication is required
+		virtual void run(Client *client, std::vector<std::string> arguments) = 0;	// Pure virtual function to be implemented by derived classes
 };
 
-#endif
+#endif // End of the header guard

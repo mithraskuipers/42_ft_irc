@@ -1,43 +1,48 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include <vector>
-#include <string>
-#include <algorithm> // std::remove
+class Channel;
 
-class Client;
+#include "Server.hpp"
+#include "Client.hpp"
 
 class Channel
 {
-	public:
-		Channel(const std::string &name);
-		~Channel();
-		Channel();
+	typedef std::vector<Client *>::iterator clients_iterator;
 
-		bool isClientInChannel(const Client *client) const;
-		bool isOperator(Client *client) const;
-		void removeOperator(Client *client);
-		void addOperator(Client *client);
-		void removeClient(Client *client);
-		void addClient(Client *client);
-		void listClients() const;
-		bool isEmpty() const;
+private:
+	std::string channelName;
+	Client *channelAdminClient;
+	std::vector<Client *> _clients;
 
-		void broadcastMessage(const std::string &message, Client *sender);
-		void setTopic(const std::string &topic, Client *client);
+	std::string channelPassword;
+	size_t channelMaxClients;
+	bool channelAllowExternalMessages;
 
-		const std::vector<Client *> &getClients() const { return _clients; }
-		std::string getTopicAuthor() const;
-		std::string getTopic() const;
-		std::string getName() const;
-		int getClientsCount() const;
+public:
+	Channel(const std::string &name, const std::string &password, Client *admin);
+	~Channel();
 
-	private:
-		std::vector<Client *> operators;
-		std::vector<Client *> _clients;
-		std::string channelName;
-		std::string topicAuthor;
-		std::string topic;
+	Client* getAdmin();
+	std::string getChannelName() const;
+	std::string getPassword() const;
+	void setPassword(std::string password);
+	size_t getMaxClients() const;
+	void setMaxClients(size_t nmaxclients);
+	bool allowExternalMessagesToChannel() const;
+	size_t getNumClients() const;
+	std::vector<std::string> getNicknames();
+
+	// removeClient()
+	void selectNewAdmin();
+    void logNewAdmin();
+    void logEmptyChannel();
+
+	// ONLY KEEP THE FIRST ONE, MAYBE THE EXCLUDE ONE IS NOT NECESSARY
+    void channelBroadcast(const std::string &message, Client* exclude = nullptr);
+
+	void removeClient(Client *client);
+	void addClient(Client *client);
 };
 
 #endif
