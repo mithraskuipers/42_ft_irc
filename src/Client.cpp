@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 14:59:44 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/09 22:30:02 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 22:36:37 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -132,6 +132,11 @@ void Client::clientJoinChannel(Channel *channel)
 
 	serverStdout(firstMessageCombined);
 }
+
+/*
+Let client leave the current channel.
+At the moment the client can only be in a single channel.
+*/
 
 void Client::clientLeaveChannel()
 {
