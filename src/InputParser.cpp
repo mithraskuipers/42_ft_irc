@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/07 12:30:40 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/08 19:40:00 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 17:29:02 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,11 +49,11 @@ void InputParser::invoke(Client *client, const std::string &message)
 
 	while (std::getline(tokenizedMessage, currentMessageLine))					// Obtain token line from tokenizdMessage
 	{
-		currentLine(client, currentMessageLine);							// Process current token line
+		processCurrentLine(client, currentMessageLine);							// Process current token line
 	}
 }
 
-void InputParser::currentLine(Client *client, const std::string &line)
+void InputParser::processCurrentLine(Client *client, const std::string &line)
 {
 	std::string modifiedLine;
 	std::string name;
