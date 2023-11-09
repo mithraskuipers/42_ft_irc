@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 14:59:44 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/08 20:46:19 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 22:17:17 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,7 +23,7 @@ MEMBER FUNCTIONS
 
 /*
 Maken van afzender prefix. Dit is eenmaal hoe IRC werkt.
-Stel Bas stuurt een private message commando naar Sparky
+Stel Bas stuurt een private firstMessageCombined commando naar Sparky
 /privmsg Sparky Hoe gaat het?
 Dan maakt irssi hiervan
 /PRIVMSG Sparky :Hoe gaat het?
@@ -84,12 +84,12 @@ bool Client::isInChannel(const std::string &channelName) const
 
 // TODO NUT?
 
-void Client::sendMessageToClientItself(const std::string &message) const
+void Client::sendMessageToClientItself(const std::string &firstMessageCombined) const
 {
-	std::string buffer = message + "\r\n";
+	std::string buffer = firstMessageCombined + "\r\n";
 	if (send(_fd, buffer.c_str(), buffer.length(), 0) < 0)
 	{
-		throw std::runtime_error("Error while sending message to client.");
+		throw std::runtime_error("Error while sending firstMessageCombined to client.");
 	}
 }
 
@@ -105,9 +105,9 @@ void Client::welcome()
 
 	std::ostringstream messageStream;
 	messageStream << _hostname << ":" << port << " is now known as " << clientNickname << ".";
-	std::string message = messageStream.str();
+	std::string firstMessageCombined = messageStream.str();
 
-	serverStdout(message);
+	serverStdout(firstMessageCombined);
 }
 
 void Client::join(Channel *channel)
@@ -130,9 +130,9 @@ void Client::join(Channel *channel)
 
 	std::ostringstream messageStream;
 	messageStream << clientNickname << " has joined channel " << channel->getChannelName() << ".";
-	std::string message = messageStream.str();
+	std::string firstMessageCombined = messageStream.str();
 
-	serverStdout(message);
+	serverStdout(firstMessageCombined);
 }
 
 void Client::leave()
@@ -148,9 +148,9 @@ void Client::leave()
 
 	std::ostringstream messageStream;
 	messageStream << clientNickname << " has left channel " << name << ".";
-	std::string message = messageStream.str();
+	std::string firstMessageCombined = messageStream.str();
 
-	serverStdout(message);
+	serverStdout(firstMessageCombined);
 }
 
 /*

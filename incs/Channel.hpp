@@ -39,7 +39,7 @@ public:
     void logEmptyChannel();
 
 	// ONLY KEEP THE FIRST ONE, MAYBE THE EXCLUDE ONE IS NOT NECESSARY
-    void channelBroadcast(const std::string &message, Client* exclude = nullptr);
+    void channelBroadcast(const std::string &firstMessageCombined, Client* exclude = nullptr);
 
 	void removeClient(Client *client);
 	void addClient(Client *client);

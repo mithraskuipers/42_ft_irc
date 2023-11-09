@@ -47,7 +47,7 @@ public:
 	void setRealName(const std::string &realname);
 	void setRegistrationLevel(int updatedRegistrationLevel);
 	void setChannel(Channel *channel);
-	void sendMessageToClientItself(const std::string &message) const;
+	void sendMessageToClientItself(const std::string &firstMessageCombined) const;
 	void welcome();
 	void join(Channel *channel);
 	void leave();

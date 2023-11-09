@@ -11,8 +11,8 @@ class cmdPrivmsg : public Command
 
 		void run(Client *client, std::vector<std::string> arguments);
 		std::string argumentPlakker(const std::vector<std::string> &arguments);
-		void sendMessageToChannel(Client *client, const std::string &target, const std::string &message);
-		void sendMessageToPrivateUser(Client *client, const std::string &target, const std::string &message);
+		void sendMessageToChannel(Client *client, const std::string &target, const std::string &firstMessageCombined);
+		void sendMessageToPrivateUser(Client *client, const std::string &target, const std::string &firstMessageCombined);
 };
 
 # endif

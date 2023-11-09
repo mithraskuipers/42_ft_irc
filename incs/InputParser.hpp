@@ -38,8 +38,8 @@ class InputParser
 
 		~InputParser();
 
-		// Function to invoke command processing for a client and message
-		void invoke(Client *client, const std::string &message);
+		// Function to invoke command processing for a client and firstMessageCombined
+		void invoke(Client *client, const std::string &firstMessageCombined);
 };
 
 #endif // COMMANDHANDLER_HPP

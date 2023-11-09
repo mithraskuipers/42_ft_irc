@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 14:59:46 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/08 20:04:17 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 22:17:17 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,17 +27,17 @@ MEMBER FUNCTIONS
 */
 
 /*
-Broadcast a message to all clients in the channel.
+Broadcast a firstMessageCombined to all clients in the channel.
 If exclude parameter is provided, exclude the specified client from the broadcast.
 */
 
-void Channel::channelBroadcast(const std::string &message, Client* exclude /*= nullptr*/) // default value, making it optional
+void Channel::channelBroadcast(const std::string &firstMessageCombined, Client* exclude /*= nullptr*/) // default value, making it optional
 {
     for (clients_iterator it = _clients.begin(); it != _clients.end(); it++)
     {
         if (*it != exclude)
         {
-            (*it)->sendMessageToClientItself(message);
+            (*it)->sendMessageToClientItself(firstMessageCombined);
         }
     }
 }

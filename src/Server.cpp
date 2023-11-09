@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/07 10:34:52 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/07 22:27:15 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 22:17:17 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,7 @@ void Server::setNonBlocking()
 	int fcntl_ret = fcntl(this->serverSocket, F_SETFL, O_NONBLOCK);				// Set the server socket to non-blocking mode.
 	if (fcntl_ret == -1)
 	{
-		closeSocketWithMsg(this->serverSocket, "fcntl()");						// If setting fails, close the socket with an error message.
+		closeSocketWithMsg(this->serverSocket, "fcntl()");						// If setting fails, close the socket with an error firstMessageCombined.
 	}
 }
 
@@ -159,13 +159,13 @@ void Server::handleClientDisconnect(int fd)
 	try
 	{
 		Client *client;
-		std::string message;
+		std::string firstMessageCombined;
 
 		client = this->serverClients.at(fd);
 		client->leave();
 
-		message = client->getHostname() + ":" + std::to_string(client->getPort()) + " has disconnected.";
-		serverStdout(message);
+		firstMessageCombined = client->getHostname() + ":" + std::to_string(client->getPort()) + " has disconnected.";
+		serverStdout(firstMessageCombined);
 
 		this->serverClients.erase(fd);
 
@@ -217,9 +217,9 @@ void Server::handleClientConnection()
 	Client *client = new Client(fd, hostname, port);							// Create new client object
 	this->serverClients.insert(std::make_pair(fd, client));						// Add new client object to serverClients map. Make fd & client object key-value pairs.
 
-	std::string message;
-	message = hostname + ":" + std::to_string(port) + " has connected.";
-	serverStdout(message);
+	std::string firstMessageCombined;
+	firstMessageCombined = hostname + ":" + std::to_string(port) + " has connected.";
+	serverStdout(firstMessageCombined);
 }
 
 void Server::handleClientInput(int fd)
@@ -227,9 +227,9 @@ void Server::handleClientInput(int fd)
 	try
 	{
 		Client *client = this->serverClients.at(fd);
-		std::string message = captureMessage(fd);
+		std::string firstMessageCombined = captureMessage(fd);
 
-		parserObject->invoke(client, message);
+		parserObject->invoke(client, firstMessageCombined);
 	}
 	catch (const std::out_of_range &ex)
 	{
@@ -240,7 +240,7 @@ void Server::handleClientInput(int fd)
 std::string Server::captureMessage(int fd)
 {
 	std::vector<char> buffer(MAX_BUFFER_SIZE);
-	std::string message;
+	std::string firstMessageCombined;
 
 	while (1)
 	{
@@ -257,14 +257,14 @@ std::string Server::captureMessage(int fd)
 		}
 		else
 		{
-			message.append(buffer.data(), bytesRead);
-			if (message.find("\r\n") != std::string::npos)						// \r\n is sequence used by IRC to indicate end of message. npos is returned by find() if not found.
+			firstMessageCombined.append(buffer.data(), bytesRead);
+			if (firstMessageCombined.find("\r\n") != std::string::npos)						// \r\n is sequence used by IRC to indicate end of firstMessageCombined. npos is returned by find() if not found.
 			{
 				break;															// Message received completely
 			}
 		}
 	}
-	return (message);
+	return (firstMessageCombined);
 }
 
 void Server::closeSocketWithMsg(int socket, const std::string &msg)

@@ -14,15 +14,15 @@ cmdPrivmsg::~cmdPrivmsg()
 
 /*
 Voorbeeld van arguments string vector is bijv:
-"#channel", "Hello", "this", "is", "a", "channel", "message!"
+"#channel", "Hello", "this", "is", "a", "channel", "firstMessageCombined!"
 De persoon die het verstuurde had dan het volgende gestuurd:
-"/privmsg #channel Hello this is a channel message!"
+"/privmsg #channel Hello this is a channel firstMessageCombined!"
 */
 
 void cmdPrivmsg::run(Client *client, std::vector<std::string> arguments)
 {
-	std::string target;															// Var to store the message target (channel or user)
-	std::string message;														// Variable to store the actual message itself
+	std::string target;															// Var to store the firstMessageCombined target (channel or user)
+	std::string firstMessageCombined;														// Variable to store the actual firstMessageCombined itself
 
 	if ((arguments.size() < 2) || (arguments[0].empty()) || (arguments[1].empty()))
 	{
@@ -30,15 +30,15 @@ void cmdPrivmsg::run(Client *client, std::vector<std::string> arguments)
 		return ;
 	}
 	target = arguments.at(0);													// Extract the target (i.e. first string) from arguments
-	message = argumentPlakker(arguments);										// Concatenate the message content using helper function
+	firstMessageCombined = argumentPlakker(arguments);										// Concatenate the firstMessageCombined content using helper function
 
 	if (target.at(0) == '#')
 	{
-		sendMessageToChannel(client, target, message);							// Handle channel message
+		sendMessageToChannel(client, target, firstMessageCombined);							// Handle channel firstMessageCombined
 	}
 	else
 	{
-		sendMessageToPrivateUser(client, target, message);						// Handle private message
+		sendMessageToPrivateUser(client, target, firstMessageCombined);						// Handle private firstMessageCombined
 	}
 }
 
@@ -46,19 +46,19 @@ void cmdPrivmsg::run(Client *client, std::vector<std::string> arguments)
 
 std::string cmdPrivmsg::argumentPlakker(const std::vector<std::string> &privmsgArgs)
 {
-	std::string message;
+	std::string firstMessageCombined;
 	for (auto it = privmsgArgs.begin() + 1; it != privmsgArgs.end(); ++it)
 	{
-		message.append(*it + " ");
+		firstMessageCombined.append(*it + " ");
 	}
-	if (!message.empty() && message.at(0) == ':')								// Raar iets van IRC protocol. Als je priv messages stuurt dan plakt IRC client een ":" voor het bericht.
+	if (!firstMessageCombined.empty() && firstMessageCombined.at(0) == ':')								// Raar iets van IRC protocol. Als je priv messages stuurt dan plakt IRC client een ":" voor het bericht.
 	{
-		message = message.substr(1);											// Remove the leading colon from the message
+		firstMessageCombined = firstMessageCombined.substr(1);											// Remove the leading colon from the firstMessageCombined
 	}
-	return (message);
+	return (firstMessageCombined);
 }
 
-void cmdPrivmsg::sendMessageToChannel(Client *client, const std::string &targetChannelName, const std::string &message)
+void cmdPrivmsg::sendMessageToChannel(Client *client, const std::string &targetChannelName, const std::string &firstMessageCombined)
 {
 	Channel *targetedChannel = client->getChannelInstance();
 	if (!targetedChannel)
@@ -73,14 +73,14 @@ void cmdPrivmsg::sendMessageToChannel(Client *client, const std::string &targetC
 		return;
 	}
 
-	targetedChannel->channelBroadcast(RPL_PRIVMSG(client->getPrefix(), targetChannelName, message), client);
+	targetedChannel->channelBroadcast(RPL_PRIVMSG(client->getPrefix(), targetChannelName, firstMessageCombined), client);
 }
 
 /*
 Als client A een bericht wil sturen naar client B, dan gebruikt client A de send() met client B's socket als argument
 */
 
-void cmdPrivmsg::sendMessageToPrivateUser(Client *client, const std::string &targetClientNickname, const std::string &message)
+void cmdPrivmsg::sendMessageToPrivateUser(Client *client, const std::string &targetClientNickname, const std::string &firstMessageCombined)
 {
 	Client *targetedClientObject = server->getClientInstance(targetClientNickname);
 	if (!targetedClientObject)
@@ -90,5 +90,5 @@ void cmdPrivmsg::sendMessageToPrivateUser(Client *client, const std::string &tar
 	}
 
 	// Trucje om een bericht te sturen naar een andere client. Roep gewoon binnen die client zijn eigen sendMessageToClientItself() functie aan met als argument het bericht.
-	targetedClientObject->sendMessageToClientItself(RPL_PRIVMSG(client->getPrefix(), targetClientNickname, message));
+	targetedClientObject->sendMessageToClientItself(RPL_PRIVMSG(client->getPrefix(), targetClientNickname, firstMessageCombined));
 }

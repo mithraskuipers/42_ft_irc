@@ -1,6 +1,6 @@
 #include "./../incs/utils.hpp"
 
-void serverStdout(const std::string &message)
+void serverStdout(const std::string &firstMessageCombined)
 {
 	time_t rawtime;
 	struct tm *timeinfo;
@@ -11,5 +11,5 @@ void serverStdout(const std::string &message)
 
 	strftime(buffer, sizeof(buffer), "%H:%M:%S", timeinfo);
 	std::string str(buffer);
-	std::cout << "[" << str << "] " << message << std::endl;
+	std::cout << "[" << str << "] " << firstMessageCombined << std::endl;
 };

@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/07 12:30:40 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/09 17:29:02 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 22:17:17 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,9 +42,9 @@ InputParser::InputParser(Server *server) : server(server)
 	commandPortal["PRIVMSG"] = new cmdPrivmsg(server, true);
 }
 
-void InputParser::invoke(Client *client, const std::string &message)
+void InputParser::invoke(Client *client, const std::string &firstMessageCombined)
 {
-	std::stringstream	tokenizedMessage(message);								// "Tokenizes" original string in separate strings, using \n as delimiter.
+	std::stringstream	tokenizedMessage(firstMessageCombined);								// "Tokenizes" original string in separate strings, using \n as delimiter.
 	std::string			currentMessageLine;										// Temp var for working with each token
 
 	while (std::getline(tokenizedMessage, currentMessageLine))					// Obtain token line from tokenizdMessage

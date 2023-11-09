@@ -7,6 +7,6 @@
 #include <cstdlib>
 #include <cstring>
 
-void serverStdout(const std::string &message);
+void serverStdout(const std::string &firstMessageCombined);
 
 #endif

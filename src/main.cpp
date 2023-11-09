@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 08:52:59 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/09 21:49:58 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 21:51:21 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,9 +50,9 @@ int main(int argc, char **argv)
 		server.startServer();
 		return (0);
 	}
-	catch (const std::exception &ex)
+	catch (const std::exception &e)
 	{
-		std::cerr << ex.what() << std::endl;
+		std::cerr << e.what() << std::endl;
 		return (1);
 	}
 }
