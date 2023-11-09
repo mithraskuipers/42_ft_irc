@@ -6,51 +6,35 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 08:52:59 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/08 20:49:23 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 21:49:58 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 /*
-TODO ADD INPUT CHECKS
-Both provided?
-Port only numerical?
-Password not empty string e.g. ""
-*/
+TODOS:
+1. In main() add input checks.
+1.1 Both provided?
+1.2 Port only numerical?
+1.3 Password not empty string e.g. ""
+2. Controleren of we wel allowed functions gebruiken
+3. Controleren of code memory leak vrij is
+4. Commands toevoegen
+4.1 KICK
+4.2 QUIT
+4.3 NOTICE
+4.4 MODE
+4.5 TOPIC
 
-/*
-Controleren of we wel allowed functions gebruiken
-*/
+IRSSI USAGE:
+1. Terminal 1: ./ircserver 6667 pw
+2. Terminal 2: irssi
+3. In irssi doe je: /connect 127.0.0.1 6667 pw bas
 
-/*
-TODO CODE ZO LEK ALS EEN MANDJE?
-*/
-
-/*
-COMMANDS:
-MODE, KICK, QUIT, NOTICE
-*/
-
-/*
-Hoe verbinden via irssi?
-Compile je code
-Run ./ircserver 6667 pw
-Start irssi
-In irssi doe je:
-/connect 127.0.0.1 6667 pw bas
-*/
-
-/*
-Hoe wissel je in irssi naar verschillende schermen?
-Bijv. je zit in meerdere channels, en ontvangt op achtergrond ook prive berichten van anderen
-In dat geval maakt irssi automatisch "windows" voor je aan. Iedere window heeft zijn eigen functie.
-Bijv. een window gaat over channel A, en een andere window gaat over channel B, en een andere window betreft een prive gesprek tussen jou en een ander.
-Hoe wissel je tussen die windows?
+IRSSI: SWITCH CHATS/CHANNELS
 /window <window nummer hier>
-Begin gewoon met 1 en probeer dan 2, 3 etc.
 */
 
 #include "./../incs/Server.hpp"
-#include "./../incs/splash.hpp"
 
 int main(int argc, char **argv)
 {
