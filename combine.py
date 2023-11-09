@@ -8,7 +8,7 @@ def delete_output_files():
 	for filename in os.listdir(current_directory):
 		# Check if the file is an output file (starts with "output" and ends with ".txt")
 		if filename.startswith('output') and filename.endswith('.txt'):
-			file_path = os.path.join(current_directory, filename)
+			file_path = os.path.clientJoinChannel(current_directory, filename)
 			os.remove(file_path)  # Delete the file
 
 # Function to append contents of files in the srcs and incs folders and their subfolders
@@ -20,7 +20,7 @@ def append_files():
 	# Iterate through files in srcs and incs folders and their subfolders
 	for foldername, subfolders, filenames in os.walk(current_directory):
 		for filename in filenames:
-			file_path = os.path.join(foldername, filename)
+			file_path = os.path.clientJoinChannel(foldername, filename)
 			
 			# Check if the file is in srcs or incs folder
 			if 'srcs' in foldername or 'incs' in foldername:

@@ -40,5 +40,5 @@ void cmdUser::run(Client *client, std::vector<std::string> arguments)
 	}
 	client->setUsername(arguments[0]);
 	client->setRealName(arguments[3]);
-	client->welcome();
+	client->welcomeMessage();
 }

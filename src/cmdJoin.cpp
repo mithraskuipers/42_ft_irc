@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 20:50:13 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/08 19:40:00 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 22:29:10 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,5 +61,5 @@ void cmdJoin::run(Client *client, std::vector<std::string> arguments)
 		return ;
 	}
 
-	client->join(channel);
+	client->clientJoinChannel(channel);
 }

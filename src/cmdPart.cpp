@@ -38,5 +38,5 @@ void cmdPart::run(Client *client, std::vector<std::string> arguments)
 		return ;
 	}
 
-	client->leave();
+	client->clientLeaveChannel();
 }

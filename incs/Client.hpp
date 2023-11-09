@@ -48,9 +48,9 @@ public:
 	void setRegistrationLevel(int updatedRegistrationLevel);
 	void setChannel(Channel *channel);
 	void sendMessageToClientItself(const std::string &firstMessageCombined) const;
-	void welcome();
-	void join(Channel *channel);
-	void leave();
+	void welcomeMessage();
+	void clientJoinChannel(Channel *channel);
+	void clientLeaveChannel();
 };
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/07 10:34:52 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/09 22:17:17 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 22:28:58 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -162,7 +162,7 @@ void Server::handleClientDisconnect(int fd)
 		std::string firstMessageCombined;
 
 		client = this->serverClients.at(fd);
-		client->leave();
+		client->clientLeaveChannel();
 
 		firstMessageCombined = client->getHostname() + ":" + std::to_string(client->getPort()) + " has disconnected.";
 		serverStdout(firstMessageCombined);

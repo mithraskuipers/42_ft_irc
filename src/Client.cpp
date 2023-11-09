@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 14:59:44 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/09 22:17:17 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 22:30:02 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,8 +82,6 @@ bool Client::isInChannel(const std::string &channelName) const
 	return (_channel && _channel->getChannelName() == channelName);
 }
 
-// TODO NUT?
-
 void Client::sendMessageToClientItself(const std::string &firstMessageCombined) const
 {
 	std::string buffer = firstMessageCombined + "\r\n";
@@ -93,7 +91,7 @@ void Client::sendMessageToClientItself(const std::string &firstMessageCombined) 
 	}
 }
 
-void Client::welcome()
+void Client::welcomeMessage()
 {
 	if (clientRegistrationLevel != LOGIN_PHASE || clientUsername.empty() || clientRealname.empty() || clientNickname.empty())
 	{
@@ -101,7 +99,7 @@ void Client::welcome()
 	}
 	clientRegistrationLevel = CHATTING_PHASE;
 
-	sendMessageToClientItself(RPL_WELCOME(clientNickname));
+	sendMessageToClientItself(RPL_WELCOME(clientNickname));						// Important for IRC connection (?)
 
 	std::ostringstream messageStream;
 	messageStream << _hostname << ":" << port << " is now known as " << clientNickname << ".";
@@ -110,7 +108,7 @@ void Client::welcome()
 	serverStdout(firstMessageCombined);
 }
 
-void Client::join(Channel *channel)
+void Client::clientJoinChannel(Channel *channel)
 {
 	channel->addClient(this);
 	_channel = channel;
@@ -135,7 +133,7 @@ void Client::join(Channel *channel)
 	serverStdout(firstMessageCombined);
 }
 
-void Client::leave()
+void Client::clientLeaveChannel()
 {
 	if (!_channel)
 	{

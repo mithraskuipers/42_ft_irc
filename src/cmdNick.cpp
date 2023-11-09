@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/07 22:01:02 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/08 19:40:00 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/09 22:29:31 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,5 +39,5 @@ void cmdNick::run(Client *client, std::vector<std::string> arguments)
 		return ;
 	}
 	client->setNickname(nickname);
-	client->welcome();
+	client->welcomeMessage();
 }
