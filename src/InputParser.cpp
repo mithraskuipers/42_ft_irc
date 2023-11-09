@@ -32,14 +32,14 @@ MEMBER FUNCTIONS
 
 InputParser::InputParser(Server *server) : server(server)
 {
-	_commands["PASS"] = new cmdPass(server, false);
-	_commands["NICK"] = new cmdNick(server, false);
-	_commands["USER"] = new cmdUser(server, false);
-	_commands["PING"] = new cmdPing(server, true); // Crucial for maintaining connection
-	_commands["PONG"] = new cmdPong(server, true); // Crucial for maintaining connection
-	_commands["JOIN"] = new cmdJoin(server, true);
-	_commands["PART"] = new cmdPart(server, true);
-	_commands["PRIVMSG"] = new cmdPrivmsg(server, true);
+	commandPortal["PASS"] = new cmdPass(server, false);
+	commandPortal["NICK"] = new cmdNick(server, false);
+	commandPortal["USER"] = new cmdUser(server, false);
+	commandPortal["PING"] = new cmdPing(server, true); // Crucial for maintaining connection
+	commandPortal["PONG"] = new cmdPong(server, true); // Crucial for maintaining connection
+	commandPortal["JOIN"] = new cmdJoin(server, true);
+	commandPortal["PART"] = new cmdPart(server, true);
+	commandPortal["PRIVMSG"] = new cmdPrivmsg(server, true);
 }
 
 void InputParser::invoke(Client *client, const std::string &message)
@@ -49,21 +49,17 @@ void InputParser::invoke(Client *client, const std::string &message)
 
 	while (std::getline(tokenizedMessage, currentMessageLine))					// Obtain token line from tokenizdMessage
 	{
-		processCurrentLine(client, currentMessageLine);							// Process current token line
+		currentLine(client, currentMessageLine);							// Process current token line
 	}
 }
 
-// TODO
-
-// TODO SYNTAX?
-
-void InputParser::processCurrentLine(Client *client, const std::string &syntax)
+void InputParser::currentLine(Client *client, const std::string &line)
 {
-	std::string modifiedSyntax;
+	std::string modifiedLine;
 	std::string name;
 
-	modifiedSyntax = trimTrailingCarriageReturn(syntax);
-	name = extractCommandName(modifiedSyntax);
+	modifiedLine = trimTrailingCarriageReturn(line);
+	name = extractCommandName(modifiedLine);
 	try
 	{
 		Command *command = getCommandInstance(name);
@@ -74,7 +70,7 @@ void InputParser::processCurrentLine(Client *client, const std::string &syntax)
 			return ;
 		}
 
-		std::vector<std::string> arguments = extractCommandArguments(modifiedSyntax, name);
+		std::vector<std::string> arguments = extractCommandArguments(modifiedLine, name);
 		command->run(client, arguments);
 	}
 	catch (const std::out_of_range &e)
@@ -83,28 +79,22 @@ void InputParser::processCurrentLine(Client *client, const std::string &syntax)
 	}
 }
 
-// TODO
-
 std::string InputParser::trimTrailingCarriageReturn(const std::string &input)
 {
     std::string trimmedString = input;
     return trimmedString.substr(0, trimmedString.back() == '\r' ? trimmedString.length() - 1 : trimmedString.length());
 }
 
-// TODO
-
-std::string InputParser::extractCommandName(const std::string &syntax)
+std::string InputParser::extractCommandName(const std::string &line)
 {
-	return syntax.substr(0, syntax.find(' '));
+	return line.substr(0, line.find(' '));
 }
 
-// TODO
-
-std::vector<std::string> InputParser::extractCommandArguments(const std::string &syntax, const std::string &name)
+std::vector<std::string> InputParser::extractCommandArguments(const std::string &line, const std::string &name)
 {
 	std::vector<std::string> arguments;
 	std::string buf;
-	std::stringstream ss(syntax.substr(name.length(), syntax.length()));
+	std::stringstream ss(line.substr(name.length(), line.length()));
 
 	while (ss >> buf)
 	{
@@ -114,11 +104,9 @@ std::vector<std::string> InputParser::extractCommandArguments(const std::string 
 	return (arguments);
 }
 
-// TODO
-
 Command* InputParser::getCommandInstance(const std::string &name)
 {
-	return _commands.at(name);
+	return commandPortal.at(name);
 }
 
 /*
@@ -127,11 +115,9 @@ ORTHODOX CANONICAL FORM
 ********************************************************************************
 */
 
-// TODO
-
 InputParser::~InputParser()
 {
-	for (auto &commandPair : _commands)
+	for (auto &commandPair : commandPortal)
 	{
 		delete commandPair.second;
 	}
