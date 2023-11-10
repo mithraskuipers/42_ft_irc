@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 08:52:59 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/09 21:51:21 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/10 08:32:43 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@ TODOS:
 4.3 NOTICE
 4.4 MODE
 4.5 TOPIC
+5. Moeten users in meerdere channels tegelijk kunnen zitten 💀 ?
 
 IRSSI USAGE:
 1. Terminal 1: ./ircserver 6667 pw
