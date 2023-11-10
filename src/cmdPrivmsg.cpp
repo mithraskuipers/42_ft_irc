@@ -19,7 +19,7 @@ De persoon die het verstuurde had dan het volgende gestuurd:
 "/privmsg #channel Hello this is a channel firstMessageCombined!"
 */
 
-void cmdPrivmsg::run(Client *client, std::vector<std::string> arguments)
+void cmdPrivmsg::execute(Client *client, std::vector<std::string> arguments)
 {
 	std::string target;															// Var to store the firstMessageCombined target (channel or user)
 	std::string firstMessageCombined;														// Variable to store the actual firstMessageCombined itself

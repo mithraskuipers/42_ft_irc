@@ -7,7 +7,7 @@ class cmdPong : public Command
 		cmdPong(Server *server, bool registrationRequired);
 		~cmdPong();
 
-		void run(Client *client, std::vector<std::string> arguments);
+		void execute(Client *client, std::vector<std::string> arguments);
 };
 
 #endif

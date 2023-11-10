@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   cmdPart.cpp                                        :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2023/11/10 08:17:23 by mikuiper      #+#    #+#                 */
+/*   Updated: 2023/11/10 08:17:24 by mikuiper      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "./../incs/Command.hpp"
 #include "./../incs/cmdPart.hpp"
 #include "./../incs/Replies.hpp"
@@ -14,7 +26,7 @@ cmdPart::~cmdPart()
 
 // format: PART <channel>{,<channel>} [<reason>]
 // Template: PART <channel
-void cmdPart::run(Client *client, std::vector<std::string> arguments)
+void cmdPart::execute(Client *client, std::vector<std::string> arguments)
 {
 
 	if (arguments.empty())

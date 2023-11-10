@@ -9,7 +9,7 @@ class cmdPrivmsg : public Command
 		cmdPrivmsg(Server *server, bool registrationRequired);
 		~cmdPrivmsg();
 
-		void run(Client *client, std::vector<std::string> arguments);
+		void execute(Client *client, std::vector<std::string> arguments);
 		std::string argumentPlakker(const std::vector<std::string> &arguments);
 		void sendMessageToChannel(Client *client, const std::string &target, const std::string &firstMessageCombined);
 		void sendMessageToPrivateUser(Client *client, const std::string &target, const std::string &firstMessageCombined);

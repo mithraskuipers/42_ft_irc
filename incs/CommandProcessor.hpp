@@ -1,7 +1,7 @@
 #ifndef COMMANDHANDLER_HPP
 #define COMMANDHANDLER_HPP
 
-class InputParser;
+class CommandProcessor;
 
 #include <iostream>
 #include <string>
@@ -13,7 +13,7 @@ class InputParser;
 
 class Command;
 
-class InputParser
+class CommandProcessor
 {
 	private:
 		Server *server;
@@ -34,12 +34,12 @@ class InputParser
 		Command *getCommandInstance(const std::string &name);
 
 	public:
-		InputParser(Server *server);
+		CommandProcessor(Server *server);
 
-		~InputParser();
+		~CommandProcessor();
 
-		// Function to invoke command processing for a client and firstMessageCombined
-		void invoke(Client *client, const std::string &firstMessageCombined);
+		// Function to process command processing for a client and firstMessageCombined
+		void process(Client *client, const std::string &firstMessageCombined);
 };
 
 #endif // COMMANDHANDLER_HPP

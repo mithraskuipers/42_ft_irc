@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 11:56:18 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/08 18:51:11 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/10 07:54:24 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ class Server;
 #include <poll.h>
 #include <unistd.h>
 
-#include "./../incs/InputParser.hpp"
+#include "./../incs/CommandProcessor.hpp"
 #include "./../incs/Client.hpp"
 #include "./../incs/Channel.hpp"
 
@@ -53,7 +53,7 @@ class Server
 	std::vector<pollfd> pollfds;
 	std::map<int, Client *> serverClients;										// fd and client instance pairs
 	std::vector<Channel *> serverChannels;
-	InputParser *parserObject;
+	CommandProcessor *parserObject;
 	void closeSocketWithMsg(int socket, const std::string &msg);
 
 public:

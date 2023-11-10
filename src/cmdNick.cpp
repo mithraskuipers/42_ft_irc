@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/07 22:01:02 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/09 22:29:31 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/10 08:11:52 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ cmdNick::~cmdNick()
 {
 }
 
-void cmdNick::run(Client *client, std::vector<std::string> arguments)
+void cmdNick::execute(Client *client, std::vector<std::string> arguments)
 {
 
 	if (arguments.empty() || arguments[0].empty())

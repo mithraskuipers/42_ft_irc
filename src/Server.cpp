@@ -6,12 +6,12 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/07 10:34:52 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/09 22:28:58 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/10 08:11:04 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "./../incs/Server.hpp"
-#include "./../incs/InputParser.hpp"
+#include "./../incs/CommandProcessor.hpp"
 #include "./../incs/utils.hpp"
 #include "./../incs/splash.hpp"
 
@@ -229,7 +229,7 @@ void Server::handleClientInput(int fd)
 		Client *client = this->serverClients.at(fd);
 		std::string firstMessageCombined = captureMessage(fd);
 
-		parserObject->invoke(client, firstMessageCombined);
+		parserObject->process(client, firstMessageCombined);
 	}
 	catch (const std::out_of_range &ex)
 	{
@@ -296,7 +296,7 @@ ORTHODOX CANONICAL FORM
 Server::Server(const std::string &port, const std::string &password) : hostname(HOSTNAME), port(port), password(password)
 {
 	initializeServer();
-	parserObject = new InputParser(this);
+	parserObject = new CommandProcessor(this);
 }
 
 Server::~Server()

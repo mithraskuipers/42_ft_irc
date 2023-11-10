@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 20:42:42 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/08 20:04:17 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/10 08:11:52 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,7 +22,7 @@ cmdPass::~cmdPass()
 {
 }
 
-void cmdPass::run(Client *client, std::vector<std::string> arguments)
+void cmdPass::execute(Client *client, std::vector<std::string> arguments)
 {
 	if (client->isRegistered())
 	{

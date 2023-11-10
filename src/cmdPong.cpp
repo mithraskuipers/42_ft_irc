@@ -13,7 +13,7 @@ cmdPong::~cmdPong()
 
 }
 
-void cmdPong::run(Client *client, std::vector<std::string> arguments)
+void cmdPong::execute(Client *client, std::vector<std::string> arguments)
 {
 
 	if (arguments.empty())

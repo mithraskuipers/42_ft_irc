@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        ::::::::            */
+/*   cmdNick.hpp                                        :+:    :+:            */
+/*                                                     +:+                    */
+/*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
+/*                                                   +#+                      */
+/*   Created: 2023/11/10 08:16:45 by mikuiper      #+#    #+#                 */
+/*   Updated: 2023/11/10 08:16:47 by mikuiper      ########   odam.nl         */
+/*                                                                            */
+/* ************************************************************************** */
+
 #ifndef CMDNICK_HPP
 # define CMDNICK_HPP
 
@@ -7,7 +19,7 @@ public:
 	cmdNick(Server *server, bool registrationRequired);
 	~cmdNick();
 
-	void run(Client *client, std::vector<std::string> arguments);
+	void execute(Client *client, std::vector<std::string> arguments);
 };
 
 

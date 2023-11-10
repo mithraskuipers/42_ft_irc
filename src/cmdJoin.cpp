@@ -6,7 +6,7 @@
 /*   By: mikuiper <mikuiper@student.codam.nl>         +#+                     */
 /*                                                   +#+                      */
 /*   Created: 2023/11/06 20:50:13 by mikuiper      #+#    #+#                 */
-/*   Updated: 2023/11/09 22:29:10 by mikuiper      ########   odam.nl         */
+/*   Updated: 2023/11/10 08:11:52 by mikuiper      ########   odam.nl         */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ cmdJoin::~cmdJoin()
 
 // format : JOIN <channel>{,<channel>} [<key>{,<key>}]
 
-void cmdJoin::run(Client *client, std::vector<std::string> arguments)
+void cmdJoin::execute(Client *client, std::vector<std::string> arguments)
 {
 
 	if (arguments.empty())

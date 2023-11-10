@@ -17,10 +17,10 @@ HDR_DIR = incs/
 OBJ_DIR = objs/
 
 # Source, object, and header files
-SRC_FILES = main.cpp Server.cpp splash.cpp Client.cpp Command.cpp Channel.cpp InputParser.cpp \
+SRC_FILES = main.cpp Server.cpp splash.cpp Client.cpp Command.cpp Channel.cpp CommandProcessor.cpp \
             cmdJoin.cpp cmdNick.cpp cmdPart.cpp \
             cmdPass.cpp cmdPing.cpp cmdPong.cpp cmdPrivmsg.cpp cmdUser.cpp utils.cpp
-HDR_FILES = Channel.hpp Client.hpp splash.hpp InputParser.hpp cmdJoin.hpp cmdNick.hpp \
+HDR_FILES = Channel.hpp Client.hpp splash.hpp CommandProcessor.hpp cmdJoin.hpp cmdNick.hpp \
             cmdPart.hpp cmdPass.hpp cmdPing.hpp cmdPong.hpp cmdPrivmsg.hpp \
             cmdUser.hpp Command.hpp JoinCommand.hpp \
             Replies.hpp Server.hpp utils.hpp
@@ -65,8 +65,8 @@ fclean: clean
 re: fclean all
 
 # Run rule
-run: $(NAME)
+execute: $(NAME)
 	@./$(NAME) 6667 pw
 
 # Declare phony targets (targets that do not represent files)
-.PHONY: all clean fclean re run
+.PHONY: all clean fclean re execute

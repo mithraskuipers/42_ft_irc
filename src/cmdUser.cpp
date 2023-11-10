@@ -14,6 +14,12 @@
 #include "./../incs/cmdUser.hpp"
 #include "./../incs/Replies.hpp"
 
+/*
+********************************************************************************
+ORTHODOX CANONICAL FORM
+********************************************************************************
+*/
+
 cmdUser::cmdUser(Server *server, bool registrationRequired) : Command(server, registrationRequired)
 {
 
@@ -24,7 +30,13 @@ cmdUser::~cmdUser()
 
 }
 
-void cmdUser::run(Client *client, std::vector<std::string> arguments)
+/*
+********************************************************************************
+MEMBER FUNCTIONS
+********************************************************************************
+*/
+
+void cmdUser::execute(Client *client, std::vector<std::string> arguments)
 {
 
 	if (client->isRegistered())

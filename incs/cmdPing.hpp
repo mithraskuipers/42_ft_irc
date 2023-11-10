@@ -7,7 +7,7 @@ class cmdPing : public Command
 		cmdPing(Server *server, bool registrationRequired);
 		~cmdPing();
 
-		void run(Client *client, std::vector<std::string> arguments);
+		void execute(Client *client, std::vector<std::string> arguments);
 };
 
 

@@ -12,7 +12,7 @@ cmdPing::~cmdPing()
 
 }
 
-void cmdPing::run(Client *client, std::vector<std::string> arguments)
+void cmdPing::execute(Client *client, std::vector<std::string> arguments)
 {
 
 	if (arguments.empty())

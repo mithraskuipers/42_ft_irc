@@ -7,7 +7,7 @@ class cmdUser : public Command
 		cmdUser(Server *server, bool registrationRequired);
 		~cmdUser();
 
-		void run(Client *client, std::vector<std::string> arguments);
+		void execute(Client *client, std::vector<std::string> arguments);
 };
 
 #endif
