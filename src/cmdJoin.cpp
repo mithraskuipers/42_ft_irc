@@ -24,8 +24,6 @@ cmdJoin::~cmdJoin()
 	
 }
 
-// format : JOIN <channel>{,<channel>} [<key>{,<key>}]
-
 void cmdJoin::execute(Client *client, std::vector<std::string> arguments)
 {
 
