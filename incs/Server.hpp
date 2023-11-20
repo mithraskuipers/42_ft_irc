@@ -26,6 +26,13 @@ class Server;
 #include <poll.h>
 #include <unistd.h>
 
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <iostream>
+#include <sys/epoll.h>
+
 #include "./../incs/CommandProcessor.hpp"
 #include "./../incs/Client.hpp"
 #include "./../incs/Channel.hpp"
@@ -33,6 +40,7 @@ class Server;
 #define MAX_CONNECTIONS 1000
 #define HOSTNAME "127.0.0.1" // TODO klopt dit wel voor irc? Moet hostname niet worden uitgelezen uit pc?
 #define MAX_BUFFER_SIZE 1024 // Voorkomen van buffer overflows
+#define MAX_EVENTS 85
 
 // REGISTRATION LEVELS
 #define INIT_CONNECTION_PHASE 0
@@ -46,6 +54,7 @@ class Server
 	typedef std::map<int, Client *>::iterator clients_iterator;
 	typedef std::vector<Channel *>::iterator channels_iterator;
 
+	int epollFD;
 	int serverSocket;
 	const std::string hostname;
 	const std::string port;
@@ -54,6 +63,9 @@ class Server
 	std::map<int, Client *> serverClients;										// fd and client instance pairs
 	std::vector<Channel *> serverChannels;
 	CommandProcessor *parserObject;
+
+	struct epoll_event singleEventStruct;
+	struct epoll_event multipleEventStruct[MAX_EVENTS];
 	void closeSocketWithMsg(int socket, const std::string &msg);
 
 public:
@@ -62,8 +74,8 @@ public:
 
 	void startServer();
 	void prepareServerSocket();
-	void processEvents();
-	void waitForEvents();
+	void processEvents(int numEvents);
+	int waitForEvents();
 	void initializeServer();
 	void closeServerSocket();
 

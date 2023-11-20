@@ -27,10 +27,12 @@ void Server::startServer()
 	showSplash(hostname, port);			   // External
 	serverStdout("Server up and running"); // External
 
+	int numEvents;
+	
 	while (1)
 	{
-		waitForEvents();
-		processEvents();
+		numEvents = waitForEvents();
+		processEvents(numEvents);
 	}
 }
 
@@ -43,8 +45,13 @@ void Server::initializeServer()
 	bindSocket();						// Bind the socket to the server address.
 	setNonBlocking();					// Set the socket to non-blocking mode.
 	startListening();					// Start listening for incoming connections.
-	pollfd server_fd = {this->serverSocket, POLLIN, 0};
-	pollfds.push_back(server_fd); // Add server socket to the pollfd list for polling.
+	// pollfd server_fd = {this->serverSocket, POLLIN, 0};
+	// pollfds.push_back(server_fd); // Add server socket to the pollfd list for polling.
+
+	this->epollFD = epoll_create1(0);
+	this->singleEventStruct.events = EPOLLIN;
+	this->singleEventStruct.data.fd = this->serverSocket;
+	epoll_ctl(this->epollFD, EPOLL_CTL_ADD, this->serverSocket, &(this->singleEventStruct));
 }
 
 void Server::closeServerSocket()
@@ -116,42 +123,56 @@ void Server::startListening()
 	std::cout << "Server is up and running and listening to port " << port << std::endl;
 }
 
-void Server::waitForEvents()
+int Server::waitForEvents()
 {
-	int poll_ret;
-	
-	poll_ret = poll(pollfds.begin().base(), pollfds.size(), -1);
-	if (poll_ret < 0)
+	int numEvents;
+	numEvents = epoll_wait(this->epollFD, this->multipleEventStruct, MAX_EVENTS, -1);
+	if (numEvents < 0)
 	{
-		throw (std::runtime_error("poll() failed."));
+		throw (std::runtime_error("epoll() failed."));
 	}
+	return (numEvents);
 }
 
-void Server::processEvents()
+void Server::processEvents(int numEvents)
 {
-	for (pollfds_iterator it = pollfds.begin(); it != pollfds.end(); it++)
+	int i = 0;
+
+	while (i < numEvents)
 	{
-		if (it->revents == 0)
-		{
-			continue;															// No events? Go to the next file descriptor.
-		}
+		int tmpFD = this->multipleEventStruct[i].data.fd;
 
-		if ((it->revents & POLLHUP) == POLLHUP)									// POLLHUP indicates a hang-up occurred on the associated fd. Often when client disconnected.
-		{
-			handleClientDisconnect(it->fd);										// Handle client disconnect event.
-			break;
-		}
-		if ((it->revents & POLLIN) == POLLIN)									// POLLIN: Indicates there is data to read on the file descriptor.
-
-		{
-			if (it->fd == this->serverSocket)
-			{
-				handleClientConnection();										// Handle new client connection event.
-				break;
-			}
-			handleClientInput(it->fd);											// Handle client input event.
-		}
+		if (this->multipleEventStruct[i].events &EPOLLHUP)
+			handleClientDisconnect(tmpFD);
+		else if (tmpFD == this->serverSocket)
+			handleClientConnection();
+		else 
+			handleClientInput(tmpFD);
+		i++;
 	}
+	// for (pollfds_iterator it = pollfds.begin(); it != pollfds.end(); it++)
+	// {
+	// 	if (it->revents == 0)
+	// 	{
+	// 		continue;															// No events? Go to the next file descriptor.
+	// 	}
+
+	// 	if ((it->revents & POLLHUP) == POLLHUP)									// POLLHUP indicates a hang-up occurred on the associated fd. Often when client disconnected.
+	// 	{
+	// 		handleClientDisconnect(it->fd);										// Handle client disconnect event.
+	// 		break;
+	// 	}
+	// 	if ((it->revents & POLLIN) == POLLIN)									// POLLIN: Indicates there is data to read on the file descriptor.
+
+	// 	{
+	// 		if (it->fd == this->serverSocket)
+	// 		{
+	// 			handleClientConnection();										// Handle new client connection event.
+	// 			break;
+	// 		}
+	// 		handleClientInput(it->fd);											// Handle client input event.
+	// 	}
+	// }
 }
 
 void Server::handleClientDisconnect(int fd)
@@ -169,16 +190,16 @@ void Server::handleClientDisconnect(int fd)
 
 		this->serverClients.erase(fd);
 
-		for (pollfds_iterator it = pollfds.begin(); it != pollfds.end(); it++)
-		{
-			if (it->fd != fd)
-			{
-				continue;
-			}
-			pollfds.erase(it);
+		// for (pollfds_iterator it = pollfds.begin(); it != pollfds.end(); it++)
+		// {
+		// 	if (it->fd != fd)
+		// 	{
+		// 		continue;
+		// 	}
+		// 	pollfds.erase(it);
 			close(fd);
-			break;
-		}
+		// 	break;
+		// }
 		delete (client);
 	}
 	catch (const std::out_of_range &ex)
@@ -188,20 +209,25 @@ void Server::handleClientDisconnect(int fd)
 
 void Server::handleClientConnection()
 {
-	int fd;
+	int connectSock;
 	int getnameinfo_ret;
 	int port;
 	sockaddr_in s_address = {};
 	socklen_t s_size = sizeof(s_address);
 
-	fd = accept(this->serverSocket, (sockaddr *)&s_address, &s_size);
-	if (fd < 0)
+	connectSock = accept(this->serverSocket, (sockaddr *)&s_address, &s_size);
+	if (connectSock < 0)
 	{
 		throw std::runtime_error("Failure during accept().");
 	}
 
-	pollfd pollfd = {fd, POLLIN, 0};
-	pollfds.push_back(pollfd);
+	// pollfd pollfd = {fd, POLLIN, 0};
+	// pollfds.push_back(pollfd);
+
+	fcntl(connectSock, F_SETFL, O_NONBLOCK);
+	this->singleEventStruct.events = EPOLLIN | EPOLLET;
+	this->singleEventStruct.data.fd = connectSock;
+	epoll_ctl(epollFD, EPOLL_CTL_ADD, connectSock, &(this->singleEventStruct));
 
 	char hostnameBuffer[NI_MAXHOST];											// NI_MAXHOST is max length of hostname
 	getnameinfo_ret = getnameinfo((struct sockaddr *)&s_address, sizeof(s_address), hostnameBuffer, NI_MAXHOST, nullptr, 0, NI_NUMERICHOST);
@@ -214,8 +240,8 @@ void Server::handleClientConnection()
 	std::string hostname = std::string(hostnameBuffer);
 	port = ntohs(s_address.sin_port);											// Convert network byte order to host byte order, obtaining the port number used by the client.
 
-	Client *client = new Client(fd, hostname, port);							// Create new client object
-	this->serverClients.insert(std::make_pair(fd, client));						// Add new client object to serverClients map. Make fd & client object key-value pairs.
+	Client *client = new Client(connectSock, hostname, port);							// Create new client object
+	this->serverClients.insert(std::make_pair(connectSock, client));						// Add new client object to serverClients map. Make fd & client object key-value pairs.
 
 	std::string firstMessageCombined;
 	firstMessageCombined = hostname + ":" + std::to_string(port) + " has connected.";

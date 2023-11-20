@@ -16,7 +16,7 @@ class Command;
 class CommandProcessor
 {
 	private:
-		Server *server;
+		// Server *server;
 		std::map<std::string, Command *> commandPortal;
 		// Function to process a command for a client
 		void processCurrentLine(Client *client, const std::string &line);

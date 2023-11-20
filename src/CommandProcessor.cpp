@@ -29,7 +29,7 @@ MEMBER FUNCTIONS
 
 // Volledig gescheiden van elkaar dus je kunt zonder teveel issues een nieuwe command toevoegen.
 
-CommandProcessor::CommandProcessor(Server *server) : server(server)
+CommandProcessor::CommandProcessor(Server *server) //: server(server)
 {
 	commandPortal["PASS"] = new cmdPass(server, false);
 	commandPortal["NICK"] = new cmdNick(server, false);
