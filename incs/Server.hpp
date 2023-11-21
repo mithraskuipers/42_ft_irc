@@ -79,6 +79,8 @@ public:
 	void initializeServer();
 	void closeServerSocket();
 
+	void singleBroadcast(const std::string &firstMessageCombined, std::string include);
+
 	std::string getPassword() const { return password; };
 	Client *getClientInstance(const std::string &nickname);
 

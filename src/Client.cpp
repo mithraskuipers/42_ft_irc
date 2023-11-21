@@ -12,6 +12,7 @@
 
 #include <iostream>
 #include "./../incs/Client.hpp"
+#include "./../incs/Server.hpp"
 #include "./../incs/Replies.hpp"
 #include "./../incs/utils.hpp"
 
@@ -108,6 +109,11 @@ void Client::welcomeMessage()
 	serverStdout(firstMessageCombined);
 }
 
+void Client::clientInvite(std::string target, std::string channel)
+{
+	_server->singleBroadcast(RPL_INVITE(clientNickname, target, channel), target);
+}
+
 void Client::clientJoinChannel(Channel *channel)
 {
 	channel->addClient(this);
@@ -162,7 +168,7 @@ ORTHODOX CANONICAL FORM
 ********************************************************************************
 */
 
-Client::Client(int fd, const std::string &hostname, int port) : _fd(fd), _hostname(hostname), port(port), clientRegistrationLevel(INIT_CONNECTION_PHASE), _channel(nullptr)
+Client::Client(int fd, const std::string &hostname, int port, Server *server) : _fd(fd), _hostname(hostname), port(port), _server(server), clientRegistrationLevel(INIT_CONNECTION_PHASE), _channel(nullptr)
 {
 }
 

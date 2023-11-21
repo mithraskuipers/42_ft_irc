@@ -37,5 +37,6 @@
 #define RPL_QUIT(source, firstMessageCombined) ":" + source + " QUIT :Quit: " + firstMessageCombined
 #define RPL_KICK(source, channel, target, reason) ":" + source + " KICK " + channel + " " + target + " :" + reason
 #define RPL_MODE(source, channel, modes, args) ":" + source + " MODE " + channel + " " + modes + " " + args
+#define RPL_INVITE(source, target, channel) ":" + source + " INVITE " + target + " " + channel
 
 #endif

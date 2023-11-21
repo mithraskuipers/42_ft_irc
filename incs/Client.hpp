@@ -17,6 +17,7 @@
 
 class Client;
 
+#include "Server.hpp"
 #include <vector>
 #include <string>
 #include <sys/poll.h>
@@ -32,6 +33,7 @@ private:
 	int _fd;
 	std::string _hostname;
 	int port;
+	Server *_server;
 
 	std::string clientNickname;
 	std::string clientUsername;
@@ -42,7 +44,7 @@ private:
 	Channel *_channel;
 
 public:
-	Client(int fd, const std::string &hostname, int port);
+	Client(int fd, const std::string &hostname, int port, Server *server);
 	~Client();
 	int getFD() const;
 	std::string getHostname() const;
@@ -61,6 +63,7 @@ public:
 	void setChannel(Channel *channel);
 	void sendMessageToClientItself(const std::string &firstMessageCombined) const;
 	void welcomeMessage();
+	void clientInvite(std::string target, std::string channel);
 	void clientJoinChannel(Channel *channel);
 	void clientLeaveChannel();
 };

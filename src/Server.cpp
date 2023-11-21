@@ -21,6 +21,17 @@ MEMBER FUNCTIONS
 ********************************************************************************
 */
 
+void Server::singleBroadcast(const std::string &firstMessageCombined, std::string include)
+{
+    for (auto it = serverClients.begin(); it != serverClients.end(); it++)
+    {
+        if (it->second->getNickname() == include)
+        {
+            it->second->sendMessageToClientItself(firstMessageCombined);
+        }
+    }
+}
+
 void Server::startServer()
 {
 	initializeServer();
@@ -240,7 +251,7 @@ void Server::handleClientConnection()
 	std::string hostname = std::string(hostnameBuffer);
 	port = ntohs(s_address.sin_port);											// Convert network byte order to host byte order, obtaining the port number used by the client.
 
-	Client *client = new Client(connectSock, hostname, port);							// Create new client object
+	Client *client = new Client(connectSock, hostname, port, this);							// Create new client object
 	this->serverClients.insert(std::make_pair(connectSock, client));						// Add new client object to serverClients map. Make fd & client object key-value pairs.
 
 	std::string firstMessageCombined;

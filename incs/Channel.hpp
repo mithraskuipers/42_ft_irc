@@ -45,6 +45,7 @@ public:
 	size_t getNumClients() const;
 	std::vector<std::string> getNicknames();
 
+	void singleBroadcast(const std::string &firstMessageCombined, std::string include);
 	// removeClient()
 	void selectNewAdmin();
     void logNewAdmin();
