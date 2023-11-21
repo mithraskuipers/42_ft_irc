@@ -146,7 +146,7 @@ void Server::processEvents(int numEvents)
 			handleClientDisconnect(tmpFD);
 		else if (tmpFD == this->serverSocket)
 			handleClientConnection();
-		else 
+		else if (this->multipleEventStruct[i].events &EPOLLIN)
 			handleClientInput(tmpFD);
 		i++;
 	}
@@ -270,8 +270,7 @@ std::string Server::captureMessage(int fd)
 
 	while (1)
 	{
-		memset(buffer.data(), 0, MAX_BUFFER_SIZE);								// Init memory block -> remove garbage data
-
+		memset(buffer.data(), 0, MAX_BUFFER_SIZE);
 		int bytesRead = recv(fd, buffer.data(), MAX_BUFFER_SIZE - 1, 0);		// Receive data from the socket and store the number of bytes read.
 		if (bytesRead < 0)
 		{
@@ -281,8 +280,11 @@ std::string Server::captureMessage(int fd)
 		{
 			break;
 		}
-		else
+		else // has to differentiate between NC and IRSSI
 		{
+			// std::string yolo = buffer.data();
+			// if (!yolo.find("HELLO"))
+			// 	send(fd, buffer.data(), yolo.size(), 0);
 			firstMessageCombined.append(buffer.data(), bytesRead);
 			if (firstMessageCombined.find("\r\n") != std::string::npos)						// \r\n is sequence used by IRC to indicate end of firstMessageCombined. npos is returned by find() if not found.
 			{

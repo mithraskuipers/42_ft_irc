@@ -19,12 +19,21 @@ TODOS:
 2. Controleren of we wel allowed functions gebruiken
 3. Controleren of code memory leak vrij is
 4. Commands toevoegen
-4.1 KICK
-4.2 QUIT
-4.3 NOTICE
-4.4 MODE
-4.5 TOPIC
-5. Moeten users in meerdere channels tegelijk kunnen zitten 💀 ?
+4.1 USER-chan
+QUIT
+NOTICE
+4.2 OPERATOR-san
+KICK
+INVITE
+TOPIC
+MODE
+i: set/remove invite-only channel
+t: set/remove restriction TOPIC operators
+k: set/remove channel key
+o: set/remove operator
+l: set/remove user limit to channel
+
+5. Moeten users in meerdere channels tegelijk kunnen zitten 💀 ? JA
 
 IRSSI USAGE:
 1. Terminal 1: ./ircserver 6667 pw
