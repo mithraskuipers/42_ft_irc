@@ -113,14 +113,25 @@ void Client::welcomeMessage()
 // WIP
 void Client::clientInvite(std::string target, std::string channel)
 {
-	// if (1) // check if allowed for user (if op condition is set, check if operator)
+	if (1) // check if allowed for user (if op condition is set, check if operator)
 		_server->singleBroadcast(RPL_INVITE(clientNickname, target, channel), target);
 }
 
 void Client::clientSetTopic(std::string channel, std::string topic)
 {
-	// if (1) // check if allowed for user (if op condition is set, check if operator)
+	if (1) // check if allowed for user (if op condition is set, check if operator)
 		sendMessageToClientItself(RPL_TOPIC(clientNickname, channel, topic));
+}
+
+void Client::clientKick(std::string channel, std::string target, std::string reason)
+{
+	if (1) // check if allowed for user (if op condition is set, check if operator)
+	{
+		// _server->singleBroadcast(RPL_KICK(clientNickname, channel, target, reason), target);
+		sendMessageToClientItself(RPL_KICK(clientNickname, channel, target, reason));
+		// _channel->removeClient(_server->getClientInstance(target));
+		_server->getClientInstance(target)->clientLeaveChannel();
+	}
 }
 // END OF WIP
 

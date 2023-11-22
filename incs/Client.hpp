@@ -64,6 +64,7 @@ public:
 	void sendMessageToClientItself(const std::string &firstMessageCombined) const;
 	void welcomeMessage();
 	void clientInvite(std::string target, std::string channel);
+	void clientKick(std::string channel, std::string target, std::string reason);
 	void clientJoinChannel(Channel *channel);
 	void clientLeaveChannel();
 	void clientSetTopic(std::string channel, std::string topic);

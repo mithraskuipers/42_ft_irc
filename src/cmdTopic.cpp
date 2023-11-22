@@ -16,10 +16,13 @@ cmdTopic::~cmdTopic()
 
 void cmdTopic::execute(Client *client, std::vector<std::string> arguments)
 {
-	std::cout << arguments[0] << "FIRST ARG EXE" << std::endl;
-	std::cout << arguments[1] << "SECOND ARG EXE" << std::endl;
-	std::cout << arguments[2] << "THIRD ARG EXE" << std::endl;
+	// std::cout << arguments[0] << "FIRST ARG EXE" << std::endl;
+	// std::cout << arguments[1] << "SECOND ARG EXE" << std::endl;
+	// std::cout << arguments[2] << "THIRD ARG EXE" << std::endl;
 	// std::cout << arguments[3] << "FOURTHRST ARG EXE" << std::endl;
+	if (arguments.size() > 2)
+		client->clientSetTopic(arguments[0], arguments[2]);
+	else if (arguments.size() == 2)
+		client->clientSetTopic(arguments[0], arguments[1]);
 
-	client->clientSetTopic(arguments[0], arguments[2]);
 }

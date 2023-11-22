@@ -17,6 +17,7 @@
 #include "./../incs/cmdNick.hpp"
 #include "./../incs/cmdJoin.hpp"
 #include "./../incs/cmdPing.hpp"
+#include "./../incs/cmdKick.hpp"
 #include "./../incs/cmdPong.hpp"
 #include "./../incs/cmdUser.hpp"
 #include "./../incs/cmdTopic.hpp"
@@ -41,6 +42,7 @@ CommandProcessor::CommandProcessor(Server *server) //: server(server)
 	commandPortal["JOIN"] = new cmdJoin(server, true);
 	commandPortal["TOPIC"] = new cmdTopic(server, true);
 	commandPortal["PART"] = new cmdPart(server, true);
+	commandPortal["KICK"] = new cmdKick(server, true);
 	commandPortal["INVITE"] = new cmdInvite(server, true);
 	commandPortal["PRIVMSG"] = new cmdPrivmsg(server, true);
 }
