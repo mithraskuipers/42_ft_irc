@@ -23,8 +23,9 @@ cmdInvite::~cmdInvite()
 
 void cmdInvite::execute(Client *client, std::vector<std::string> arguments)
 {
-	std::cout << arguments[0] << "FIRST ARG EXE" << std::endl;
-	std::cout << arguments[1] << "SECOND ARG EXE" << std::endl;
+	// std::cout << arguments[0] << "FIRST ARG EXE" << std::endl;
+	// std::cout << arguments[1] << "SECOND ARG EXE" << std::endl;
+
 	// arguments.at(0) == target
 	// arguments.at(1) == channel
 

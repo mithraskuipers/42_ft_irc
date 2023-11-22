@@ -29,6 +29,8 @@
 #define RPL_ENDOFNAMES(source, channel) "366 " + source + " " + channel + " :End of /NAMES list."
 
 // COMMAND REPLIES
+#define RPL_TOPIC(source, channel, topic) ":" + source + " TOPIC " + channel + " :" + topic
+#define RPL_INVITE(source, target, channel) ":" + source + " INVITE " + target + " " + channel
 #define RPL_JOIN(source, channel) ":" + source + " JOIN :" + channel
 #define RPL_PART(source, channel) ":" + source + " PART :" + channel
 #define RPL_PING(source, token) ":" + source + " PONG :" + token
@@ -37,6 +39,5 @@
 #define RPL_QUIT(source, firstMessageCombined) ":" + source + " QUIT :Quit: " + firstMessageCombined
 #define RPL_KICK(source, channel, target, reason) ":" + source + " KICK " + channel + " " + target + " :" + reason
 #define RPL_MODE(source, channel, modes, args) ":" + source + " MODE " + channel + " " + modes + " " + args
-#define RPL_INVITE(source, target, channel) ":" + source + " INVITE " + target + " " + channel
 
 #endif

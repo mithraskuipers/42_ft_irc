@@ -19,6 +19,7 @@
 #include "./../incs/cmdPing.hpp"
 #include "./../incs/cmdPong.hpp"
 #include "./../incs/cmdUser.hpp"
+#include "./../incs/cmdTopic.hpp"
 #include "./../incs/Replies.hpp"
 #include "./../incs/cmdInvite.hpp"
 
@@ -38,6 +39,7 @@ CommandProcessor::CommandProcessor(Server *server) //: server(server)
 	commandPortal["PING"] = new cmdPing(server, true); // Crucial for maintaining connection
 	commandPortal["PONG"] = new cmdPong(server, true); // Crucial for maintaining connection
 	commandPortal["JOIN"] = new cmdJoin(server, true);
+	commandPortal["TOPIC"] = new cmdTopic(server, true);
 	commandPortal["PART"] = new cmdPart(server, true);
 	commandPortal["INVITE"] = new cmdInvite(server, true);
 	commandPortal["PRIVMSG"] = new cmdPrivmsg(server, true);

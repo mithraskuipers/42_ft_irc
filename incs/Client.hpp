@@ -66,6 +66,7 @@ public:
 	void clientInvite(std::string target, std::string channel);
 	void clientJoinChannel(Channel *channel);
 	void clientLeaveChannel();
+	void clientSetTopic(std::string channel, std::string topic);
 };
 
 #endif

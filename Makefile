@@ -18,11 +18,11 @@ OBJ_DIR = objs/
 
 # Source, object, and header files
 SRC_FILES = main.cpp Server.cpp splash.cpp Client.cpp Command.cpp Channel.cpp CommandProcessor.cpp \
-            cmdJoin.cpp cmdNick.cpp cmdPart.cpp cmdInvite.cpp \
+            cmdJoin.cpp cmdTopic.cpp cmdNick.cpp cmdPart.cpp cmdInvite.cpp \
             cmdPass.cpp cmdPing.cpp cmdPong.cpp cmdPrivmsg.cpp cmdUser.cpp utils.cpp
 HDR_FILES = Channel.hpp Client.hpp splash.hpp CommandProcessor.hpp cmdJoin.hpp cmdNick.hpp \
             cmdPart.hpp cmdPass.hpp cmdPing.hpp cmdPong.hpp cmdPrivmsg.hpp \
-            cmdUser.hpp Command.hpp \
+            cmdUser.hpp cmdTopic.hpp Command.hpp \
             Replies.hpp Server.hpp utils.hpp \
 			cmdInvite.hpp
 OBJ_FILES = $(SRC_FILES:.cpp=.o)

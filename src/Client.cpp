@@ -109,10 +109,20 @@ void Client::welcomeMessage()
 	serverStdout(firstMessageCombined);
 }
 
+
+// WIP
 void Client::clientInvite(std::string target, std::string channel)
 {
-	_server->singleBroadcast(RPL_INVITE(clientNickname, target, channel), target);
+	// if (1) // check if allowed for user (if op condition is set, check if operator)
+		_server->singleBroadcast(RPL_INVITE(clientNickname, target, channel), target);
 }
+
+void Client::clientSetTopic(std::string channel, std::string topic)
+{
+	// if (1) // check if allowed for user (if op condition is set, check if operator)
+		sendMessageToClientItself(RPL_TOPIC(clientNickname, channel, topic));
+}
+// END OF WIP
 
 void Client::clientJoinChannel(Channel *channel)
 {
