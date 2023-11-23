@@ -18,6 +18,7 @@
 #define ERR_CHANOPRIVSNEEDED(source, channel) "482 " + source + " " + channel + " :You're not channel operator"
 #define ERR_CHANNELISFULL(source, channel) "471 " + source + " " + channel + " :Cannot clientJoinChannel channel (+l)"
 #define ERR_CANNOTSENDTOCHAN(source, channel) "404 " + source + " " + channel + " :Cannot send to channel"
+#define ERR_CANNOTSENDTOCHAN(source, channel) "1 " + source + " " + channel + " :Channel is invite only, couldnt join"
 
 // NUMERIC REPLIES
 #define RPL_WELCOME(source) "001 " + source + " :Welcome " + source + " to the ft_irc network"

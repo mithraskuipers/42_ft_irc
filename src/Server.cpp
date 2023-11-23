@@ -361,10 +361,16 @@ Client *Server::getClientInstance(const std::string &nickname)
 
 Channel *Server::getChannelInstance(const std::string &requestedChannelName)
 {
-
+	std::string channelName;
+	if (requestedChannelName[0] != '#')
+		channelName = "#" + requestedChannelName;
+	else 
+		channelName = requestedChannelName;
 	for (channels_iterator it = serverChannels.begin(); it != serverChannels.end(); it++)
 	{
-		if (it.operator*()->getChannelName() == requestedChannelName)
+		std::cout << it.operator*()->getChannelName() << std::endl;
+		std::cout << channelName << std::endl;
+		if (!it.operator*()->getChannelName().compare(channelName))
 		{
 			return it.operator*();
 		}

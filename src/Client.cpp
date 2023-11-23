@@ -114,13 +114,35 @@ void Client::welcomeMessage()
 void Client::clientInvite(std::string target, std::string channel)
 {
 	if (1) // check if allowed for user (if op condition is set, check if operator)
+	{
 		_server->singleBroadcast(RPL_INVITE(clientNickname, target, channel), target);
+		_server->getChannelInstance(channel)->addInvite(_server->getClientInstance(target));
+	}
 }
 
 void Client::clientSetTopic(std::string channel, std::string topic)
 {
 	if (1) // check if allowed for user (if op condition is set, check if operator)
 		sendMessageToClientItself(RPL_TOPIC(clientNickname, channel, topic));
+}
+
+void Client::setMode(std::string mode, std::string channel, std::string optional)
+{
+	// if (1) // check if allowed for user (if op condition is set, check if operator)
+	// 	sendMessageToClientItself(RPL_MODE(clientNickname, mode));
+	// if (mode == "i")
+	// {		
+				std::cout << "test in setMode" << std::endl;
+				if (this->_server->getChannelInstance(channel))
+				{
+					this->_server->getChannelInstance(channel)->channelSetInviteOnly(true);
+				std::cout << _server->getChannelInstance(channel)->channelGetInviteOnly() << std::endl;
+
+				}
+				(void)optional;
+				(void)mode;
+				std::cout << "test after setMode" << std::endl;
+	// }
 }
 
 void Client::clientKick(std::string channel, std::string target, std::string reason)

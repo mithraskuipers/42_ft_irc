@@ -104,8 +104,9 @@ ORTHODOX CANONICAL FORM
 ********************************************************************************
 */
 
-Channel::Channel(const std::string &name, const std::string &password, Client *admin) : channelName(name), channelAdminClient(admin), channelPassword(password), channelMaxClients(0), channelAllowExternalMessages(false)
+Channel::Channel(const std::string &name, const std::string &password, Client *admin) : channelName(name), channelAdminClient(admin), channelPassword(password), channelMaxClients(0), channelAllowExternalMessages(false), channelInviteOnly(false)
 {
+	std::cout << "Channel created" << std::endl;
 }
 
 Channel::~Channel()
@@ -178,4 +179,34 @@ void Channel::setMaxClients(size_t nmaxclients)
 size_t Channel::getNumClients() const
 {
 	return (_clients.size());
+}
+
+void Channel::channelSetInviteOnly(bool inviteOnly)
+{
+	this->channelInviteOnly = inviteOnly;
+}
+
+bool Channel::channelGetInviteOnly() const
+{
+	return (channelInviteOnly);
+}
+
+void Channel::addInvite(Client *client)
+{
+	channelInvs.push_back(client);
+}
+
+void Channel::removeInvite(Client *client)
+{
+	channelInvs.remove(client);
+}
+
+bool Channel::checkInvited(Client *client)
+{
+	for (std::list<Client *>::iterator it = channelInvs.begin(); it != channelInvs.end(); it++)
+	{
+		if (*it == client)
+			return (true);
+	}
+	return (false);
 }

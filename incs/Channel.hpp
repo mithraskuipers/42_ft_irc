@@ -17,6 +17,7 @@ class Channel;
 
 #include "Server.hpp"
 #include "Client.hpp"
+#include <list>
 
 class Channel
 {
@@ -30,6 +31,8 @@ private:
 	std::string channelPassword;
 	size_t channelMaxClients;
 	bool channelAllowExternalMessages;
+	bool channelInviteOnly;
+	std::list<Client *> channelInvs;
 
 public:
 	Channel(const std::string &name, const std::string &password, Client *admin);
@@ -39,6 +42,11 @@ public:
 	std::string getChannelName() const;
 	std::string getPassword() const;
 	void setPassword(std::string password);
+	void channelSetInviteOnly(bool inviteOnly);
+	bool channelGetInviteOnly() const;
+	void addInvite(Client *client);
+	void removeInvite(Client *client);
+	bool checkInvited(Client *client);
 	size_t getMaxClients() const;
 	void setMaxClients(size_t nmaxclients);
 	bool allowExternalMessagesToChannel() const;

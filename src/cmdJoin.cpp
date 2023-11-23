@@ -60,6 +60,10 @@ void cmdJoin::execute(Client *client, std::vector<std::string> arguments)
 		client->sendMessageToClientItself(ERR_BADCHANNELKEY(client->getNickname(), name));
 		return ;
 	}
-
+	if (channel->channelGetInviteOnly() == true && channel->checkInvited(client) == false)
+	{
+		client->sendMessageToClientItself(ERR_INVITEONLYCHAN(client->getNickname(), name));
+		return ;
+	}
 	client->clientJoinChannel(channel);
 }

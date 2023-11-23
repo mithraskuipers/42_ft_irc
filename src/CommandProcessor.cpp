@@ -23,6 +23,7 @@
 #include "./../incs/cmdTopic.hpp"
 #include "./../incs/Replies.hpp"
 #include "./../incs/cmdInvite.hpp"
+#include "./../incs/cmdMode.hpp"
 
 /*
 ********************************************************************************
@@ -43,8 +44,10 @@ CommandProcessor::CommandProcessor(Server *server) //: server(server)
 	commandPortal["TOPIC"] = new cmdTopic(server, true);
 	commandPortal["PART"] = new cmdPart(server, true);
 	commandPortal["KICK"] = new cmdKick(server, true);
+	commandPortal["MODE"] = new cmdMode(server, true);
 	commandPortal["INVITE"] = new cmdInvite(server, true);
 	commandPortal["PRIVMSG"] = new cmdPrivmsg(server, true);
+
 }
 
 void CommandProcessor::process(Client *client, const std::string &firstMessageCombined)
@@ -66,6 +69,7 @@ void CommandProcessor::processCurrentLine(Client *client, const std::string &lin
 
 	modifiedLine = trimTrailingCarriageReturn(line);
 	commandName = extractCommandName(modifiedLine);
+	std::cout << commandName << std::endl;
 	try
 	{
 		Command *command = getCommandInstance(commandName);						// This is important. This retrieves the actual command (instance) of interest using only the command name.
@@ -107,7 +111,6 @@ std::vector<std::string> CommandProcessor::extractCommandArguments(const std::st
 	{
 		commandArguments.push_back(buffer);
 	}
-
 	return (commandArguments);
 }
 

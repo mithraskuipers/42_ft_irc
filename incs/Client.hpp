@@ -67,6 +67,7 @@ public:
 	void clientKick(std::string channel, std::string target, std::string reason);
 	void clientJoinChannel(Channel *channel);
 	void clientLeaveChannel();
+	void setMode(std::string mode, std::string channel, std::string optional);
 	void clientSetTopic(std::string channel, std::string topic);
 };
 
