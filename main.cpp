@@ -10,11 +10,18 @@ int main(int ac, char **av)
 			throw std::runtime_error("invalid port, to be value to be 1024 up to 65535 (6667 for default)");
 		Server	server(av[1], av[2]);
 		server.startServerLoop();
-		return (0);
+		server.printServerPrivates();
+		// return (0);
 	}
 	catch (const std::exception &e)
 	{
 		std::cerr << e.what() << std::endl;
 		return (1);
 	}
+	User joesert(5);
+	joesert.printUserPrivates();
+	Channel nochan("ChannelDivination");
+	nochan.printChannelPrivates();
+	Commands generals;
+	generals.printCommandsPrivates();
 }

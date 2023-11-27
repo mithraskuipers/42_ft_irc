@@ -23,6 +23,10 @@
 #include <ctime>
 #include <cstdio>
 
+#include "User.hpp"
+#include "Channel.hpp"
+#include "Commands.hpp"
+
 #define HOSTNAME "127.0.0.1"
 #define MAX_CONNECTIONS 100
 #define MAX_EVENTS 100
@@ -40,6 +44,9 @@ class Server
    void processEvents();
 
    void closeSocketWithMsg(int socket, const std::string &msg);
+
+   // tmp check
+   void printServerPrivates(); // REMOVE LATER
 
    // just canon
    // Server();

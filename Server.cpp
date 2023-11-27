@@ -2,10 +2,17 @@
 
 void showSplash(const std::string &serverAddress, const std::string &serverPort);
 
-Server::Server(char *port, char *password) : _port(port), _password(password)
+void Server::printServerPrivates() // REMOVE LATER
 {
+	std::cout << std::endl << "Server: printing: port, pswd, epollfd, servsock" << std::endl;
 	std::cout << _port << std::endl;
 	std::cout << _password << std::endl;
+	std::cout << _epollFD << std::endl;
+	std::cout << _serverSocket << std::endl << std::endl;
+}
+
+Server::Server(char *port, char *password) : _port(port), _password(password)
+{
 	createServerSocket();
 	bindSocketToAddress();
 	listenWithSocket();
