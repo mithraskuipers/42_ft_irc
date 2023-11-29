@@ -26,6 +26,7 @@
 #include "User.hpp"
 #include "Channel.hpp"
 #include "Commands.hpp"
+#include "Replies.hpp"
 
 #define HOSTNAME "127.0.0.1"
 #define MAX_CONNECTIONS 100
@@ -35,33 +36,44 @@ class Server
 {
    public:
    Server(char *port, char *password);
-   void createServerSocket();
-	void bindSocketToAddress();
-	void listenWithSocket();
-
-   void startServerLoop();
-   void waitForEvents();
-   void processEvents();
-
-   void closeSocketWithMsg(int socket, const std::string &msg);
-
-   // tmp check
-   void printServerPrivates(); // REMOVE LATER
-
    // just canon
    // Server();
    // Server(const Server &Server);
    // Server &operator=(const Server &Server);
    // ~Server();
 
+   void  runServer();
+   int   waitForEvents();
+   void  processEvents(int numEvents);
+
+   // serverEvents.cpp
+   void  replyToInput(int tmpFD);
+   void  connectNewUser();
+   void  disconnectUser(int tmpFD);
+
+   // initServer.cpp
+	void  createServerSocket();
+	void  setSocketOptions();
+	void  bindSocketToAddress();
+	void  listenWithSocket();
+	void  monitorSocketEvents(); // monitored with epoll
+   void  checkFailure(int socket, const std::string &msg);
+
+   // util
+   void  serverStdout(const std::string &firstMessageCombined);
+
+   // tmp check
+   void printServerPrivates(); // REMOVE LATER
+
    private:
+   int   _checkFail;
    char  *_port;
    char  *_password;
    int   _epollFD;
    int   _serverSocket;
    struct sockaddr_in _serverAddress;
    struct epoll_event _currentlyHandledEvent;
-	// struct epoll_event _tempSavedIncomingEvents[MAX_EVENTS];
+	struct epoll_event _tempSavedEvents[MAX_EVENTS];
 };
 
 #endif
