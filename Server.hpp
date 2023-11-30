@@ -43,13 +43,13 @@ class Server
    // ~Server();
 
    void  runServer();
-   int   waitForEvents();
-   void  processEvents(int numEvents);
 
    // serverEvents.cpp
-   void  replyToInput(int tmpFD);
-   void  connectNewUser();
-   void  disconnectUser(int tmpFD);
+   void  parseInput(int eventFD);
+   int   connectNewUser();
+   void  disconnectUser(int eventFD);
+
+   void findCommand(std::string firstMessageCombined);
 
    // initServer.cpp
 	void  createServerSocket();

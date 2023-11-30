@@ -20,86 +20,88 @@ Server::Server(char *port, char *password) : _port(port), _password(password)
 	bindSocketToAddress();
 	listenWithSocket();
 	monitorSocketEvents(); // monitored with epoll
-	std::cout << "Server is up and running and listening to port " << _port << std::endl;
 }
 
 // Main server loop and functions
 void Server::runServer()
 {
+	int i;
+	int numEvents;
+
+	std::cout << "Server is up and running and listening to port " << _port << std::endl;
 	showSplash(HOSTNAME, _port);
+	while (1)
+	{
+		numEvents = epoll_wait(_epollFD, _tempSavedEvents, MAX_EVENTS, -1);
+		if (numEvents == -1)
+			throw (std::runtime_error("epoll() failed."));
+		i = 0;
+		while (i < numEvents)
+		{
+			if (_tempSavedEvents[i].data.fd == _serverSocket)
+				connectNewUser();
+			else if (_tempSavedEvents[i].events &EPOLLIN)
+				parseInput(_tempSavedEvents[i].data.fd);
+			i++;
+		}
+	}
+}
+
+void Server::findCommand(std::string firstMessageCombined)
+{
+	if (!firstMessageCombined.compare("NICK "))
+		std::cout << "FOUND NICK!\n" << firstMessageCombined << std::endl;
+}
+
+void Server::parseInput(int eventFD)
+{
+	std::vector<char> buffer(500);
+	std::string firstMessageCombined;
 
 	while (1)
-		processEvents(waitForEvents());
+	{
+		memset(buffer.data(), 0, 500);
+		int bytesRead = recv(eventFD, buffer.data(), 500 - 1, 0);		// Receive data from the socket and store the number of bytes read.
+		std::cout << "recv:\n" << buffer.data() << std::endl;
+		if (bytesRead < 0)
+		{
+			throw std::runtime_error("Error while reading buffer from client.");
+		}
+		else if (bytesRead == 0)												// Connection closed by client
+		{
+			break;
+		}
+		else
+		{
+			firstMessageCombined.append(buffer.data(), bytesRead);
+			if (firstMessageCombined.find("\r\n") != std::string::npos)	
+			{
+				break;															// Message received completely
+			}
+		}
+	}
+	findCommand(firstMessageCombined);
+	// std::cout << "reply FD = " << eventFD << std::endl;
+	// char buffy[500];
+	// recv(eventFD, buffy, sizeof(buffy), 0);
+	// std::cout << "new recv\n" << buffy << std::endl;
+	// std::string bufstr = buffy;
+	// if (!bufstr.find("PING"))
+	// {
+	// 	std::cout << "pinged" << std::endl;
+	// 	send(eventFD, ":johnnyBravo!bde-meij@127.0.0.1 PONG :127.0.0.1\r\n", 48, 0);
+	// }
+	// else if (!bufstr.find("QUIT"))
+	// {
+	// 	disconnectUser(eventFD);
+	// }
+	// else
+	// 	std::cout << "no reply" << std::endl;
 }
 
-int Server::waitForEvents()
+int Server::connectNewUser()
 {
-	int numEvents;
-	numEvents = epoll_wait(_epollFD, _tempSavedEvents, MAX_EVENTS, -1);
-	if (numEvents == -1)
-		throw (std::runtime_error("epoll() failed."));
-	return (numEvents);
-}
-
-void Server::processEvents(int numEvents)
-{
-	int i = 0;
-	while (i < numEvents)
-	{
-		int tmpFD = _tempSavedEvents[i].data.fd;
-		if (_tempSavedEvents[i].events &EPOLLHUP)
-			disconnectUser(tmpFD);
-		else if (tmpFD == _serverSocket)
-			connectNewUser();
-		else if (_tempSavedEvents[i].events &EPOLLIN)
-			replyToInput(tmpFD);
-		i++;
-	}
-}
-
-void Server::replyToInput(int tmpFD)
-{
-	char buffy[500];
-	recv(tmpFD, buffy, sizeof(buffy), 0);
-	std::cout << buffy << std::endl;
-	std::string bufstr = buffy;
-	if (!bufstr.find("PING"))
-	{
-		std::cout << "pinged" << std::endl;
-		send(tmpFD, ":johnnyBravo!bde-meij@127.0.0.1 PONG :127.0.0.1\r\n", 48, 0);
-	}
-	else if (!bufstr.find("QUIT"))
-	{
-		disconnectUser(tmpFD);
-	}
-	else if (j == 0)
-	{
-		std::string jb = "johnnyBravo";
-		std::string serv = "serverName";
-		std::string vers = "version";
-		std::string uM = "userModes";
-		std::string cM = "channelModes";
-
-		std::string whatev = RPL_WELCOME(jb) + "\r\n";
-		std::cout << whatev << std::endl;
-		send(tmpFD, whatev.c_str(), whatev.length(), 0);
-		whatev = RPL_YOURHOST(jb, serv, vers) + "\r\n";
-		std::cout << whatev << std::endl;
-		send(tmpFD, whatev.c_str(), whatev.length(), 0);
-		whatev = RPL_CREATED(jb, "date") + "\r\n";
-		std::cout << whatev << std::endl;
-		send(tmpFD, whatev.c_str(), whatev.length(), 0);
-		whatev = RPL_MYINFO(jb, serv, vers, uM, cM) + "\r\n";
-		std::cout << whatev << std::endl;
-		send(tmpFD, whatev.c_str(), whatev.length(), 0);
-		j = 2;
-	}
-	else
-		std::cout << "no reply" << std::endl;
-}
-
-void Server::connectNewUser()
-{
+	// std::cout << "connect FD = " << eventFD << std::endl;
 	sockaddr_in s_address;
 	socklen_t s_size = sizeof(s_address);
 
@@ -112,6 +114,9 @@ void Server::connectNewUser()
 	_currentlyHandledEvent.data.fd = connectSock;
 	epoll_ctl(_epollFD, EPOLL_CTL_ADD, connectSock, &(_currentlyHandledEvent));
 	std::cout << "connection established" << std::endl;
+	std::cout << "connectSock value = " << connectSock << std::endl;
+	User joesert(connectSock);
+	return (connectSock);
 }
 
 void Server::disconnectUser(int fd)
