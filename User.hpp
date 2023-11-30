@@ -20,12 +20,24 @@ class User
    // User(const User &User);
    // User &operator=(const User &User);
    // ~User();
+   void setNickName(std::string nickName);
+   void setUserName(std::string userName);
+   void setRealName(std::string realName);
+   void setHostName(std::string realName);
+   void setIsOperator(bool isOperator);
+   void setUserFD(int FD);
+   std::string getUserName();
+   std::string getNickName();
+   std::string getRealName();
+   bool getIsOperator();
+   int getUserFD();
 
    private:
    int         _userFD;
    std::string _userName;
    std::string _nickName;
    std::string _realName;
+   std::string _hostName;
    bool        _isOperator;
    // std::vector <std::string> _channelInvitations;
    // std::vector <std::string> _joinedChannels;

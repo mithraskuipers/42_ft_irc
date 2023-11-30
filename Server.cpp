@@ -4,6 +4,7 @@ void showSplash(const std::string &serverAddress, const std::string &serverPort)
 
 void Server::printServerPrivates() // REMOVE LATER
 {
+	// "001 johnnyBravo!bde-meij@127.0.0.1 :Welcome johnnyBravo!bde-meij@127.0.0.1\r\n"
 	// /connect 127.0.0.1 6667 pw johnnyBravo
 	std::cout << std::endl << "Server: printing: port, pswd, epollfd, servsock" << std::endl;
 	std::cout << _port << std::endl;
@@ -20,6 +21,8 @@ Server::Server(char *port, char *password) : _port(port), _password(password)
 	bindSocketToAddress();
 	listenWithSocket();
 	monitorSocketEvents(); // monitored with epoll
+	std::cout << "Server is up and running and listening to port " << _port << std::endl;
+	showSplash(HOSTNAME, _port);
 }
 
 // Main server loop and functions
@@ -28,8 +31,6 @@ void Server::runServer()
 	int i;
 	int numEvents;
 
-	std::cout << "Server is up and running and listening to port " << _port << std::endl;
-	showSplash(HOSTNAME, _port);
 	while (1)
 	{
 		numEvents = epoll_wait(_epollFD, _tempSavedEvents, MAX_EVENTS, -1);
@@ -47,13 +48,26 @@ void Server::runServer()
 	}
 }
 
-void Server::findCommand(std::string commandWithOptions)
+void Server::connectNewUser()
 {
-	std::string command = commandWithOptions.substr(0, commandWithOptions.find(" "));
-	std::string options = commandWithOptions.substr(commandWithOptions.find(" ") + 1);
-	std::cout << "command = " << command << std::endl;
-	std::cout << "options = " << options << std::endl;
+	sockaddr_in s_address;
+	socklen_t s_size = sizeof(s_address);
+
+	int connectSock = accept(_serverSocket, (sockaddr *)&s_address, &s_size);
+	if (connectSock < 0)
+		throw std::runtime_error("Failure during accept().");
+
+	fcntl(connectSock, F_SETFL, O_NONBLOCK);
+	_currentlyHandledEvent.events = EPOLLIN | EPOLLET;
+	_currentlyHandledEvent.data.fd = connectSock;
+	epoll_ctl(_epollFD, EPOLL_CTL_ADD, connectSock, &(_currentlyHandledEvent));
+	_allUsers.push_back(new User(connectSock));
 }
+
+// std::cout << "connection established" << std::endl;
+// std::cout << "connectSock value = " << connectSock << std::endl;
+// for (auto const& i : _allUsers)
+// 	i->printUserPrivates();
 
 void Server::parseInput(int eventFD)
 {
@@ -65,6 +79,7 @@ void Server::parseInput(int eventFD)
 	{
 		memset(buffer.data(), 0, 500);
 		bytesRead = recv(eventFD, buffer.data(), 500 - 1, 0);		// Receive data from the socket and store the number of bytes read.
+		std::cout << "just received:\n" << buffer.data() << std::endl;
 		if (bytesRead < 0)
 		{
 			throw std::runtime_error("Error while reading buffer from client.");
@@ -95,7 +110,7 @@ void Server::parseInput(int eventFD)
 	for (std::list<std::string>::iterator it = listWithReceivedMessages.begin(); it != listWithReceivedMessages.end(); it++)
 	{
 		// Doe hier functie en geef hem '*it' mee en da tis de listWithReceivedMessages
-		findCommand(*it);
+		findCommand(*it, eventFD);
 	}
 	
 	// findCommand(firstMessageCombined);
@@ -115,26 +130,6 @@ void Server::parseInput(int eventFD)
 	// }
 	// else
 	// 	std::cout << "no reply" << std::endl;
-}
-
-int Server::connectNewUser()
-{
-	// std::cout << "connect FD = " << eventFD << std::endl;
-	sockaddr_in s_address;
-	socklen_t s_size = sizeof(s_address);
-
-	int connectSock = accept(_serverSocket, (sockaddr *)&s_address, &s_size);
-	if (connectSock < 0)
-		throw std::runtime_error("Failure during accept().");
-
-	fcntl(connectSock, F_SETFL, O_NONBLOCK);
-	_currentlyHandledEvent.events = EPOLLIN | EPOLLET;
-	_currentlyHandledEvent.data.fd = connectSock;
-	epoll_ctl(_epollFD, EPOLL_CTL_ADD, connectSock, &(_currentlyHandledEvent));
-	std::cout << "connection established" << std::endl;
-	std::cout << "connectSock value = " << connectSock << std::endl;
-	User joesert(connectSock);
-	return (connectSock);
 }
 
 void Server::disconnectUser(int fd)

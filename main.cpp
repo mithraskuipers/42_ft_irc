@@ -18,10 +18,4 @@ int main(int ac, char **av)
 		std::cerr << e.what() << std::endl;
 		return (1);
 	}
-	User joesert(5);
-	joesert.printUserPrivates();
-	Channel nochan("ChannelDivination");
-	nochan.printChannelPrivates();
-	Commands generals;
-	generals.printCommandsPrivates();
 }

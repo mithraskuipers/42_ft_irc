@@ -11,6 +11,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <list>
 #include <map>
 
 #include <unistd.h>
@@ -25,7 +26,6 @@
 
 #include "User.hpp"
 #include "Channel.hpp"
-#include "Commands.hpp"
 #include "Replies.hpp"
 
 #define HOSTNAME "127.0.0.1"
@@ -46,10 +46,10 @@ class Server
 
    // serverEvents.cpp
    void  parseInput(int eventFD);
-   int   connectNewUser();
+   void  connectNewUser();
    void  disconnectUser(int eventFD);
 
-   void findCommand(std::string firstMessageCombined);
+   void findCommand(std::string firstMessageCombined, int eventFD);
 
    // initServer.cpp
 	void  createServerSocket();
@@ -66,6 +66,7 @@ class Server
    void printServerPrivates(); // REMOVE LATER
 
    private:
+   std::list<User*> _allUsers;
    int   _checkFail;
    char  *_port;
    char  *_password;
