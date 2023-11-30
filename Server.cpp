@@ -1,5 +1,5 @@
 #include "Server.hpp"
-
+#include <list>
 void showSplash(const std::string &serverAddress, const std::string &serverPort);
 
 void Server::printServerPrivates() // REMOVE LATER
@@ -47,22 +47,24 @@ void Server::runServer()
 	}
 }
 
-void Server::findCommand(std::string firstMessageCombined)
+void Server::findCommand(std::string commandWithOptions)
 {
-	if (!firstMessageCombined.compare("NICK "))
-		std::cout << "FOUND NICK!\n" << firstMessageCombined << std::endl;
+	std::string command = commandWithOptions.substr(0, commandWithOptions.find(" "));
+	std::string options = commandWithOptions.substr(commandWithOptions.find(" ") + 1);
+	std::cout << "command = " << command << std::endl;
+	std::cout << "options = " << options << std::endl;
 }
 
 void Server::parseInput(int eventFD)
 {
-	std::vector<char> buffer(500);
+	std::vector<char> buffer(510);
+	std::list<std::string> listWithReceivedMessages;
+	int bytesRead;
 	std::string firstMessageCombined;
-
 	while (1)
 	{
 		memset(buffer.data(), 0, 500);
-		int bytesRead = recv(eventFD, buffer.data(), 500 - 1, 0);		// Receive data from the socket and store the number of bytes read.
-		std::cout << "recv:\n" << buffer.data() << std::endl;
+		bytesRead = recv(eventFD, buffer.data(), 500 - 1, 0);		// Receive data from the socket and store the number of bytes read.
 		if (bytesRead < 0)
 		{
 			throw std::runtime_error("Error while reading buffer from client.");
@@ -80,7 +82,23 @@ void Server::parseInput(int eventFD)
 			}
 		}
 	}
-	findCommand(firstMessageCombined);
+	for (int i = 0; i < bytesRead; i++)
+	{
+		if (firstMessageCombined[i] == '\n')
+		{
+			listWithReceivedMessages.push_back(std::string(firstMessageCombined.data(), i));
+			firstMessageCombined.erase(firstMessageCombined.begin(), firstMessageCombined.begin() + i + 1);
+			bytesRead -= i + 1;
+			i = 0;
+		}
+	}
+	for (std::list<std::string>::iterator it = listWithReceivedMessages.begin(); it != listWithReceivedMessages.end(); it++)
+	{
+		// Doe hier functie en geef hem '*it' mee en da tis de listWithReceivedMessages
+		findCommand(*it);
+	}
+	
+	// findCommand(firstMessageCombined);
 	// std::cout << "reply FD = " << eventFD << std::endl;
 	// char buffy[500];
 	// recv(eventFD, buffy, sizeof(buffy), 0);
