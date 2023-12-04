@@ -4,8 +4,6 @@ void showSplash(const std::string &serverAddress, const std::string &serverPort)
 
 void Server::printServerPrivates() // REMOVE LATER
 {
-	// "001 johnnyBravo!bde-meij@127.0.0.1 :Welcome johnnyBravo!bde-meij@127.0.0.1\r\n"
-	// /connect 127.0.0.1 6667 pw johnnyBravo
 	std::cout << std::endl << "Server: printing: port, pswd, epollfd, servsock" << std::endl;
 	std::cout << _port << std::endl;
 	std::cout << _password << std::endl;
@@ -48,7 +46,7 @@ void Server::runServer()
 	}
 }
 
-void Server::connectNewUser()
+int Server::connectNewUser()
 {
 	sockaddr_in s_address;
 	socklen_t s_size = sizeof(s_address);
@@ -58,40 +56,38 @@ void Server::connectNewUser()
 		throw std::runtime_error("Failure during accept().");
 
 	fcntl(connectSock, F_SETFL, O_NONBLOCK);
-	_currentlyHandledEvent.events = EPOLLIN | EPOLLET;
+	_currentlyHandledEvent.events = EPOLLIN;
 	_currentlyHandledEvent.data.fd = connectSock;
 	epoll_ctl(_epollFD, EPOLL_CTL_ADD, connectSock, &(_currentlyHandledEvent));
 	_allUsers.push_back(new User(connectSock));
+	return (connectSock);
 }
-
-// std::cout << "connection established" << std::endl;
-// std::cout << "connectSock value = " << connectSock << std::endl;
-// for (auto const& i : _allUsers)
-// 	i->printUserPrivates();
 
 void Server::parseInput(int eventFD)
 {
 	std::vector<char> buffer(510);
-	std::list<std::string> listWithReceivedMessages;
+	std::list<std::string> msgList;
 	int bytesRead;
-	std::string firstMessageCombined;
+	std::string savedMsgParts;
 	while (1)
 	{
 		memset(buffer.data(), 0, 500);
 		bytesRead = recv(eventFD, buffer.data(), 500 - 1, 0);		// Receive data from the socket and store the number of bytes read.
-		std::cout << "just received:\n" << buffer.data() << std::endl;
+		std::cout << "just received:\n" << buffer.data() << " with fd " << eventFD << " and bytes read " << bytesRead << std::endl;
 		if (bytesRead < 0)
 		{
 			throw std::runtime_error("Error while reading buffer from client.");
 		}
 		else if (bytesRead == 0)												// Connection closed by client
 		{
+			disconnectUser(eventFD);
 			break;
 		}
 		else
 		{
-			firstMessageCombined.append(buffer.data(), bytesRead);
-			if (firstMessageCombined.find("\r\n") != std::string::npos)	
+			savedMsgParts.append(buffer.data(), bytesRead);
+			// if (savedMsgParts.find("\r\n") != std::string::npos)	// <- \r doesnt work with netcat
+			if (savedMsgParts.find("\n") != std::string::npos)	
 			{
 				break;															// Message received completely
 			}
@@ -99,37 +95,16 @@ void Server::parseInput(int eventFD)
 	}
 	for (int i = 0; i < bytesRead; i++)
 	{
-		if (firstMessageCombined[i] == '\n')
+		if (savedMsgParts[i] == '\n')
 		{
-			listWithReceivedMessages.push_back(std::string(firstMessageCombined.data(), i));
-			firstMessageCombined.erase(firstMessageCombined.begin(), firstMessageCombined.begin() + i + 1);
+			msgList.push_back(std::string(savedMsgParts.data(), i));
+			savedMsgParts.erase(savedMsgParts.begin(), savedMsgParts.begin() + i + 1);
 			bytesRead -= i + 1;
 			i = 0;
 		}
 	}
-	for (std::list<std::string>::iterator it = listWithReceivedMessages.begin(); it != listWithReceivedMessages.end(); it++)
-	{
-		// Doe hier functie en geef hem '*it' mee en da tis de listWithReceivedMessages
-		findCommand(*it, eventFD);
-	}
-	
-	// findCommand(firstMessageCombined);
-	// std::cout << "reply FD = " << eventFD << std::endl;
-	// char buffy[500];
-	// recv(eventFD, buffy, sizeof(buffy), 0);
-	// std::cout << "new recv\n" << buffy << std::endl;
-	// std::string bufstr = buffy;
-	// if (!bufstr.find("PING"))
-	// {
-	// 	std::cout << "pinged" << std::endl;
-	// 	send(eventFD, ":johnnyBravo!bde-meij@127.0.0.1 PONG :127.0.0.1\r\n", 48, 0);
-	// }
-	// else if (!bufstr.find("QUIT"))
-	// {
-	// 	disconnectUser(eventFD);
-	// }
-	// else
-	// 	std::cout << "no reply" << std::endl;
+	for (auto &it : msgList)
+		findCommand(it, eventFD);
 }
 
 void Server::disconnectUser(int fd)

@@ -2,35 +2,37 @@
 
 void User::printUserPrivates() // REMOVE LATER
 {
-	std::cout << std::endl << "User: printing: usrFD, name, nick, realname, host, isOp" << std::endl;
-	std::cout << _userFD << std::endl;
-	std::cout << _userName << std::endl;
-	std::cout << _nickName << std::endl;
-	std::cout << _realName << std::endl;
-	std::cout << _hostName << std::endl;
-	std::cout << _isOperator << std::endl << std::endl;
+	std::cout << std::endl << "User: printing: " << std::endl;
+	std::cout << "fd " << _userFD << std::endl;
+	std::cout << "nick " << _nickName << std::endl;
+	std::cout << "useN " << _userName << std::endl;
+	std::cout << "host " << _hostName << std::endl;
+	std::cout << "real " << _realName << std::endl;
+	std::cout << "source " << getSource() << std::endl;
+	std::cout << "isOp " << _isOperator << std::endl << std::endl;
 }
 
 // User::User(int fd, std::string userName, std::string nickName, std::string realName, bool isOperator) :
 // _userFD(fd), _userName(userName), _nickName(nickName), _realName(realName), _isOperator(isOperator)
-User::User(int fd) : _userFD(fd), _userName(""), _nickName(""), _realName(""), _isOperator(0)
+User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _realName(""), _isOperator(0)
 {
 	
 }
 
+std::string User::getSource()
+{
+	return (_nickName + "!" + _userName + "@" + _hostName);
+}
+
+void User::setUserFD(int fd)
+{
+	_userFD = fd;
+}
+
 void User::setNickName(std::string nickName)
 {
+	std::cout << "nickname is set" << std::endl;
 	_nickName = nickName;
-}
-
-void User::setUserFD(int FD)
-{
-	_userFD = FD;
-}
-
-int User::getUserFD()
-{
-	return (_userFD);
 }
 
 void User::setUserName(std::string userName)
@@ -40,12 +42,31 @@ void User::setUserName(std::string userName)
 
 void User::setHostName(std::string hostName)
 {
+	std::cout << "hostname is set" << std::endl;
 	_hostName = hostName;
 }
 
-std::string User::getUserName()
+void User::setRealName(std::vector<std::string> splitArgs)
 {
-	return (_userName);
+	size_t i = 4;
+	splitArgs[4].erase(0, 1);
+	while (i < splitArgs.size())
+	{
+		_realName += splitArgs[i];
+		if (i != splitArgs.size())
+			_realName += " ";
+		i++;
+	}
+}
+
+void User::setIsOperator(bool isOperator)
+{
+	_isOperator = isOperator;
+}
+
+int User::getUserFD()
+{
+	return (_userFD);
 }
 
 std::string User::getNickName()
@@ -53,19 +74,19 @@ std::string User::getNickName()
 	return (_nickName);
 }
 
-void User::setRealName(std::string realName)
+std::string User::getUserName()
 {
-	_realName = realName;
+	return (_userName);
+}
+
+std::string User::getHostName()
+{
+	return(_hostName);
 }
 
 std::string User::getRealName()
 {
 	return (_realName);
-}
-
-void User::setIsOperator(bool isOperator)
-{
-	_isOperator = isOperator;
 }
 
 bool User::getIsOperator()

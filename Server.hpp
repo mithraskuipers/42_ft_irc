@@ -46,10 +46,15 @@ class Server
 
    // serverEvents.cpp
    void  parseInput(int eventFD);
-   void  connectNewUser();
+   int   connectNewUser();
    void  disconnectUser(int eventFD);
 
-   void findCommand(std::string firstMessageCombined, int eventFD);
+   //serverReply.cpp
+   void  findCommand(std::string firstMessageCombined, int eventFD);
+   void  cmdNick(std::vector<std::string> splitArgs, int eventFD);
+   void  cmdUser(std::vector<std::string> splitArgs, int eventFD);
+   void  cmdPing(int eventFD);
+   void  cmdMode(int eventFD);
 
    // initServer.cpp
 	void  createServerSocket();

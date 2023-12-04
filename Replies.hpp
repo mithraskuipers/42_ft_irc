@@ -22,6 +22,7 @@
 
 // NUMERIC REPLIES
 #define RPL_WELCOME(source) "001 " + source + " :Welcome " + source + " to the ft_irc network"
+// #define RPL_WELCOME(source) "001 :Welcome to the Internet Relay Network " + source
 #define RPL_YOURHOST(source, serverName, version) "002 " + source + " :Your host is " + serverName + " running version " + version
 #define RPL_CREATED(source, date) "003 " + source + " :This server was created " + date
 #define RPL_MYINFO(source, serverName, version, userModes, channelModes) "004 " + source + " :" + serverName + " " + version + " " + userModes + " " + channelModes
