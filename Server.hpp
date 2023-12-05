@@ -51,12 +51,22 @@ class Server
 
    //serverReply.cpp
    void  computeReply(std::string firstMessageCombined, int eventFD);
-   void  rplNick(std::vector<std::string> splitArgs, int eventFD);
+
    void  rplUser(std::vector<std::string> splitArgs, int eventFD);
+   void  rplNick(std::vector<std::string> splitArgs, int eventFD);
+   void  rplJoin(std::vector<std::string> splitArgs, int eventFD);
+   void  rplPart(std::vector<std::string> splitArgs, int eventFD);
+   void  rplPrivmsg(std::vector<std::string> splitArgs, int eventFD);
+   void  rplQuit(std::vector<std::string> splitArgs, int eventFD);
+   void  rplInvite(std::vector<std::string> splitArgs, int eventFD);
+   void  rplKick(std::vector<std::string> splitArgs, int eventFD);
+   // void  rplMode(std::vector<std::string> splitArgs, int eventFD);
+   void  rplTopic(std::vector<std::string> splitArgs, int eventFD);
    void  rplPing(int eventFD);
-   void  rplMode(int eventFD);
    void  rplWhois(int eventFD);
+
    void  sendReply(int eventFD, std::string msg);
+
 
    // initServer.cpp
 	void  createServerSocket();
