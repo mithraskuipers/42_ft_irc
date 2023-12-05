@@ -40,7 +40,7 @@ void Server::runServer()
 			if (_tempSavedEvents[i].data.fd == _serverSocket)
 				connectNewUser();
 			else if (_tempSavedEvents[i].events &EPOLLIN)
-				parseInput(_tempSavedEvents[i].data.fd);
+				recvNextLine(_tempSavedEvents[i].data.fd);
 			i++;
 		}
 	}
@@ -63,7 +63,9 @@ int Server::connectNewUser()
 	return (connectSock);
 }
 
-void Server::parseInput(int eventFD)
+// use recv() to read until there is a \n for each line read 
+// main reason: avoid errors if we receive partial messages
+void Server::recvNextLine(int eventFD) // TOO MESSY, NEEDS WORK
 {
 	std::vector<char> buffer(510);
 	std::list<std::string> msgList;
@@ -72,13 +74,13 @@ void Server::parseInput(int eventFD)
 	while (1)
 	{
 		memset(buffer.data(), 0, 500);
-		bytesRead = recv(eventFD, buffer.data(), 500 - 1, 0);		// Receive data from the socket and store the number of bytes read.
-		std::cout << "just received:\n" << buffer.data() << " with fd " << eventFD << " and bytes read " << bytesRead << std::endl;
+		bytesRead = recv(eventFD, buffer.data(), 500 - 1, 0);
+		std::cout << "\033[1;31m" << "just received:\n" << buffer.data() << "with fd " << eventFD << " and bytes read " << bytesRead << "\033[0m\n" << std::endl; // FOR TESTING RMV LATER
 		if (bytesRead < 0)
 		{
 			throw std::runtime_error("Error while reading buffer from client.");
 		}
-		else if (bytesRead == 0)												// Connection closed by client
+		else if (bytesRead == 0) // Connection closed by client
 		{
 			disconnectUser(eventFD);
 			break;
@@ -89,7 +91,7 @@ void Server::parseInput(int eventFD)
 			// if (savedMsgParts.find("\r\n") != std::string::npos)	// <- \r doesnt work with netcat
 			if (savedMsgParts.find("\n") != std::string::npos)	
 			{
-				break;															// Message received completely
+				break; // Message received completely
 			}
 		}
 	}
@@ -103,13 +105,20 @@ void Server::parseInput(int eventFD)
 			i = 0;
 		}
 	}
+	// we want to feed computeReply one line at a time 
+	// the msgList iterator is needed if multiple lines were read at once
 	for (auto &it : msgList)
-		findCommand(it, eventFD);
+		computeReply(it, eventFD);
 }
 
 void Server::disconnectUser(int fd)
 {
 	std::cout << "someone disconnected" << std::endl;
+	for (auto &i : _allUsers)
+	{
+		if (i->getUserFD() == fd)
+			delete (i);
+	}
 	close(fd);
 }
 

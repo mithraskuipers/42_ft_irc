@@ -45,16 +45,18 @@ class Server
    void  runServer();
 
    // serverEvents.cpp
-   void  parseInput(int eventFD);
+   void  recvNextLine(int eventFD);
    int   connectNewUser();
    void  disconnectUser(int eventFD);
 
    //serverReply.cpp
-   void  findCommand(std::string firstMessageCombined, int eventFD);
-   void  cmdNick(std::vector<std::string> splitArgs, int eventFD);
-   void  cmdUser(std::vector<std::string> splitArgs, int eventFD);
-   void  cmdPing(int eventFD);
-   void  cmdMode(int eventFD);
+   void  computeReply(std::string firstMessageCombined, int eventFD);
+   void  rplNick(std::vector<std::string> splitArgs, int eventFD);
+   void  rplUser(std::vector<std::string> splitArgs, int eventFD);
+   void  rplPing(int eventFD);
+   void  rplMode(int eventFD);
+   void  rplWhois(int eventFD);
+   void  sendReply(int eventFD, std::string msg);
 
    // initServer.cpp
 	void  createServerSocket();

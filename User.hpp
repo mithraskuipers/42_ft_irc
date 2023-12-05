@@ -7,7 +7,6 @@
 class User
 {
    public:
-   // User(int fd, std::string userName, std::string nickName, std::string realName, bool isOperator);
    User(int fd);
    
    // tmp check

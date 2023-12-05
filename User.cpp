@@ -16,7 +16,7 @@ void User::printUserPrivates() // REMOVE LATER
 // _userFD(fd), _userName(userName), _nickName(nickName), _realName(realName), _isOperator(isOperator)
 User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _realName(""), _isOperator(0)
 {
-	
+	std::cout << "\033[1;33m" << "_userFD set to " << _userFD << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
 
 std::string User::getSource()
@@ -27,29 +27,31 @@ std::string User::getSource()
 void User::setUserFD(int fd)
 {
 	_userFD = fd;
+	std::cout << "\033[1;33m" << "_userFD set to " << _userFD << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
 
 void User::setNickName(std::string nickName)
 {
-	std::cout << "nickname is set" << std::endl;
 	_nickName = nickName;
+	std::cout << "\033[1;33m" << "_nickName set to " << _nickName << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
 
 void User::setUserName(std::string userName)
 {
 	_userName = userName;
+	std::cout << "\033[1;33m" << "_userName set to " << _userName << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
 
 void User::setHostName(std::string hostName)
 {
-	std::cout << "hostname is set" << std::endl;
 	_hostName = hostName;
+	std::cout << "\033[1;33m" << "_hostName set to " << _hostName << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
 
 void User::setRealName(std::vector<std::string> splitArgs)
 {
 	size_t i = 4;
-	splitArgs[4].erase(0, 1);
+	// splitArgs[4].erase(0, 1); // this line deletes the ':' from ":real name", but in most cases it is printed anyway
 	while (i < splitArgs.size())
 	{
 		_realName += splitArgs[i];
@@ -57,10 +59,12 @@ void User::setRealName(std::vector<std::string> splitArgs)
 			_realName += " ";
 		i++;
 	}
+	std::cout << "\033[1;33m" << "_realName set to " << _realName << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
 
 void User::setIsOperator(bool isOperator)
 {
+	std::cout << "\033[1;33m" << "isOperator set to " << isOperator << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 	_isOperator = isOperator;
 }
 

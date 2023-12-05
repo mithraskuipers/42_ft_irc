@@ -21,11 +21,17 @@
 #define ERR_INVITEONLYCHAN(source, channel) "1 " + source + " " + channel + " :Channel is invite only, couldnt join"
 
 // NUMERIC REPLIES
+//  001    RPL_WELCOME
+//           "Welcome to the Internet Relay Network
+//            <nick>!<user>@<host>"
 #define RPL_WELCOME(source) "001 " + source + " :Welcome " + source + " to the ft_irc network"
 // #define RPL_WELCOME(source) "001 :Welcome to the Internet Relay Network " + source
 #define RPL_YOURHOST(source, serverName, version) "002 " + source + " :Your host is " + serverName + " running version " + version
 #define RPL_CREATED(source, date) "003 " + source + " :This server was created " + date
 #define RPL_MYINFO(source, serverName, version, userModes, channelModes) "004 " + source + " :" + serverName + " " + version + " " + userModes + " " + channelModes
+// 311    RPL_WHOISUSER
+//               "<nick> <user> <host> * :<real name>"
+#define RPL_WHOISUSER(nick, user, host, realname) "311 " + nick + " " + user + " " + host + " " + realname
 
 // E.g. 353 server.example.com = #example :user1 user2 user3
 // providing a list of nicknames in the specified channel to the client
