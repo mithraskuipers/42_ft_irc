@@ -14,6 +14,9 @@ class Channel
    // bool findUser(int userFD);
    // bool findBannedUser(int userFD);
 
+   std::string getChannelName();
+   bool getIsInviteOnly();
+
    // canon
    // Channel();
    // Channel(const Channel &Channel);

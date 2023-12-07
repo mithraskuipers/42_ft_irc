@@ -24,6 +24,36 @@ std::string User::getSource()
 	return (_nickName + "!" + _userName + "@" + _hostName);
 }
 
+void User::addInvitation(std::string channelName)
+{
+	_channelInvitations.push_back(channelName);
+}
+
+bool User::isInvited(std::string channelName)
+{
+	for (auto &i : _channelInvitations)
+	{
+		if (!i.compare(channelName))
+			return (1);
+	}
+	return (0);
+}
+
+void User::addJoinedChannel(std::string channelName)
+{
+	_joinedChannels.push_back(channelName);
+}
+
+bool User::isInChannel(std::string channelName)
+{
+	for (auto &i : _joinedChannels)
+	{
+		if (!i.compare(channelName))
+			return (1);
+	}
+	return (0);
+}
+
 void User::setUserFD(int fd)
 {
 	_userFD = fd;

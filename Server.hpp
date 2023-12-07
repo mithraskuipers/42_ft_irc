@@ -84,6 +84,7 @@ class Server
 
    private:
    std::list<User*> _allUsers;
+   std::list<Channel*> _allChannels;
    int   _checkFail;
    char  *_port;
    char  *_password;

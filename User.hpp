@@ -21,6 +21,12 @@ class User
    // User &operator=(const User &User);
    // ~User();
 
+   void addInvitation(std::string channelName);
+   void addJoinedChannel(std::string channelName);
+
+   bool isInvited(std::string channelName);
+   bool isInChannel(std::string channelName);
+
    void setUserFD(int fd);
    void setNickName(std::string nickName);
    void setUserName(std::string userName);
@@ -43,8 +49,8 @@ class User
    std::string _hostName;
    std::string _realName;
    bool        _isOperator;
-   // std::vector <std::string> _channelInvitations;
-   // std::vector <std::string> _joinedChannels;
+   std::vector <std::string> _channelInvitations;
+   std::vector <std::string> _joinedChannels;
 };
 
 #endif

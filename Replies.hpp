@@ -43,7 +43,7 @@
 // COMMAND REPLIES
 #define RPL_JOIN(source, channel) ":" + source + " JOIN :" + channel
 #define RPL_PART(source, channel) ":" + source + " PART :" + channel
-#define RPL_PRIVMSG(source, target, msg) ":" + source + " PRIVMSG " + target + " :" + msg
+#define RPL_PRIVMSG(source, target, msg) ":" + source + " PRIVMSG " + target + " " + msg
 #define RPL_QUIT(source, msg) ":" + source + " QUIT :Quit: " + msg
 
 // OPERATOR ONLY

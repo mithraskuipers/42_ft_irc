@@ -12,6 +12,16 @@ Channel::Channel(std::string channelName) : _channelName(channelName), _isInvite
 
 }
 
+ std::string Channel::getChannelName()
+ {
+	return (_channelName);
+ }
+
+ bool Channel::getIsInviteOnly()
+ {
+	return (_isInviteOnly);
+ }
+
 // bool Channel::findUser(int userFD)
 // {
 //	loop through _joinedUserFDs, compare to argument
