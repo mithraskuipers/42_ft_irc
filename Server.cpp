@@ -46,23 +46,6 @@ void Server::runServer()
 	}
 }
 
-int Server::connectNewUser()
-{
-	sockaddr_in s_address;
-	socklen_t s_size = sizeof(s_address);
-
-	int connectSock = accept(_serverSocket, (sockaddr *)&s_address, &s_size);
-	if (connectSock < 0)
-		throw std::runtime_error("Failure during accept().");
-
-	fcntl(connectSock, F_SETFL, O_NONBLOCK);
-	_currentlyHandledEvent.events = EPOLLIN;
-	_currentlyHandledEvent.data.fd = connectSock;
-	epoll_ctl(_epollFD, EPOLL_CTL_ADD, connectSock, &(_currentlyHandledEvent));
-	_allUsers.push_back(new User(connectSock));
-	return (connectSock);
-}
-
 // use recv() to read until there is a \n for each line read 
 // main reason: avoid errors if we receive partial messages
 void Server::recvNextLine(int eventFD) // TOO MESSY, NEEDS WORK
@@ -111,6 +94,23 @@ void Server::recvNextLine(int eventFD) // TOO MESSY, NEEDS WORK
 		computeReply(it, eventFD);
 }
 
+int Server::connectNewUser()
+{
+	sockaddr_in s_address;
+	socklen_t s_size = sizeof(s_address);
+
+	int connectSock = accept(_serverSocket, (sockaddr *)&s_address, &s_size);
+	if (connectSock < 0)
+		throw std::runtime_error("Failure during accept().");
+
+	fcntl(connectSock, F_SETFL, O_NONBLOCK);
+	_currentlyHandledEvent.events = EPOLLIN;
+	_currentlyHandledEvent.data.fd = connectSock;
+	epoll_ctl(_epollFD, EPOLL_CTL_ADD, connectSock, &(_currentlyHandledEvent));
+	_allUsers.push_back(new User(connectSock));
+	return (connectSock);
+}
+
 void Server::disconnectUser(int fd)
 {
 	std::cout << "someone disconnected" << std::endl;
@@ -119,21 +119,8 @@ void Server::disconnectUser(int fd)
 		if (i->getUserFD() == fd)
 			delete (i);
 	}
+	// rmvUser(fd);
 	close(fd);
-}
-
-void Server::serverStdout(const std::string &firstMessageCombined)
-{
-	time_t rawtime;
-	struct tm *timeinfo;
-	char buffer[80];
-
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-
-	strftime(buffer, sizeof(buffer), "%H:%M:%S", timeinfo);
-	std::string str(buffer);
-	std::cout << "[" << str << "] " << firstMessageCombined << std::endl;
 }
 
 // just canon

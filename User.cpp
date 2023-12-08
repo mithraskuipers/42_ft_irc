@@ -31,7 +31,7 @@ void User::addInvitation(std::string channelName)
 
 bool User::isInvited(std::string channelName)
 {
-	for (auto &i : _channelInvitations)
+	for (auto const &i : _channelInvitations)
 	{
 		if (!i.compare(channelName))
 			return (1);
@@ -44,9 +44,20 @@ void User::addJoinedChannel(std::string channelName)
 	_joinedChannels.push_back(channelName);
 }
 
+void User::rmvJoinedChannel(std::string channelName)
+{
+	size_t i = 0;
+	while (i < _joinedChannels.size())
+	{
+		if (!_joinedChannels[i].compare(channelName))
+			_joinedChannels.erase(_joinedChannels.begin() + i);
+		i++;
+	}
+}
+
 bool User::isInChannel(std::string channelName)
 {
-	for (auto &i : _joinedChannels)
+	for (auto const &i : _joinedChannels)
 	{
 		if (!i.compare(channelName))
 			return (1);
@@ -78,17 +89,10 @@ void User::setHostName(std::string hostName)
 	std::cout << "\033[1;33m" << "_hostName set to " << _hostName << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
 
-void User::setRealName(std::vector<std::string> splitArgs)
+void User::setRealName(std::string realName)
 {
-	size_t i = 4;
-	// splitArgs[4].erase(0, 1); // this line deletes the ':' from ":real name", but in most cases it is printed anyway
-	while (i < splitArgs.size())
-	{
-		_realName += splitArgs[i];
-		if (i != splitArgs.size())
-			_realName += " ";
-		i++;
-	}
+	// realName.erase(0); // this line deletes the ':' from ":real name", but in most cases it is printed anyway
+	_realName = realName;
 	std::cout << "\033[1;33m" << "_realName set to " << _realName << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
 

@@ -23,10 +23,29 @@
 #define ERR_INVITEONLYCHAN(source, channel) "1 " + source + " " + channel + " :Channel is invite only, couldnt join"
 
 // NUMERIC REPLIES
+
+// 001    RPL_WELCOME
+// "Welcome to the Internet Relay Network
+// <nick>!<user>@<host>"
+
+// 002    RPL_YOURHOST
+// "Your host is <servername>, running version <ver>"
+
+// 003    RPL_CREATED
+// "This server was created <date>"
+
+// 004    RPL_MYINFO
+// "<servername> <version> <available user modes>
+// <available channel modes>"
+
+// - The server sends Replies 001 to 004 to a user upon
+// successful registration.
+
 #define RPL_WELCOME(source, nickName) "001 " + source + " :Welcome " + nickName + " to the ft_irc network"
 #define RPL_YOURHOST(source, serverName, version) "002 " + source + " :Your host is " + serverName + " running version " + version
 #define RPL_CREATED(source, date) "003 " + source + " :This server was created at " + date
 #define RPL_MYINFO(source, serverName, version, userModes, channelModes) "004 " + source + " :" + serverName + " " + version + " available usermodes= " + userModes + " available channel options= " + channelModes
+
 #define RPL_WHOISUSER(nick, user, host, realname) "311 " + nick + " " + user + " " + host + " " + realname
 
 // E.g. 353 server.example.com = #example :user1 user2 user3

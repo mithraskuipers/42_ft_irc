@@ -1,6 +1,7 @@
 NAME = ircServer
 CC	= c++
-SRC = main.cpp Server.cpp serverInitiate.cpp serverReply.cpp splash.cpp User.cpp Channel.cpp
+SRC = main.cpp Server.cpp serverInitiate.cpp serverReply.cpp \
+User.cpp serverUtils.cpp Channel.cpp
 
 OBJFILES = $(SRC:%.cpp=%.o)
 CFLAGS = -Wall -Wextra -Werror

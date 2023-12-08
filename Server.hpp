@@ -52,23 +52,23 @@ class Server
    //serverReply.cpp
    void  computeReply(std::string firstMessageCombined, int eventFD);
 
-   void  rplUser(std::vector<std::string> splitArgs, int eventFD);
-   void  rplNick(std::vector<std::string> splitArgs, int eventFD);
-   void  rplJoin(std::vector<std::string> splitArgs, int eventFD);
-   void  rplPart(std::vector<std::string> splitArgs, int eventFD);
-   void  rplPrivmsg(std::vector<std::string> splitArgs, int eventFD);
-   void  rplQuit(std::vector<std::string> splitArgs, int eventFD);
-   void  rplInvite(std::vector<std::string> splitArgs, int eventFD);
-   void  rplKick(std::vector<std::string> splitArgs, int eventFD);
-   // void  rplMode(std::vector<std::string> splitArgs, int eventFD);
-   void  rplTopic(std::vector<std::string> splitArgs, int eventFD);
-   void  rplPing(int eventFD);
-   void  rplWhois(int eventFD);
+   void  rplUser(std::vector<std::string> splitArgs, User *messenger);
+   void  rplNick(std::vector<std::string> splitArgs, User *messenger);
+   void  rplJoin(std::vector<std::string> splitArgs, User *messenger);
+   void  rplPart(std::vector<std::string> splitArgs, User *messenger);
+   void  rplPrivmsg(std::vector<std::string> splitArgs, User *messenger);
+   void  rplQuit(std::vector<std::string> splitArgs, User *messenger);
+   void  rplInvite(std::vector<std::string> splitArgs, User *messenger);
+   void  rplKick(std::vector<std::string> splitArgs, User *messenger);
+   // void  rplMode(std::vector<std::string> splitArgs, User *messenger);
+   void  rplTopic(std::vector<std::string> splitArgs, User *messenger);
+   // void  rplPing(User *messenger);
+   void  rplWhois(User *messenger);
 
-   void  sendReply(int eventFD, std::string msg);
+   void  sendReply(int targetFD, std::string msg);
 
 
-   // initServer.cpp
+   // serverInitiate.cpp
 	void  createServerSocket();
 	void  setSocketOptions();
 	void  bindSocketToAddress();
@@ -76,8 +76,13 @@ class Server
 	void  monitorSocketEvents(); // monitored with epoll
    void  checkFailure(int socket, const std::string &msg);
 
-   // util
+   // serverUtils.cpp
+   std::string strJoinWithSpaces(std::vector<std::string> splitArgs, size_t startPoint);
    void  serverStdout(const std::string &firstMessageCombined);
+   Channel *findChannel(std::string channelName);
+   User *findUserByNick(std::string nickName);
+   User *findUserByFD(int fd);
+   // void rmvUser(int fd);
 
    // tmp check
    void printServerPrivates(); // REMOVE LATER

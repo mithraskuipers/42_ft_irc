@@ -21,17 +21,19 @@ class User
    // User &operator=(const User &User);
    // ~User();
 
-   void addInvitation(std::string channelName);
-   void addJoinedChannel(std::string channelName);
 
-   bool isInvited(std::string channelName);
+   void addJoinedChannel(std::string channelName);
+   void rmvJoinedChannel(std::string channelName);
    bool isInChannel(std::string channelName);
+
+   void addInvitation(std::string channelName);
+   bool isInvited(std::string channelName);
 
    void setUserFD(int fd);
    void setNickName(std::string nickName);
    void setUserName(std::string userName);
    void setHostName(std::string hostName);
-   void setRealName(std::vector<std::string> splitArgs);
+   void setRealName(std::string realName);
    void setIsOperator(bool isOperator);
 
    int         getUserFD();
