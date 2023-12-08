@@ -110,18 +110,15 @@ void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
 void Server::rplPrivmsg(std::vector<std::string> splitArgs, User *messenger)
 {
 	std::string msg = strJoinWithSpaces(splitArgs, 2);
-	// if (findChannel(splitArgs[1]) != nullptr)
-	// {
-	// 	for (auto const &i : _allUsers)
-	// 	{
-	// 		if ((i->getUserFD() != messenger->getUserFD()) && (i->isInChannel(splitArgs[1])))
-	// 			sendReply(i->getUserFD(), RPL_PRIVMSG(messenger->getSource(), splitArgs[1], msg) + "\r\n");
-	// 	}
-	// }
-	// else 
-	std::cout << "SWAGFAULT" << std::endl;
-	std::cout << findUserByNick(splitArgs[1]) << std::endl;
-	if (findUserByNick(splitArgs[1]) != nullptr)
+	if (findChannel(splitArgs[1]) != nullptr)
+	{
+		for (auto const &i : _allUsers)
+		{
+			if ((i->getUserFD() != messenger->getUserFD()) && (i->isInChannel(splitArgs[1])))
+				sendReply(i->getUserFD(), RPL_PRIVMSG(messenger->getSource(), splitArgs[1], msg) + "\r\n");
+		}
+	}
+	else if (findUserByNick(splitArgs[1]) != nullptr) // SEGFAULTS WHEN SEARCHING PRE-EXISTING USER
 		sendReply(findUserByNick(splitArgs[1])->getUserFD(), RPL_PRIVMSG(messenger->getSource(), splitArgs[1], msg) + "\r\n");
 	else
 		std::cout << "msgreceiver does not exist" << std::endl;
