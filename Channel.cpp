@@ -1,4 +1,5 @@
 #include "Channel.hpp"
+#include "Server.hpp"
 
 void Channel::printChannelPrivates() // REMOVE LATER
 {
@@ -7,34 +8,128 @@ void Channel::printChannelPrivates() // REMOVE LATER
 	std::cout << _isInviteOnly << std::endl << std::endl;
 }
 
-Channel::Channel(std::string channelName) : _channelName(channelName), _isInviteOnly(0)
+Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName), _isInviteOnly(0)
 {
 
 }
 
- std::string Channel::getChannelName()
- {
+void Channel::msgAllInChannel(std::string msg)
+{
+	size_t i = 0;
+	while (i < _joinedUserFDs.size())
+	{
+		send(_joinedUserFDs[i], msg.c_str(), msg.length(), 0);
+		i++;
+	}
+}
+
+void Channel::addToChannel(int userFD)
+{
+	size_t i = 0;
+	while (i < _joinedUserFDs.size())
+	{
+		if (_joinedUserFDs[i] == userFD)
+		{
+			std::cout << "user already in room" << std::endl;
+			return ;
+		}
+		i++;
+	}
+	_joinedUserFDs.push_back(userFD);
+}
+
+void Channel::rmvFromChannel(int userFD)
+{
+	size_t i = 0;
+	while (i < _joinedUserFDs.size())
+	{
+		if (_joinedUserFDs[i] == userFD)
+			_joinedUserFDs.erase(_joinedUserFDs.begin() + i);
+		i++;
+	}
+}
+
+void Channel::addToBanned(int userFD)
+{
+	size_t i = 0;
+	while (i < _bannedUserFDs.size())
+	{
+		if (_bannedUserFDs[i] == userFD)
+		{
+			std::cout << "user already banned" << std::endl;
+			return ;
+		}
+		i++;
+	}
+	_bannedUserFDs.push_back(userFD);
+}
+
+void Channel::rmvFromBanned(int userFD)
+{
+	size_t i = 0;
+	while (i < _bannedUserFDs.size())
+	{
+		if (_bannedUserFDs[i] == userFD)
+			_bannedUserFDs.erase(_bannedUserFDs.begin() + i);
+		i++;
+	}
+}
+
+
+bool Channel::isInChannel(int userFD)
+{
+	size_t i = 0;
+	while (i < _joinedUserFDs.size())
+	{
+		if (_joinedUserFDs[i] == userFD)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+bool Channel::isBanned(int userFD)
+{
+	size_t i = 0;
+	while (i < _bannedUserFDs.size())
+	{
+		if (_bannedUserFDs[i] == userFD)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+std::string Channel::getTopic()
+{
+	return (_topic);
+}
+
+std::string Channel::getChannelName()
+{
 	return (_channelName);
- }
+}
 
- bool Channel::getIsInviteOnly()
- {
+bool        Channel::getIsInviteOnly()
+{
 	return (_isInviteOnly);
- }
+}
 
-// bool Channel::findUser(int userFD)
-// {
-//	loop through _joinedUserFDs, compare to argument
-// 	return 1 if found
-// 	return 0 if not found
-// }
+void Channel::setTopic(std::string topic)
+{
+	_topic = topic;
+}
 
-// bool Channel::findBannedUser(int bannedUserFD)
-// {
-//	loop through _bannedUserFDs, compare to argument
-// 	return 1 if found
-// 	return 0 if not found
-// }
+void Channel::setChannelName(std::string channelName)
+{
+	_channelName = channelName;
+}
+
+void Channel::setIsInviteOnly(bool inviteBool)
+{
+	_isInviteOnly = inviteBool;
+}
+
 
 // Channel::Channel()
 // {

@@ -35,8 +35,8 @@ void Server::computeReply(std::string buffer, int eventFD)
 		if (!splitArgs[0].compare("KICK"))
 			rplKick(splitArgs, messenger);
 
-		// if (!splitArgs[0].compare("MODE"))
-		// 	rplMode(messenger);			
+		if (!splitArgs[0].compare("MODE") && splitArgs[1][0] == '#')
+			rplMode(splitArgs, messenger);			
 		if (!splitArgs[0].compare("TOPIC"))
 			rplTopic(splitArgs, messenger);
 
@@ -95,16 +95,26 @@ void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
 	if (channel != nullptr)
 		inviteOnly = channel->getIsInviteOnly();
 	else
+	{
 		_allChannels.push_back(new Channel(splitArgs[1]));
+		channel = findChannel(splitArgs[1]);
+	}
+
 	if (inviteOnly && !messenger->isInvited(splitArgs[1]))
 	{
 		std::cout << "not invited" << std::endl;
 		return ;
 	}
-	sendReply(messenger->getUserFD(), RPL_NAMREPLY(messenger->getSource(), splitArgs[1], messenger->getNickName()) + "\r\n");
-	sendReply(messenger->getUserFD(), RPL_ENDOFNAMES(messenger->getSource(), splitArgs[1]) + "\r\n");
-	sendReply(messenger->getUserFD(), RPL_JOIN(messenger->getSource(), splitArgs[1]) + "\r\n");
+	channel->addToChannel(messenger->getUserFD());
 	messenger->addJoinedChannel(splitArgs[1]);
+	channel->msgAllInChannel(RPL_JOIN(messenger->getSource(), splitArgs[1]) + "\r\n");
+	sendReply(messenger->getUserFD(), RPL_TOPIC(messenger->getSource(), channel->getChannelName(), channel->getTopic()) + "\r\n");
+	for (auto &j: _allUsers)
+	{
+		if (j->isInChannel(splitArgs[1]))
+			sendReply(messenger->getUserFD(), RPL_NAMREPLY(messenger->getSource(), splitArgs[1], j->getNickName()) + "\r\n");
+	}
+	sendReply(messenger->getUserFD(), RPL_ENDOFNAMES(messenger->getSource(), splitArgs[1]) + "\r\n");
 }
 
 void Server::rplPrivmsg(std::vector<std::string> splitArgs, User *messenger)
@@ -160,28 +170,25 @@ void Server::rplKick(std::vector<std::string> splitArgs, User *messenger)
 	sendReply(creep->getUserFD(), RPL_PART(creep->getSource(), splitArgs[1]) + "\r\n");
 }
 
-// void Server::rplMode(User *messenger)
-// {
-// 	for 
-// 		{
-// 			sendReply(messenger->getUserFD(), RPL_MODE(i->getSource(), "", "", "") + "\r\n");
-
-// 		}
-// 	}
-// }
+void Server::rplMode(std::vector<std::string> splitArgs, User *messenger)
+{
+	if (splitArgs.size() == 3)
+		sendReply(messenger->getUserFD(), RPL_MODE(messenger->getSource(), splitArgs[1], splitArgs[2]) + "\r\n");
+}
 
 void Server::rplTopic(std::vector<std::string> splitArgs, User *messenger)
 {
 	if (splitArgs[2].empty())
 		splitArgs.push_back("");
-	std::string topic = strJoinWithSpaces(splitArgs, 2);
+	Channel *channel = findChannel(splitArgs[1]);
+	channel->setTopic(strJoinWithSpaces(splitArgs, 2));
 
 	for (auto const& u : _allUsers)
 	{
 		if (u->isInChannel(splitArgs[1]))
 		{
 			sendReply(u->getUserFD(), RPL_TOPIC(messenger->getSource(), \
-			splitArgs[1], topic) + "\r\n");
+			channel->getChannelName(), channel->getTopic()) + "\r\n");
 		}
 	}
 }
@@ -200,6 +207,7 @@ void Server::rplWhois(User *messenger)
 
 void Server::rplPart(std::vector<std::string> splitArgs, User *messenger)
 {
-	sendReply(messenger->getUserFD(), RPL_PART(messenger->getSource(), splitArgs[1]) + "\r\n");
+	findChannel(splitArgs[1])->msgAllInChannel(RPL_PART(messenger->getSource(), splitArgs[1]) + "\r\n");
 	messenger->rmvJoinedChannel(splitArgs[1]);
+	findChannel(splitArgs[1])->rmvFromChannel(messenger->getUserFD());
 }

@@ -60,7 +60,7 @@ class Server
    void  rplQuit(std::vector<std::string> splitArgs, User *messenger);
    void  rplInvite(std::vector<std::string> splitArgs, User *messenger);
    void  rplKick(std::vector<std::string> splitArgs, User *messenger);
-   // void  rplMode(std::vector<std::string> splitArgs, User *messenger);
+   void  rplMode(std::vector<std::string> splitArgs, User *messenger);
    void  rplTopic(std::vector<std::string> splitArgs, User *messenger);
    // void  rplPing(User *messenger);
    void  rplWhois(User *messenger);
