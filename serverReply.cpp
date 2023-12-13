@@ -1,6 +1,7 @@
 #include "Replies.hpp"
 #include "Server.hpp"
 #include <sstream>
+#include <stdlib.h>
 #include <algorithm>
 
 	// "001 johnnyBravo!bde-meij@127.0.0.1 :Welcome johnnyBravo!bde-meij@127.0.0.1\r\n"
@@ -35,8 +36,8 @@ void Server::computeReply(std::string buffer, int eventFD)
 		if (!splitArgs[0].compare("KICK"))
 			rplKick(splitArgs, messenger);
 
-		if (!splitArgs[0].compare("MODE") && splitArgs[1][0] == '#')
-			rplMode(splitArgs, messenger);			
+		// if (!splitArgs[0].compare("MODE") && splitArgs[1][0] == '#')
+		// 	rplMode(splitArgs, messenger);			
 		if (!splitArgs[0].compare("TOPIC"))
 			rplTopic(splitArgs, messenger);
 
@@ -51,26 +52,28 @@ void Server::computeReply(std::string buffer, int eventFD)
 
 void Server::sendReply(int targetFD, std::string msg)
 {
-	// implement EPOLLOUT here
-	// _currentlyHandledEvent.events = EPOLLOUT;
+	// implement EPOLLOUT here. Makes no noticeable difference but satisfies mandatory, maybe
+	_currentlyHandledEvent.events = EPOLLOUT;
 
 	std::cout << "\033[1;36m" << "just sent:\n" << msg << "to fd " << targetFD << "\033[0m\n" << std::endl; // FOR TESTING, RMV LATER
 	send(targetFD, msg.c_str(), msg.length(), 0);
 
 	// reset to epollin after send
-	// _currentlyHandledEvent.events = EPOLLIN;
+	_currentlyHandledEvent.events = EPOLLIN;
 }
 
 void Server::rplUser(std::vector<std::string> splitArgs, User *messenger)
 {
+	// sendReply(messenger->getUserFD(), ERR_ALREADYREGISTERED(messenger->getSource()));
+
 	messenger->setUserName(splitArgs[2]);
 	messenger->setHostName(splitArgs[3]);
 	messenger->setRealName(strJoinWithSpaces(splitArgs, 4));
 	
-	// PART doesnt work when RPL_WELCOME(1'source' 2'nickname') though protocol states use source on welcomeMSG
-	// might be that names should be stored / sent differently altogether
 	sendReply(messenger->getUserFD(), RPL_WELCOME(messenger->getNickName(), messenger->getNickName()) + "\r\n"); 
 
+	// PART doesnt work when RPL_WELCOME(1'source' 2'nickname') though protocol states use source on welcomeMSG
+	// might be that names should be stored / sent differently altogether
 	// sendReply(messenger->getUserFD(), RPL_YOURHOST(messenger->getSource(), "ft_irc_serv", "3.42") + "\r\n");
 	// sendReply(messenger->getUserFD(), RPL_CREATED(messenger->getSource(), "today") + "\r\n");
 	// sendReply(messenger->getUserFD(), RPL_MYINFO(messenger->getSource(), "ft_irc_serv", "3.42", "o(perator)", "i,t,k,l") + "\r\n");
@@ -78,13 +81,11 @@ void Server::rplUser(std::vector<std::string> splitArgs, User *messenger)
 
 void Server::rplNick(std::vector<std::string> splitArgs, User *messenger)
 {
-	User *user = findUserByNick(splitArgs[1]);
-	if (user != nullptr)
-	{
-		std::cout << "nickname already exists on other user" << std::endl;
-		return ;
-	}
-	messenger->setNickName(splitArgs[1]);
+	// doesnt work when new user has existing nickname
+	if (findUserByNick(splitArgs[1]) != nullptr)
+		sendReply(messenger->getUserFD(), ERR_NICKNAMEINUSE(messenger->getSource(), splitArgs[1]));
+	else
+		messenger->setNickName(splitArgs[1]);
 }
 
 void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
@@ -158,16 +159,21 @@ void Server::rplInvite(std::vector<std::string> splitArgs, User *messenger)
 
 void Server::rplKick(std::vector<std::string> splitArgs, User *messenger)
 {
-	if (splitArgs[3].empty())
+	User *creep;
+	if (splitArgs.size() < 4)
 		splitArgs.push_back("");
-	User *creep = findUserByNick(splitArgs[2]);
+	else
+		strJoinWithSpaces(splitArgs, 3);
+	creep = findUserByNick(splitArgs[2]);
+	(void) messenger;
 	if (creep == nullptr)
-	{
 		std::cout << "kick target not found" << std::endl;
+	else
+	{
+		rplPart(splitArgs, creep);
+		findChannel(splitArgs[1])->msgAllInChannel(RPL_KICK(messenger->getSource(), \
+		splitArgs[1], splitArgs[2], splitArgs[3]) + "\r\n");
 	}
-	sendReply(creep->getUserFD(), RPL_KICK(messenger->getSource(), \
-	splitArgs[1], splitArgs[2], splitArgs[3]) + "\r\n");
-	sendReply(creep->getUserFD(), RPL_PART(creep->getSource(), splitArgs[1]) + "\r\n");
 }
 
 void Server::rplMode(std::vector<std::string> splitArgs, User *messenger)

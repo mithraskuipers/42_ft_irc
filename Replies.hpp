@@ -10,7 +10,7 @@
 #define ERR_ALREADYREGISTERED(source) "462 " + source + " :You may not reregister"
 #define ERR_PASSWDMISMATCH(source) "464 " + source + " :Password incorrect"
 #define ERR_NONICKNAMEGIVEN(source) "431 " + source + " :Nickname not given"
-#define ERR_NICKNAMEINUSE(source) "433 " + source + " " + source + " :Nickname is already in use"
+#define ERR_NICKNAMEINUSE(source, nickName) "433 " + source + " " + nickName + " :Nickname is already in use \r\n"
 #define ERR_TOOMANYCHANNELS(source, channel) "405 " + source + " " + channel + " :You have joined too many channels"
 #define ERR_NOTONCHANNEL(source, channel) "442 " + source + " " + channel + " :You're not on that channel"
 #define ERR_NOSUCHCHANNEL(source, channel) "403 " + source + " " + channel + " :No such channel"
@@ -67,12 +67,14 @@
 
 // OPERATOR ONLY
 #define RPL_INVITE(source, target, channel) ":" + source + " INVITE " + target + " " + channel
-#define RPL_KICK(source, channel, target, reason) ":" + source + " KICK " + channel + " " + target + " :" + reason
+#define RPL_KICK(source, channel, target, reason) ":" + source + " KICK " + channel + " " + target + " " + reason
 
 #define RPL_MODE(source, channel, modes) ":" + source + " MODE " + channel + " " + modes
 // #define RPL_MODE(source, channel, modes, args) ":" + source + " MODE " + channel + " " + modes + " " + args
 #define RPL_TOPIC(source, channel, topic) ":" + source + " TOPIC " + channel + " :" + topic
 #define RPL_PING(source, token) ":" + source + " PONG :" + token
+
+//unused
 #define RPL_NOTICE(source, target, msg) ":" + source + " NOTICE " + target + " :" + msg
 
 #endif

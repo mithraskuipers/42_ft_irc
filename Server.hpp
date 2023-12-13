@@ -95,6 +95,7 @@ class Server
    char  *_password;
    int   _epollFD;
    int   _serverSocket;
+   // int   _missingNames;
    struct sockaddr_in _serverAddress;
    struct epoll_event _currentlyHandledEvent;
 	struct epoll_event _tempSavedEvents[MAX_EVENTS];
