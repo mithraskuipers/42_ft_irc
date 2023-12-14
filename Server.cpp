@@ -11,7 +11,7 @@ void Server::printServerPrivates() // REMOVE LATER
 	std::cout << _serverSocket << std::endl << std::endl;
 }
 
-Server::Server(char *port, char *password) : _port(port), _password(password) //, _missingNames(0)
+Server::Server(char *port, char *password) : _port(port), _password(password)
 {
 	// initServer.cpp
 	createServerSocket();

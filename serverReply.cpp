@@ -4,9 +4,6 @@
 #include <stdlib.h>
 #include <algorithm>
 
-	// "001 johnnyBravo!bde-meij@127.0.0.1 :Welcome johnnyBravo!bde-meij@127.0.0.1\r\n"
-	// /connect 127.0.0.1 6667 pw johnnyBravo
-
 void Server::computeReply(std::string buffer, int eventFD)
 {
 	std::vector<std::string> splitArgs; 
@@ -71,12 +68,12 @@ void Server::rplUser(std::vector<std::string> splitArgs, User *messenger)
 	messenger->setRealName(strJoinWithSpaces(splitArgs, 4));
 	
 	sendReply(messenger->getUserFD(), RPL_WELCOME(messenger->getNickName(), messenger->getNickName()) + "\r\n"); 
+	sendReply(messenger->getUserFD(), RPL_YOURHOST(messenger->getSource(), "ft_irc_serv", "3.42") + "\r\n");
+	sendReply(messenger->getUserFD(), RPL_CREATED(messenger->getSource(), "today") + "\r\n");
+	sendReply(messenger->getUserFD(), RPL_MYINFO(messenger->getSource(), "ft_irc_serv", "3.42", "o(perator)", "i,t,k,l") + "\r\n");
 
 	// PART doesnt work when RPL_WELCOME(1'source' 2'nickname') though protocol states use source on welcomeMSG
 	// might be that names should be stored / sent differently altogether
-	// sendReply(messenger->getUserFD(), RPL_YOURHOST(messenger->getSource(), "ft_irc_serv", "3.42") + "\r\n");
-	// sendReply(messenger->getUserFD(), RPL_CREATED(messenger->getSource(), "today") + "\r\n");
-	// sendReply(messenger->getUserFD(), RPL_MYINFO(messenger->getSource(), "ft_irc_serv", "3.42", "o(perator)", "i,t,k,l") + "\r\n");
 }
 
 void Server::rplNick(std::vector<std::string> splitArgs, User *messenger)
@@ -85,7 +82,11 @@ void Server::rplNick(std::vector<std::string> splitArgs, User *messenger)
 	if (findUserByNick(splitArgs[1]) != nullptr)
 		sendReply(messenger->getUserFD(), ERR_NICKNAMEINUSE(messenger->getSource(), splitArgs[1]));
 	else
+	{
+		if (messenger->getNickName().length() > 0)
+			sendReply(messenger->getUserFD(), RPL_NICK(messenger->getSource(), splitArgs[1]) + "\r\n");
 		messenger->setNickName(splitArgs[1]);
+	}
 }
 
 void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
@@ -162,8 +163,6 @@ void Server::rplKick(std::vector<std::string> splitArgs, User *messenger)
 	User *creep;
 	if (splitArgs.size() < 4)
 		splitArgs.push_back("");
-	else
-		strJoinWithSpaces(splitArgs, 3);
 	creep = findUserByNick(splitArgs[2]);
 	(void) messenger;
 	if (creep == nullptr)
@@ -172,7 +171,8 @@ void Server::rplKick(std::vector<std::string> splitArgs, User *messenger)
 	{
 		rplPart(splitArgs, creep);
 		findChannel(splitArgs[1])->msgAllInChannel(RPL_KICK(messenger->getSource(), \
-		splitArgs[1], splitArgs[2], splitArgs[3]) + "\r\n");
+		splitArgs[1], splitArgs[2], strJoinWithSpaces(splitArgs, 3)) + "\r\n");
+
 	}
 }
 

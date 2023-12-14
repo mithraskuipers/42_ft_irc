@@ -15,6 +15,7 @@ Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName
 
 void Channel::msgAllInChannel(std::string msg)
 {
+	std::cout << "n fds in msgall" << _joinedUserFDs.size() << std::endl;
 	size_t i = 0;
 	while (i < _joinedUserFDs.size())
 	{
@@ -25,6 +26,7 @@ void Channel::msgAllInChannel(std::string msg)
 
 void Channel::addToChannel(int userFD)
 {
+	std::cout << "n fds in addchan" << _joinedUserFDs.size() << std::endl;
 	size_t i = 0;
 	while (i < _joinedUserFDs.size())
 	{
@@ -40,6 +42,7 @@ void Channel::addToChannel(int userFD)
 
 void Channel::rmvFromChannel(int userFD)
 {
+	std::cout << "n fds in rmvchan" << _joinedUserFDs.size() << std::endl;
 	size_t i = 0;
 	while (i < _joinedUserFDs.size())
 	{

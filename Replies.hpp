@@ -10,7 +10,7 @@
 #define ERR_ALREADYREGISTERED(source) "462 " + source + " :You may not reregister"
 #define ERR_PASSWDMISMATCH(source) "464 " + source + " :Password incorrect"
 #define ERR_NONICKNAMEGIVEN(source) "431 " + source + " :Nickname not given"
-#define ERR_NICKNAMEINUSE(source, nickName) "433 " + source + " " + nickName + " :Nickname is already in use \r\n"
+#define ERR_NICKNAMEINUSE(source, nickname) "433 " + source + " " + nickname + " :Nickname is already in use \r\n"
 #define ERR_TOOMANYCHANNELS(source, channel) "405 " + source + " " + channel + " :You have joined too many channels"
 #define ERR_NOTONCHANNEL(source, channel) "442 " + source + " " + channel + " :You're not on that channel"
 #define ERR_NOSUCHCHANNEL(source, channel) "403 " + source + " " + channel + " :No such channel"
@@ -41,7 +41,7 @@
 // - The server sends Replies 001 to 004 to a user upon
 // successful registration.
 
-#define RPL_WELCOME(source, nickName) "001 " + source + " :Welcome " + nickName + " to the ft_irc network"
+#define RPL_WELCOME(source, nickname) "001 " + source + " :Welcome " + nickname + " to the ft_irc network"
 #define RPL_YOURHOST(source, serverName, version) "002 " + source + " :Your host is " + serverName + " running version " + version
 #define RPL_CREATED(source, date) "003 " + source + " :This server was created at " + date
 #define RPL_MYINFO(source, serverName, version, userModes, channelModes) "004 " + source + " :" + serverName + " " + version + " available usermodes= " + userModes + " available channel options= " + channelModes
@@ -60,6 +60,7 @@
 //    members, as well as channel modes.
 
 // COMMAND REPLIES
+#define RPL_NICK(source, nickname) ":" + source + " NICK :" + nickname
 #define RPL_JOIN(source, channel) ":" + source + " JOIN :" + channel
 #define RPL_PART(source, channel) ":" + source + " PART :" + channel
 #define RPL_PRIVMSG(source, target, msg) ":" + source + " PRIVMSG " + target + " " + msg
