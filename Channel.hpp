@@ -24,12 +24,14 @@ class Channel
 
    std::string getTopic();
    std::string getChannelName();
+   std::string getActiveModes();
    bool        getIsInviteOnly();
    std::vector<int> getJoinedUserFDs();
    std::vector<int> getBannedUserFDs();
 
    void setTopic(std::string topic);
    void setChannelName(std::string channelName);
+   void setActiveModes(std::string modes);
    void setIsInviteOnly(bool inviteBool);
    
    // canon
@@ -41,6 +43,8 @@ class Channel
    private:
    std::string _topic;
    std::string _channelName;
+   std::string _activeModes;
+   int         _intarr[4];
    bool        _isInviteOnly;
    std::vector<int> _joinedUserFDs;
    std::vector<int> _bannedUserFDs;

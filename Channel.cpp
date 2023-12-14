@@ -8,9 +8,14 @@ void Channel::printChannelPrivates() // REMOVE LATER
 	std::cout << _isInviteOnly << std::endl << std::endl;
 }
 
-Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName), _isInviteOnly(0)
+Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName), _activeModes(""), _isInviteOnly(0)
 {
-
+	int i = 0;
+	while (i < 4)
+	{
+		_intarr[i] = 0;
+		i++;
+	}
 }
 
 void Channel::msgAllInChannel(std::string msg)
@@ -113,6 +118,11 @@ std::string Channel::getChannelName()
 	return (_channelName);
 }
 
+std::string Channel::getActiveModes()
+{
+	return (_activeModes);
+}
+
 bool        Channel::getIsInviteOnly()
 {
 	return (_isInviteOnly);
@@ -126,6 +136,39 @@ void Channel::setTopic(std::string topic)
 void Channel::setChannelName(std::string channelName)
 {
 	_channelName = channelName;
+}
+
+void Channel::setActiveModes(std::string modes)
+{
+	size_t i = 0;
+	std::string modeOptions = "itkl";
+	_activeModes = "+";
+	int onOff = 1;
+	if (modes[0] == '-')
+	{
+		_activeModes = "-";
+		onOff = 0;
+	}
+	while (i < modes.size())
+	{
+		if (modes[i] == 'i')
+			_intarr[0] = onOff;
+		if (modes[i] == 't')
+			_intarr[1] = onOff;
+		if (modes[i] == 'k')
+			_intarr[2] = onOff;
+		if (modes[i] == 'l')
+			_intarr[3] = onOff;
+		i++;
+	}
+	i = 0;
+	while (i < 4)
+	{
+		if (_intarr[i] == 1)
+			_activeModes += modeOptions[i];
+		i++;
+	}
+	std::cout << "active modes set to " << _activeModes << std::endl;
 }
 
 void Channel::setIsInviteOnly(bool inviteBool)
