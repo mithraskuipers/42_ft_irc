@@ -16,10 +16,15 @@ class Channel
 
    void addToChannel(int userFD);
    void rmvFromChannel(int userFD);
+
+   void addToOperators(int userFD);
+   void rmvFromOperators(int userFD);
+
    void addToBanned(int userFD);
    void rmvFromBanned(int userFD);
 
    bool isInChannel(int userFD);
+   bool isOperator(int userFD);
    bool isBanned(int userFD);
 
    std::string getTopic();
@@ -45,8 +50,8 @@ class Channel
    std::string _channelName;
    std::string _activeModes;
    int         _intarr[4];
-   bool        _isInviteOnly;
    std::vector<int> _joinedUserFDs;
+   std::vector<int> _operatorFDs;
    std::vector<int> _bannedUserFDs;
 };
 

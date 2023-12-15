@@ -10,16 +10,15 @@ Channel *Server::findChannel(std::string channelName)
 	return (nullptr);
 }
 
-// void Server::rmvUser(int fd)
-// {
-// 	size_t i = 0;
-// 	while (i < _allUsers.size())
-// 	{
-// 		if (_allUsers[i].getUserFD() == fd)
-// 			_allUsers.erase(_allUsers.begin() + i);
-// 		i++;
-// 	}
-// }
+bool Server::confirmOperator(std::string channelName, User *messenger)
+{
+	if (!findChannel(channelName)->isOperator(messenger->getUserFD()))
+	{
+		sendReply(messenger->getUserFD(), ERR_CHANOPRIVSNEEDED(messenger->getSource(), channelName) + "\r\n");
+		return (0);
+	}
+	return (1);
+}
 
 User *Server::findUserByNick(std::string nickName)
 {

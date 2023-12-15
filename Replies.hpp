@@ -10,7 +10,14 @@
 #define ERR_ALREADYREGISTERED(source) "462 " + source + " :You may not reregister"
 #define ERR_PASSWDMISMATCH(source) "464 " + source + " :Password incorrect"
 #define ERR_NONICKNAMEGIVEN(source) "431 " + source + " :Nickname not given"
-#define ERR_NICKNAMEINUSE(source, nickname) "433 " + source + " " + nickname + " :Nickname is already in use \r\n"
+
+
+//  433    ERR_NICKNAMEINUSE
+//               "<nick> :Nickname is already in use"
+
+#define ERR_NICKNAMEINUSE(source, nickname) "433 " + source + " " + nickname + " :Nickname is already in use"
+
+
 #define ERR_TOOMANYCHANNELS(source, channel) "405 " + source + " " + channel + " :You have joined too many channels"
 #define ERR_NOTONCHANNEL(source, channel) "442 " + source + " " + channel + " :You're not on that channel"
 #define ERR_NOSUCHCHANNEL(source, channel) "403 " + source + " " + channel + " :No such channel"
@@ -20,7 +27,7 @@
 #define ERR_CHANOPRIVSNEEDED(source, channel) "482 " + source + " " + channel + " :You're not channel operator"
 #define ERR_CHANNELISFULL(source, channel) "471 " + source + " " + channel + " :Cannot clientJoinChannel channel (+l)"
 #define ERR_CANNOTSENDTOCHAN(source, channel) "404 " + source + " " + channel + " :Cannot send to channel"
-#define ERR_INVITEONLYCHAN(source, channel) "1 " + source + " " + channel + " :Channel is invite only, couldnt join"
+#define ERR_INVITEONLYCHAN(source, channel) "473 " + source + " " + channel + " :Channel is invite only, couldnt join"
 #define ERR_BANNEDFROMCHAN(source, channel) "474 "  + source + " " + channel + " :You are banned from this server, creep"
 
 // NUMERIC REPLIES
@@ -47,7 +54,7 @@
 #define RPL_CREATED(source, date) "003 " + source + " :This server was created at " + date
 #define RPL_MYINFO(source, serverName, version, userModes, channelModes) "004 " + source + " :" + serverName + " " + version + " available usermodes= " + userModes + " available channel options= " + channelModes
 
-#define RPL_WHOISUSER(nick, user, host, realname) "311 " + nick + " " + user + " " + host + " " + realname
+#define RPL_WHOISUSER(source, nick, user, host, realname) "311 " + source + " :" + nick + " " + user + " " + host + " " + realname
 
 // E.g. 353 server.example.com = #example :user1 user2 user3
 // providing a list of nicknames in the specified channel to the client
@@ -75,8 +82,9 @@
 // #define RPL_MODE(source, channel, modes, args) ":" + source + " MODE " + channel + " " + modes + " " + args
 #define RPL_TOPIC(source, channel, topic) ":" + source + " TOPIC " + channel + " :" + topic
 #define RPL_PING(source, token) ":" + source + " PONG :" + token
-
-//unused
 #define RPL_NOTICE(source, target, msg) ":" + source + " NOTICE " + target + " :" + msg
+
+// VERY USEFULL
+#define RPL_TRYAGAIN(source, nickname) "263 " + source + " :Nickname " + nickname + " is already in use, please try again"
 
 #endif

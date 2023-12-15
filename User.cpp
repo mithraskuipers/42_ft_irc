@@ -9,12 +9,11 @@ void User::printUserPrivates() // REMOVE LATER
 	std::cout << "host " << _hostName << std::endl;
 	std::cout << "real " << _realName << std::endl;
 	std::cout << "source " << getSource() << std::endl;
-	std::cout << "isOp " << _isOperator << std::endl << std::endl;
 }
 
 // User::User(int fd, std::string userName, std::string nickName, std::string realName, bool isOperator) :
 // _userFD(fd), _userName(userName), _nickName(nickName), _realName(realName), _isOperator(isOperator)
-User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _realName(""), _isOperator(0)
+User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _realName("") //, _isOperator(0)
 {
 	std::cout << "\033[1;33m" << "_userFD set to " << _userFD << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
@@ -96,10 +95,11 @@ void User::setRealName(std::string realName)
 	std::cout << "\033[1;33m" << "_realName set to " << _realName << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
 
-void User::setIsOperator(bool isOperator)
+void User::setPassword(std::string password)
 {
-	std::cout << "\033[1;33m" << "isOperator set to " << isOperator << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
-	_isOperator = isOperator;
+	// realName.erase(0); // this line deletes the ':' from ":real name", but in most cases it is printed anyway
+	_password = password;
+	std::cout << "\033[1;33m" << "_password set to " << _password << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }
 
 int User::getUserFD()
@@ -127,9 +127,9 @@ std::string User::getRealName()
 	return (_realName);
 }
 
-bool User::getIsOperator()
+std::string User::getPassword()
 {
-	return (_isOperator);
+	return (_password);
 }
 
 // bool User::findChannel(std::string channelToFind)

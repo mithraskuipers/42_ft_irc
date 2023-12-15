@@ -5,10 +5,9 @@ void Channel::printChannelPrivates() // REMOVE LATER
 {
 	std::cout << std::endl << "Channel: printing: channelName, isInviteOnly" << std::endl;
 	std::cout << _channelName << std::endl;
-	std::cout << _isInviteOnly << std::endl << std::endl;
 }
 
-Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName), _activeModes(""), _isInviteOnly(0)
+Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName), _activeModes("")
 {
 	int i = 0;
 	while (i < 4)
@@ -57,6 +56,34 @@ void Channel::rmvFromChannel(int userFD)
 	}
 }
 
+void Channel::addToOperators(int userFD)
+{
+	std::cout << "n fds in addchan" << _operatorFDs.size() << std::endl;
+	size_t i = 0;
+	while (i < _operatorFDs.size())
+	{
+		if (_operatorFDs[i] == userFD)
+		{
+			std::cout << "user already in room" << std::endl;
+			return ;
+		}
+		i++;
+	}
+	_operatorFDs.push_back(userFD);
+}
+
+void Channel::rmvFromOperators(int userFD)
+{
+	std::cout << "n fds in rmvchan" << _operatorFDs.size() << std::endl;
+	size_t i = 0;
+	while (i < _operatorFDs.size())
+	{
+		if (_operatorFDs[i] == userFD)
+			_operatorFDs.erase(_operatorFDs.begin() + i);
+		i++;
+	}
+}
+
 void Channel::addToBanned(int userFD)
 {
 	size_t i = 0;
@@ -83,13 +110,24 @@ void Channel::rmvFromBanned(int userFD)
 	}
 }
 
-
 bool Channel::isInChannel(int userFD)
 {
 	size_t i = 0;
 	while (i < _joinedUserFDs.size())
 	{
 		if (_joinedUserFDs[i] == userFD)
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
+bool Channel::isOperator(int userFD)
+{
+	size_t i = 0;
+	while (i < _operatorFDs.size())
+	{
+		if (_operatorFDs[i] == userFD)
 			return (1);
 		i++;
 	}
@@ -121,11 +159,6 @@ std::string Channel::getChannelName()
 std::string Channel::getActiveModes()
 {
 	return (_activeModes);
-}
-
-bool        Channel::getIsInviteOnly()
-{
-	return (_isInviteOnly);
 }
 
 void Channel::setTopic(std::string topic)
@@ -169,11 +202,6 @@ void Channel::setActiveModes(std::string modes)
 		i++;
 	}
 	std::cout << "active modes set to " << _activeModes << std::endl;
-}
-
-void Channel::setIsInviteOnly(bool inviteBool)
-{
-	_isInviteOnly = inviteBool;
 }
 
 

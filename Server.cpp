@@ -113,13 +113,10 @@ int Server::connectNewUser()
 
 void Server::disconnectUser(int fd)
 {
-	std::cout << "someone disconnected" << std::endl;
-	for (auto &i : _allUsers)
-	{
-		if (i->getUserFD() == fd)
-			delete (i);
-	}
-	// rmvUser(fd);
+	std::cout << findUserByFD(fd)->getNickName() << " disconnected" << std::endl;
+
+	// this might be a leak, the element is removed but is the object destroyed?
+	_allUsers.remove(findUserByFD(fd));
 	close(fd);
 }
 

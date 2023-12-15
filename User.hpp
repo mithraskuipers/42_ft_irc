@@ -34,6 +34,7 @@ class User
    void setUserName(std::string userName);
    void setHostName(std::string hostName);
    void setRealName(std::string realName);
+   void setPassword(std::string password);
    void setIsOperator(bool isOperator);
 
    int         getUserFD();
@@ -41,6 +42,7 @@ class User
    std::string getUserName();
    std::string getHostName();
    std::string getRealName();
+   std::string getPassword();
    bool        getIsOperator();
    std::string getSource();
 
@@ -50,7 +52,8 @@ class User
    std::string _userName;
    std::string _hostName;
    std::string _realName;
-   bool        _isOperator;
+   std::string _password;
+   // bool        _isOperator;
    std::vector <std::string> _channelInvitations;
    std::vector <std::string> _joinedChannels;
 };

@@ -44,16 +44,15 @@ class Server
 
    void  runServer();
 
-   // serverEvents.cpp
    void  recvNextLine(int eventFD);
    int   connectNewUser();
    void  disconnectUser(int eventFD);
-
-   //serverReply.cpp
    void  computeReply(std::string firstMessageCombined, int eventFD);
+   void  sendReply(int targetFD, std::string msg);
 
-   void  rplUser(std::vector<std::string> splitArgs, User *messenger);
    void  rplNick(std::vector<std::string> splitArgs, User *messenger);
+   void  rplPass(std::vector<std::string> splitArgs, User *messenger);
+   void  rplUser(std::vector<std::string> splitArgs, User *messenger);
    void  rplJoin(std::vector<std::string> splitArgs, User *messenger);
    void  rplPart(std::vector<std::string> splitArgs, User *messenger);
    void  rplPrivmsg(std::vector<std::string> splitArgs, User *messenger);
@@ -62,11 +61,7 @@ class Server
    void  rplKick(std::vector<std::string> splitArgs, User *messenger);
    void  rplMode(std::vector<std::string> splitArgs, User *messenger);
    void  rplTopic(std::vector<std::string> splitArgs, User *messenger);
-   // void  rplPing(User *messenger);
-   void  rplWhois(User *messenger);
-
-   void  sendReply(int targetFD, std::string msg);
-
+   // void  rplWhois(User *messenger); // not in subject
 
    // serverInitiate.cpp
 	void  createServerSocket();
@@ -78,11 +73,11 @@ class Server
 
    // serverUtils.cpp
    std::string strJoinWithSpaces(std::vector<std::string> splitArgs, size_t startPoint);
-   void  serverStdout(const std::string &firstMessageCombined);
-   Channel *findChannel(std::string channelName);
-   User *findUserByNick(std::string nickName);
-   User *findUserByFD(int fd);
-   // void rmvUser(int fd);
+   bool        confirmOperator(std::string channelName, User *messenger);
+   void        serverStdout(const std::string &firstMessageCombined);
+   Channel     *findChannel(std::string channelName);
+   User        *findUserByNick(std::string nickName);
+   User        *findUserByFD(int fd);
 
    // tmp check
    void printServerPrivates(); // REMOVE LATER
@@ -92,7 +87,7 @@ class Server
    std::list<Channel*> _allChannels;
    int   _checkFail;
    char  *_port;
-   char  *_password;
+   std::string _password;
    int   _epollFD;
    int   _serverSocket;
    struct sockaddr_in _serverAddress;
