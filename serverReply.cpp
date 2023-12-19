@@ -202,6 +202,20 @@ void Server::rplKick(std::vector<std::string> splitArgs, User *messenger)
 	}
 }
 
+std::string cleanModes(std::string unclean)
+{
+	std::string clean;
+	size_t i = 0;
+	clean += unclean[0];
+	while (i < unclean.length())
+	{
+		if ((unclean[i] == 'i') || (unclean[i] == 't') || (unclean[i] == 'k') || (unclean[i] == 'l'))
+			clean += unclean[i];
+		i++;
+	}
+	return (clean);
+}
+
 void Server::rplMode(std::vector<std::string> splitArgs, User *messenger)
 {
 	Channel *channel = (findChannel(splitArgs[1]));
@@ -215,10 +229,16 @@ void Server::rplMode(std::vector<std::string> splitArgs, User *messenger)
 		}
 		else if (confirmOperator(splitArgs[1], messenger))
 		{
-			channel->setActiveModes(strJoinWithSpaces(splitArgs, 2));
-			sendReply(messenger->getUserFD(), RPL_MODE(messenger->getSource(), \
-			splitArgs[1], strJoinWithSpaces(splitArgs, 2) + "\r\n"));
+			channel->setActiveModes(splitArgs[2]);
+			channel->msgAllInChannel(RPL_MODE(messenger->getSource(), \
+			splitArgs[1], cleanModes(splitArgs[2]) + "\r\n"));
 		}
+		// else if (confirmOperator(splitArgs[1], messenger))
+		// {
+		// 	channel->setActiveModes(strJoinWithSpaces(splitArgs, 2));
+		// 	sendReply(messenger->getUserFD(), RPL_MODE(messenger->getSource(), \
+		// 	splitArgs[1], strJoinWithSpaces(splitArgs, 2) + "\r\n"));
+		// }
 	}
 }
 
@@ -228,7 +248,14 @@ void Server::rplTopic(std::vector<std::string> splitArgs, User *messenger)
 		splitArgs.push_back("");
 	Channel *channel = findChannel(splitArgs[1]);
 
-	if (confirmOperator(splitArgs[1], messenger))
+	if  (channel->getActiveModes().find('t') != std::string::npos)
+	{
+		if (confirmOperator(splitArgs[1], messenger))
+			channel->setTopic(strJoinWithSpaces(splitArgs, 2));
+		else
+			return ;
+	}
+	else
 		channel->setTopic(strJoinWithSpaces(splitArgs, 2));
 
 	for (auto const& u : _allUsers)
