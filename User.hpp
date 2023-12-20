@@ -8,18 +8,6 @@ class User
 {
    public:
    User(int fd);
-   
-   // tmp check
-   void  printUserPrivates(); // REMOVE LATER
-   // canon
-   // User();
-   // User(const User &User);
-   // User &operator=(const User &User);
-   // ~User();
-
-   void addJoinedChannel(std::string channelName);
-   void rmvJoinedChannel(std::string channelName);
-   bool isInChannel(std::string channelName);
 
    void addInvitation(std::string channelName);
    bool isInvited(std::string channelName);
@@ -30,26 +18,23 @@ class User
    void setHostName(std::string hostName);
    void setRealName(std::string realName);
    void setPassword(std::string password);
-   void setIsOperator(bool isOperator);
 
-   int         getUserFD();
-   std::string getNickName();
-   std::string getUserName();
-   std::string getHostName();
-   std::string getRealName();
-   std::string getPassword();
-   bool        getIsOperator();
-   std::string getSource();
+   int			getUserFD();
+   std::string	getNickName();
+   std::string	getUserName();
+   std::string	getHostName();
+   std::string	getRealName();
+   std::string	getPassword();
+   std::string	getSource();
 
    private:
-   int         _userFD;
-   std::string _nickName;
-   std::string _userName;
-   std::string _hostName;
-   std::string _realName;
-   std::string _password;
-   std::vector <std::string> _channelInvitations;
-   std::vector <std::string> _joinedChannels;
+   int			_userFD;
+   std::string	_nickName;
+   std::string	_userName;
+   std::string	_hostName;
+   std::string	_realName;
+   std::string	_password;
+   std::vector	<std::string> _channelInvitations;
 };
 
 #endif
