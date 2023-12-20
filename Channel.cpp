@@ -1,25 +1,18 @@
 #include "Channel.hpp"
 #include "Server.hpp"
 
-void Channel::printChannelPrivates() // REMOVE LATER
-{
-	std::cout << std::endl << "Channel: printing: channelName, isInviteOnly" << std::endl;
-	std::cout << _channelName << std::endl;
-}
-
 Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName), _channelKey(""), _activeModes(""), _limit(-1)
 {
 	int i = 0;
 	while (i < 4)
 	{
-		_intarr[i] = 0;
+		_intArr[i] = 0;
 		i++;
 	}
 }
 
 void Channel::msgAllInChannel(std::string msg)
 {
-	std::cout << "n fds in msgall" << _joinedUserFDs.size() << std::endl;
 	size_t i = 0;
 	while (i < _joinedUserFDs.size())
 	{
@@ -30,15 +23,11 @@ void Channel::msgAllInChannel(std::string msg)
 
 void Channel::addToChannel(int userFD)
 {
-	std::cout << "n fds in addchan" << _joinedUserFDs.size() << std::endl;
 	size_t i = 0;
 	while (i < _joinedUserFDs.size())
 	{
 		if (_joinedUserFDs[i] == userFD)
-		{
-			std::cout << "user already in room" << std::endl;
 			return ;
-		}
 		i++;
 	}
 	_joinedUserFDs.push_back(userFD);
@@ -46,7 +35,6 @@ void Channel::addToChannel(int userFD)
 
 void Channel::rmvFromChannel(int userFD)
 {
-	std::cout << "n fds in rmvchan" << _joinedUserFDs.size() << std::endl;
 	size_t i = 0;
 	while (i < _joinedUserFDs.size())
 	{
@@ -58,15 +46,11 @@ void Channel::rmvFromChannel(int userFD)
 
 void Channel::addToOperators(int userFD)
 {
-	std::cout << "n fds in addchan" << _operatorFDs.size() << std::endl;
 	size_t i = 0;
 	while (i < _operatorFDs.size())
 	{
 		if (_operatorFDs[i] == userFD)
-		{
-			std::cout << "user already in room" << std::endl;
 			return ;
-		}
 		i++;
 	}
 	_operatorFDs.push_back(userFD);
@@ -74,7 +58,6 @@ void Channel::addToOperators(int userFD)
 
 void Channel::rmvFromOperators(int userFD)
 {
-	std::cout << "n fds in rmvchan" << _operatorFDs.size() << std::endl;
 	size_t i = 0;
 	while (i < _operatorFDs.size())
 	{
@@ -90,10 +73,7 @@ void Channel::addToBanned(int userFD)
 	while (i < _bannedUserFDs.size())
 	{
 		if (_bannedUserFDs[i] == userFD)
-		{
-			std::cout << "user already banned" << std::endl;
 			return ;
-		}
 		i++;
 	}
 	_bannedUserFDs.push_back(userFD);
@@ -209,53 +189,29 @@ void Channel::setChannelKey(std::string channelKey)
 void Channel::setActiveModes(std::string modes)
 {
 	size_t i = 0;
-	std::string modeOptions = "itkl";
-	_activeModes = "+";
 	int onOff = 1;
+	_activeModes = modes[0];
+	std::string optionArr = "itkl";
+
 	if (modes[0] == '-')
-	{
-		_activeModes = "-";
 		onOff = 0;
-	}
 	while (i < modes.size())
 	{
 		if (modes[i] == 'i')
-			_intarr[0] = onOff;
+			_intArr[0] = onOff;
 		if (modes[i] == 't')
-			_intarr[1] = onOff;
+			_intArr[1] = onOff;
 		if (modes[i] == 'k')
-			_intarr[2] = onOff;
+			_intArr[2] = onOff;
 		if (modes[i] == 'l')
-			_intarr[3] = onOff;
+			_intArr[3] = onOff;
 		i++;
 	}
 	i = 0;
 	while (i < 4)
 	{
-		if (_intarr[i] == 1)
-			_activeModes += modeOptions[i];
+		if (_intArr[i] == 1)
+			_activeModes += optionArr[i];
 		i++;
 	}
-	std::cout << "active modes set to " << _activeModes << std::endl;
 }
-
-
-// Channel::Channel()
-// {
-	
-// }
-
-// Channel::Channel(const Channel &Channel)
-// {
-
-// }
-
-// Channel &Channel::operator=(const Channel &Channel)
-// {
-
-// }
-
-// Channel::~Channel()
-// {
-
-// }
