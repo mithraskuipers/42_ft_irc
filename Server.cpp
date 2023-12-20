@@ -2,15 +2,6 @@
 #include <list>
 void showSplash(const std::string &serverAddress, const std::string &serverPort);
 
-void Server::printServerPrivates() // REMOVE LATER
-{
-	std::cout << std::endl << "Server: printing: port, pswd, epollfd, servsock" << std::endl;
-	std::cout << _port << std::endl;
-	std::cout << _password << std::endl;
-	std::cout << _epollFD << std::endl;
-	std::cout << _serverSocket << std::endl << std::endl;
-}
-
 Server::Server(char *port, char *password) : _port(port), _password(password)
 {
 	// initServer.cpp
@@ -18,7 +9,7 @@ Server::Server(char *port, char *password) : _port(port), _password(password)
 	setSocketOptions();
 	bindSocketToAddress();
 	listenWithSocket();
-	monitorSocketEvents(); // monitored with epoll
+	monitorSocketEvents();
 	std::cout << "Server is up and running and listening to port " << _port << std::endl;
 	showSplash(HOSTNAME, _port);
 }
@@ -87,10 +78,10 @@ void Server::recvNextLine(int eventFD) // TOO MESSY, NEEDS WORK
 			i = 0;
 		}
 	}
-	// we want to feed computeReply one line at a time 
+	// we want to feed findReply one line at a time 
 	// the msgList iterator is needed if multiple lines were read at once
 	for (auto &it : msgList)
-		computeReply(it, eventFD);
+		findReply(it, eventFD);
 }
 
 int Server::connectNewUser()
@@ -118,30 +109,3 @@ void Server::disconnectUser(int fd)
 	_allUsers.remove(findUserByFD(fd));
 	close(fd);
 }
-
-// just canon
-// Server::Server()
-// {
-	
-// }
-
-// Server::Server(const Server &Server)
-// {
-
-// }
-
-// Server &Server::operator=(const Server &Server)
-// {
-
-// }
-
-// Server::~Server()
-// {
-
-// }
-
-// initializeServer();
-// void Server::initializeServer()
-// {
-
-// }

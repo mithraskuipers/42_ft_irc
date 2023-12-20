@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <algorithm>
 
-void Server::computeReply(std::string buffer, int eventFD)
+void Server::findReply(std::string fullMsg, int eventFD)
 {
 	std::vector<std::string> splitArgs; 
-	std::stringstream ss(buffer);
+	std::stringstream ss(fullMsg);
 	std::string word;
 	while (ss >> word)
 		splitArgs.push_back(word);

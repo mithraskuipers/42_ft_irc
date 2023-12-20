@@ -34,69 +34,61 @@
 
 class Server
 {
-   public:
-   Server(char *port, char *password);
-   // just canon
-   // Server();
-   // Server(const Server &Server);
-   // Server &operator=(const Server &Server);
-   // ~Server();
+	public:
+	Server(char *port, char *password);
 
-void addRmvOperator(std::vector<std::string> splitArgs, Channel *channel);
-void setRmvLimit(std::vector<std::string> splitArgs, Channel *channel);
-void setRmvChannelKey(std::vector<std::string> splitArgs, Channel *channel);
+	void addRmvOperator(std::vector<std::string> splitArgs, Channel *channel);
+	void setRmvLimit(std::vector<std::string> splitArgs, Channel *channel);
+	void setRmvChannelKey(std::vector<std::string> splitArgs, Channel *channel);
 
-   void  runServer();
+	void  runServer();
 
-   void  recvNextLine(int eventFD);
-   int   connectNewUser();
-   void  disconnectUser(int eventFD);
-   void  computeReply(std::string firstMessageCombined, int eventFD);
-   void  sendReply(int targetFD, std::string msg);
+	void  findReply(std::string fullMsg, int eventFD);
+	void  sendReply(int targetFD, std::string msg);
+	void  disconnectUser(int eventFD);
+	void  recvNextLine(int eventFD);
+	int   connectNewUser();
 
-   void  rplNick(std::vector<std::string> splitArgs, User *messenger);
-   void  rplPass(std::vector<std::string> splitArgs, User *messenger);
-   void  rplUser(std::vector<std::string> splitArgs, User *messenger);
-   void  rplJoin(std::vector<std::string> splitArgs, User *messenger);
-   void  rplPart(std::vector<std::string> splitArgs, User *messenger);
-   void  rplPrivmsg(std::vector<std::string> splitArgs, User *messenger);
-   void  rplQuit(std::vector<std::string> splitArgs, User *messenger);
-   void  rplInvite(std::vector<std::string> splitArgs, User *messenger);
-   void  rplKick(std::vector<std::string> splitArgs, User *messenger);
-   void  rplMode(std::vector<std::string> splitArgs, User *messenger);
-   void  rplTopic(std::vector<std::string> splitArgs, User *messenger);
-   // void  rplWhois(User *messenger); // not in subject
+	// serverReply.cpp
+	void  rplNick(std::vector<std::string> splitArgs, User *messenger);
+	void  rplPass(std::vector<std::string> splitArgs, User *messenger);
+	void  rplUser(std::vector<std::string> splitArgs, User *messenger);
+	void  rplJoin(std::vector<std::string> splitArgs, User *messenger);
+	void  rplPart(std::vector<std::string> splitArgs, User *messenger);
+	void  rplPrivmsg(std::vector<std::string> splitArgs, User *messenger);
+	void  rplQuit(std::vector<std::string> splitArgs, User *messenger);
+	void  rplInvite(std::vector<std::string> splitArgs, User *messenger);
+	void  rplKick(std::vector<std::string> splitArgs, User *messenger);
+	void  rplMode(std::vector<std::string> splitArgs, User *messenger);
+	void  rplTopic(std::vector<std::string> splitArgs, User *messenger);
 
-   // serverInitiate.cpp
+	// serverInitiate.cpp
 	void  createServerSocket();
 	void  setSocketOptions();
 	void  bindSocketToAddress();
 	void  listenWithSocket();
-	void  monitorSocketEvents(); // monitored with epoll
-   void  checkFailure(int socket, const std::string &msg);
+	void  monitorSocketEvents();
+	void  checkFailure(int socket, const std::string &msg);
 
-   // serverUtils.cpp
-   std::string strJoinWithSpaces(std::vector<std::string> splitArgs, size_t startPoint);
-   bool        confirmOperator(std::string channelName, User *messenger);
-   void        serverStdout(const std::string &firstMessageCombined);
-   Channel     *findChannel(std::string channelName);
-   User        *findUserByNick(std::string nickName);
-   User        *findUserByFD(int fd);
+	// serverUtils.cpp
+	std::string	strJoinWithSpaces(std::vector<std::string> splitArgs, size_t startPoint);
+	bool		confirmOperator(std::string channelName, User *messenger);
+	void		serverStdout(const std::string &firstMessageCombined);
+	Channel		*findChannel(std::string channelName);
+	User		*findUserByNick(std::string nickName);
+	User		*findUserByFD(int fd);
 
-   // tmp check
-   void printServerPrivates(); // REMOVE LATER
-
-   private:
-   std::list<User*> _allUsers;
-   std::list<Channel*> _allChannels;
-   int   _checkFail;
-   char  *_port;
-   std::string _password;
-   int   _epollFD;
-   int   _serverSocket;
-   struct sockaddr_in _serverAddress;
-   struct epoll_event _currentlyHandledEvent;
-	struct epoll_event _tempSavedEvents[MAX_EVENTS];
+	private:
+	char				*_port;
+	int					_epollFD;
+	std::string			_password;
+	std::list<User*>	_allUsers;
+	int					_checkFail;
+	std::list<Channel*>	_allChannels;
+	int					_serverSocket;
+	struct sockaddr_in	_serverAddress;
+	struct epoll_event	_currentlyHandledEvent;
+	struct epoll_event	_tempSavedEvents[MAX_EVENTS];
 };
 
 #endif
