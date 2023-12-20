@@ -1,15 +1,5 @@
 #include "Server.hpp"
 
-Channel *Server::findChannel(std::string channelName)
-{
-	for (auto &i : _allChannels)
-	{
-		if (!i->getChannelName().compare(channelName))
-			return (i);
-	}
-	return (nullptr);
-}
-
 bool Server::confirmOperator(std::string channelName, User *messenger)
 {
 	if (!findChannel(channelName)->isOperator(messenger->getUserFD()))
@@ -18,6 +8,16 @@ bool Server::confirmOperator(std::string channelName, User *messenger)
 		return (0);
 	}
 	return (1);
+}
+
+Channel *Server::findChannel(std::string channelName)
+{
+	for (auto &i : _allChannels)
+	{
+		if (!i->getChannelName().compare(channelName))
+			return (i);
+	}
+	return (nullptr);
 }
 
 User *Server::findUserByNick(std::string nickName)

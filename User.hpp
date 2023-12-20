@@ -11,16 +11,11 @@ class User
    
    // tmp check
    void  printUserPrivates(); // REMOVE LATER
-
-   // bool findChannel(std::string channelToFind);
-   // bool findChannelInvitation(std::string channelToFind)
-
    // canon
    // User();
    // User(const User &User);
    // User &operator=(const User &User);
    // ~User();
-
 
    void addJoinedChannel(std::string channelName);
    void rmvJoinedChannel(std::string channelName);
@@ -53,7 +48,6 @@ class User
    std::string _hostName;
    std::string _realName;
    std::string _password;
-   // bool        _isOperator;
    std::vector <std::string> _channelInvitations;
    std::vector <std::string> _joinedChannels;
 };

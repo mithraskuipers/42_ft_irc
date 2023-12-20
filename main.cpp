@@ -11,7 +11,6 @@ int main(int ac, char **av)
 		Server	server(av[1], av[2]);
 		server.runServer();
 		server.printServerPrivates();
-		// return (0);
 	}
 	catch (const std::exception &e)
 	{

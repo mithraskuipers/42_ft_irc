@@ -42,6 +42,10 @@ class Server
    // Server &operator=(const Server &Server);
    // ~Server();
 
+void addRmvOperator(std::vector<std::string> splitArgs, Channel *channel);
+void setRmvLimit(std::vector<std::string> splitArgs, Channel *channel);
+void setRmvChannelKey(std::vector<std::string> splitArgs, Channel *channel);
+
    void  runServer();
 
    void  recvNextLine(int eventFD);

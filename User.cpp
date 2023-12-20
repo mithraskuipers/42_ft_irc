@@ -11,9 +11,7 @@ void User::printUserPrivates() // REMOVE LATER
 	std::cout << "source " << getSource() << std::endl;
 }
 
-// User::User(int fd, std::string userName, std::string nickName, std::string realName, bool isOperator) :
-// _userFD(fd), _userName(userName), _nickName(nickName), _realName(realName), _isOperator(isOperator)
-User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _realName("") //, _isOperator(0)
+User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _realName("")
 {
 	std::cout << "\033[1;33m" << "_userFD set to " << _userFD << "\033[0m" << std::endl; // FOR TESTING, RMV LATER
 }

@@ -122,10 +122,24 @@ void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
 		sendReply(messenger->getUserFD(), ERR_BANNEDFROMCHAN(messenger->getSource(), channel->getChannelName()) + "\r\n");
 		return ;
 	}
+	if ((channel->getChannelKey().find('k') != channel->getActiveModes().npos) && \
+		(channel->getChannelKey().compare(splitArgs[2])))
+	{
+		sendReply(messenger->getUserFD(), ERR_BADCHANNELKEY(messenger->getSource(), \
+		channel->getChannelName()) + "\r\n");
+		return ;
+	}
 	if ((channel->getActiveModes().find('i') != channel->getActiveModes().npos) && \
 		(!messenger->isInvited(splitArgs[1])))
 	{
 		sendReply(messenger->getUserFD(), ERR_INVITEONLYCHAN(messenger->getSource(), \
+		channel->getChannelName()) + "\r\n");
+		return ;
+	}
+	if ((channel->getActiveModes().find('l') != channel->getActiveModes().npos) && \
+		(channel->getNumOfUsers() >= channel->getLimit()))
+	{
+		sendReply(messenger->getUserFD(), ERR_CHANNELISFULL(messenger->getSource(), \
 		channel->getChannelName()) + "\r\n");
 		return ;
 	}
@@ -216,6 +230,58 @@ std::string cleanModes(std::string unclean)
 	return (clean);
 }
 
+void Server::setRmvLimit(std::vector<std::string> splitArgs, Channel *channel)
+{
+	if (splitArgs[2][0] == '-')
+	{
+		channel->setLimit(-1);
+		return ;
+	}
+
+	size_t i = 3;
+	while (i < splitArgs.size())
+	{
+		// if ((splitArgs[i].all_of(splitArgs.begin(), splitArgs.end(), std::string::isdigit)) && 
+		if (findUserByNick(splitArgs[i]) == nullptr)
+		{
+			channel->setLimit(std::stoi(splitArgs[i]));
+		}
+		i++;
+	}
+}
+
+void Server::addRmvOperator(std::vector<std::string> splitArgs, Channel *channel)
+{
+	size_t i = 3;
+	while (i < splitArgs.size())
+	{
+		if (channel->isInChannel(findUserByNick(splitArgs[i])->getUserFD()))
+		{
+			if (splitArgs[2][0] == '+')
+				channel->addToOperators(findUserByNick(splitArgs[i])->getUserFD());
+			if (splitArgs[2][0] == '-')
+				channel->rmvFromOperators(findUserByNick(splitArgs[i])->getUserFD());
+		}
+		i++;
+	}
+}
+
+void Server::setRmvChannelKey(std::vector<std::string> splitArgs, Channel *channel)
+{
+	// size_t i = 3;
+	// while (i < splitArgs.size())
+	// {
+	// 	if (channel->isInChannel(findUserByNick(splitArgs[i])->getUserFD()))
+	// 	{
+	if (splitArgs[2][0] == '+')
+		channel->setChannelKey(splitArgs[3]);
+	if (splitArgs[2][0] == '-')
+		channel->setChannelKey("");
+		// }
+		// i++;
+	// }
+}
+
 void Server::rplMode(std::vector<std::string> splitArgs, User *messenger)
 {
 	Channel *channel = (findChannel(splitArgs[1]));
@@ -230,15 +296,17 @@ void Server::rplMode(std::vector<std::string> splitArgs, User *messenger)
 		else if (confirmOperator(splitArgs[1], messenger))
 		{
 			channel->setActiveModes(splitArgs[2]);
+
+			if (splitArgs[2].find('o') != std::string::npos)
+				addRmvOperator(splitArgs, channel);
+			if (splitArgs[2].find('l') != std::string::npos)
+				setRmvLimit(splitArgs, channel);
+			if (splitArgs[2].find('k') != std::string::npos)
+				setRmvChannelKey(splitArgs, channel);
+
 			channel->msgAllInChannel(RPL_MODE(messenger->getSource(), \
 			splitArgs[1], cleanModes(splitArgs[2]) + "\r\n"));
 		}
-		// else if (confirmOperator(splitArgs[1], messenger))
-		// {
-		// 	channel->setActiveModes(strJoinWithSpaces(splitArgs, 2));
-		// 	sendReply(messenger->getUserFD(), RPL_MODE(messenger->getSource(), \
-		// 	splitArgs[1], strJoinWithSpaces(splitArgs, 2) + "\r\n"));
-		// }
 	}
 }
 
@@ -276,7 +344,11 @@ void Server::rplTopic(std::vector<std::string> splitArgs, User *messenger)
 
 void Server::rplPart(std::vector<std::string> splitArgs, User *messenger)
 {
-	findChannel(splitArgs[1])->msgAllInChannel(RPL_PART(messenger->getSource(), splitArgs[1]) + "\r\n");
+	Channel *channel = findChannel(splitArgs[1]);
+	channel->msgAllInChannel(RPL_PART(messenger->getSource(), splitArgs[1]) + "\r\n");
 	messenger->rmvJoinedChannel(splitArgs[1]);
-	findChannel(splitArgs[1])->rmvFromChannel(messenger->getUserFD());
+	channel->rmvFromChannel(messenger->getUserFD());
+	channel->rmvFromOperators(messenger->getUserFD());
+	if (channel->getNumOfOperators() < 1)
+		channel->addToOperators(channel->getFirstJoinedUserFD());
 }

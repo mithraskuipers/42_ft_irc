@@ -23,7 +23,6 @@ Server::Server(char *port, char *password) : _port(port), _password(password)
 	showSplash(HOSTNAME, _port);
 }
 
-// Main server loop and functions
 void Server::runServer()
 {
 	int i;

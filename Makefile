@@ -4,7 +4,7 @@ SRC = main.cpp Server.cpp serverInitiate.cpp serverReply.cpp \
 User.cpp serverUtils.cpp Channel.cpp
 
 OBJFILES = $(SRC:%.cpp=%.o)
-CFLAGS = -Wall -Wextra -Werror
+CFLAGS = -Wall -Wextra -Werror #-fsanitize=address
 
 all	: $(NAME)
 

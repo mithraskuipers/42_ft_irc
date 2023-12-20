@@ -7,7 +7,7 @@ void Channel::printChannelPrivates() // REMOVE LATER
 	std::cout << _channelName << std::endl;
 }
 
-Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName), _activeModes("")
+Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName), _channelKey(""), _activeModes(""), _limit(-1)
 {
 	int i = 0;
 	while (i < 4)
@@ -146,6 +146,11 @@ bool Channel::isBanned(int userFD)
 	return (0);
 }
 
+int Channel::getLimit()
+{
+	return (_limit);
+}
+
 std::string Channel::getTopic()
 {
 	return (_topic);
@@ -156,9 +161,34 @@ std::string Channel::getChannelName()
 	return (_channelName);
 }
 
+std::string Channel::getChannelKey()
+{
+	return (_channelKey);
+}
+
 std::string Channel::getActiveModes()
 {
 	return (_activeModes);
+}
+
+int Channel::getNumOfUsers()
+{
+	return ((int) _joinedUserFDs.size());
+}
+
+int Channel::getNumOfOperators()
+{
+	return ((int) _operatorFDs.size());
+}
+
+int Channel::getFirstJoinedUserFD()
+{
+	return(_joinedUserFDs[0]);
+}
+
+void Channel::setLimit(int limit)
+{
+	_limit = limit;
 }
 
 void Channel::setTopic(std::string topic)
@@ -169,6 +199,11 @@ void Channel::setTopic(std::string topic)
 void Channel::setChannelName(std::string channelName)
 {
 	_channelName = channelName;
+}
+
+void Channel::setChannelKey(std::string channelKey)
+{
+	_channelKey = channelKey;
 }
 
 void Channel::setActiveModes(std::string modes)

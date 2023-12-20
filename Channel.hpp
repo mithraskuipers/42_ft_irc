@@ -27,15 +27,22 @@ class Channel
    bool isOperator(int userFD);
    bool isBanned(int userFD);
 
-   std::string getTopic();
-   std::string getChannelName();
-   std::string getActiveModes();
-   bool        getIsInviteOnly();
-   std::vector<int> getJoinedUserFDs();
-   std::vector<int> getBannedUserFDs();
+   int               getLimit();
+   std::string       getTopic();
+   std::string       getChannelName();
+   std::string       getChannelKey();
+   std::string       getActiveModes();
+   bool              getIsInviteOnly();
+   std::vector<int>  getJoinedUserFDs();
+   std::vector<int>  getBannedUserFDs();
+   int               getNumOfUsers();
+   int               getNumOfOperators();
+   int               getFirstJoinedUserFD();
 
+   void setLimit(int limit);
    void setTopic(std::string topic);
    void setChannelName(std::string channelName);
+   void setChannelKey(std::string channelKey);
    void setActiveModes(std::string modes);
    void setIsInviteOnly(bool inviteBool);
    
@@ -48,8 +55,10 @@ class Channel
    private:
    std::string _topic;
    std::string _channelName;
+   std::string _channelKey;
    std::string _activeModes;
    int         _intarr[4];
+   int         _limit;
    std::vector<int> _joinedUserFDs;
    std::vector<int> _operatorFDs;
    std::vector<int> _bannedUserFDs;

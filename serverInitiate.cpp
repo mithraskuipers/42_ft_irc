@@ -50,7 +50,7 @@ void Server::listenWithSocket()
 	checkFailure(_serverSocket, "listen()");
 }
 
-void Server::monitorSocketEvents() // monitored with epoll
+void Server::monitorSocketEvents()
 {
 	// _epollFD becomes a struct with 2 lists
 	// 1 interest list(all added fd)
