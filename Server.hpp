@@ -43,32 +43,36 @@ class Server
 
 	void  runServer();
 
-	void  findReply(std::string fullMsg, int eventFD);
-	void  sendReply(int targetFD, std::string msg);
-	void  disconnectUser(int eventFD);
-	void  recvNextLine(int eventFD);
-	int   connectNewUser();
+	void	findReply(std::string fullMsg, int eventFD);
+	void	sendReply(int targetFD, std::string msg);
+	void	disconnectUser(int eventFD);
+	void	recvNextLine(int eventFD);
+	int		connectNewUser();
 
 	// serverReply.cpp
-	void  rplNick(std::vector<std::string> splitArgs, User *messenger);
-	void  rplPass(std::vector<std::string> splitArgs, User *messenger);
-	void  rplUser(std::vector<std::string> splitArgs, User *messenger);
-	void  rplJoin(std::vector<std::string> splitArgs, User *messenger);
-	void  rplPart(std::vector<std::string> splitArgs, User *messenger);
-	void  rplPrivmsg(std::vector<std::string> splitArgs, User *messenger);
-	void  rplQuit(std::vector<std::string> splitArgs, User *messenger);
-	void  rplInvite(std::vector<std::string> splitArgs, User *messenger);
-	void  rplKick(std::vector<std::string> splitArgs, User *messenger);
-	void  rplMode(std::vector<std::string> splitArgs, User *messenger);
-	void  rplTopic(std::vector<std::string> splitArgs, User *messenger);
+	void	modeArgsPlus(std::vector<std::string> splitArgs, Channel *channel);
+	void	modeArgsMinus(std::vector<std::string> splitArgs, Channel *channel);
+	int		checkJoinErrors(Channel *channel, User *user, std::string password);
+
+	void	rplNick(std::vector<std::string> splitArgs, User *messenger);
+	void	rplPass(std::vector<std::string> splitArgs, User *messenger);
+	void	rplUser(std::vector<std::string> splitArgs, User *messenger);
+	void	rplJoin(std::vector<std::string> splitArgs, User *messenger);
+	void	rplPart(std::vector<std::string> splitArgs, User *messenger);
+	void	rplPrivmsg(std::vector<std::string> splitArgs, User *messenger);
+	void	rplQuit(std::vector<std::string> splitArgs, User *messenger);
+	void	rplInvite(std::vector<std::string> splitArgs, User *messenger);
+	void	rplKick(std::vector<std::string> splitArgs, User *messenger);
+	void	rplMode(std::vector<std::string> splitArgs, User *messenger);
+	void	rplTopic(std::vector<std::string> splitArgs, User *messenger);
 
 	// serverInitiate.cpp
-	void  createServerSocket();
-	void  setSocketOptions();
-	void  bindSocketToAddress();
-	void  listenWithSocket();
-	void  monitorSocketEvents();
-	void  checkFailure(int socket, const std::string &msg);
+	void	createServerSocket();
+	void	setSocketOptions();
+	void	bindSocketToAddress();
+	void	listenWithSocket();
+	void	monitorSocketEvents();
+	void	checkFailure(int socket, const std::string &msg);
 
 	// serverUtils.cpp
 	std::string	strJoinWithSpaces(std::vector<std::string> splitArgs, size_t startPoint);

@@ -23,19 +23,15 @@ void Server::setSocketOptions()
 {
 	int opt = 1;
 	socklen_t optlen = sizeof(opt);
-
 	_checkFail = setsockopt(_serverSocket, SOL_SOCKET, SO_REUSEADDR, &opt, optlen);
 	checkFailure(_serverSocket, "setsockopt()");
 }
 
 void Server::bindSocketToAddress()
 {
-	// initializeAdress
 	_serverAddress.sin_family = AF_INET;
 	_serverAddress.sin_port = htons(std::stoi(_port));
 	_serverAddress.sin_addr.s_addr = INADDR_ANY;
-
-	// bind socket
 	_checkFail = bind(_serverSocket, \
 	(struct sockaddr *)&_serverAddress, sizeof(_serverAddress));
 	checkFailure(_serverSocket, "bind()");
@@ -45,7 +41,6 @@ void Server::listenWithSocket()
 {
 	_checkFail = fcntl(_serverSocket, F_SETFL, O_NONBLOCK);
 	checkFailure(_serverSocket, "fcntl()");
-
 	_checkFail = listen(_serverSocket, MAX_CONNECTIONS);
 	checkFailure(_serverSocket, "listen()");
 }
