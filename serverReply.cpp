@@ -15,12 +15,12 @@ void Server::findReply(std::string fullMsg, int eventFD)
 	{
 		User *messenger = findUserByFD(eventFD);
 		if (!splitArgs[0].compare("PASS"))
-			rplPass(splitArgs, messenger);
+			messenger->setPassword(splitArgs[1]);
 		if (!splitArgs[0].compare("NICK"))
 			rplNick(splitArgs, messenger);
+
 		if (!splitArgs[0].compare("USER"))
 			rplUser(splitArgs, messenger);
-
 		if (!splitArgs[0].compare("JOIN"))
 			rplJoin(splitArgs, messenger);
 		if (!splitArgs[0].compare("PART"))
@@ -40,7 +40,7 @@ void Server::findReply(std::string fullMsg, int eventFD)
 			rplTopic(splitArgs, messenger);
 
 		if (!splitArgs[0].compare("CAP"))
-			send(eventFD, "421 CAP :Unknown command\r\n", 26, 0);
+			send(eventFD, "421 CAP :No Cap\r\n", 17, 0);
 		if (!splitArgs[0].compare("PING"))
 			sendReply(eventFD, RPL_PING(messenger->getSource(), messenger->getHostName()) + "\r\n");
 	}
@@ -48,19 +48,8 @@ void Server::findReply(std::string fullMsg, int eventFD)
 
 void Server::sendReply(int targetFD, std::string msg)
 {
-	// implement EPOLLOUT here. Makes no noticeable difference but satisfies mandatory, maybe
-	_currentlyHandledEvent.events = EPOLLOUT;
-
-	std::cout << "\033[1;36m" << "just sent:\n" << msg << "to fd " << targetFD << "\033[0m\n" << std::endl; // FOR TESTING, RMV LATER
+	std::cout << "\033[1;36m" << "just sent:\n" << msg << "to fd " << targetFD << "\033[0m\n" << std::endl; // FOR TESTING
 	send(targetFD, msg.c_str(), msg.length(), 0);
-
-	// reset to epollin after send
-	_currentlyHandledEvent.events = EPOLLIN;
-}
-
-void Server::rplPass(std::vector<std::string> splitArgs, User *messenger)
-{
-	messenger->setPassword(splitArgs[1]);
 }
 
 void Server::rplNick(std::vector<std::string> splitArgs, User *messenger)
@@ -96,9 +85,9 @@ void Server::rplUser(std::vector<std::string> splitArgs, User *messenger)
 	else
 	{
 		sendReply(messenger->getUserFD(), RPL_WELCOME(messenger->getNickName(), messenger->getNickName()) + "\r\n"); 
-		sendReply(messenger->getUserFD(), RPL_YOURHOST(messenger->getSource(), "ft_irc_serv", "3.42") + "\r\n");
+		sendReply(messenger->getUserFD(), RPL_YOURHOST(messenger->getSource(), "ircServer", "3.42") + "\r\n");
 		sendReply(messenger->getUserFD(), RPL_CREATED(messenger->getSource(), "today") + "\r\n");
-		sendReply(messenger->getUserFD(), RPL_MYINFO(messenger->getSource(), "ft_irc_serv", "3.42", "o(perator)", "i,t,k,l") + "\r\n");
+		sendReply(messenger->getUserFD(), RPL_MYINFO(messenger->getSource(), "ircServer", "3.42", "o(perator)", "i,t,k,l") + "\r\n");
 	}
 }
 
@@ -153,7 +142,7 @@ void Server::rplPrivmsg(std::vector<std::string> splitArgs, User *messenger)
 				sendReply(i->getUserFD(), RPL_PRIVMSG(messenger->getSource(), splitArgs[1], msg) + "\r\n");
 		}
 	}
-	else if (findUserByNick(splitArgs[1]) != nullptr) // SEGFAULTS WHEN SEARCHING PRE-EXISTING USER
+	else if (findUserByNick(splitArgs[1]) != nullptr)
 		sendReply(findUserByNick(splitArgs[1])->getUserFD(), RPL_PRIVMSG(messenger->getSource(), splitArgs[1], msg) + "\r\n");
 	else
 		std::cout << "msgreceiver does not exist" << std::endl;
@@ -260,7 +249,8 @@ void Server::rplMode(std::vector<std::string> splitArgs, User *messenger)
 	{
 		if (splitArgs.size() == 2)
 		{
-			std::cout << "active modes requested, currently: " << channel->getActiveModes() << std::endl;
+			if (channel->getActiveModes().size() < 2)
+				channel->setActiveModes("");
 			sendReply(messenger->getUserFD(), RPL_MODE(messenger->getSource(), \
 			splitArgs[1], channel->getActiveModes() + "\r\n"));
 		}
@@ -311,4 +301,9 @@ void Server::rplPart(std::vector<std::string> splitArgs, User *messenger)
 	channel->rmvFromOperators(messenger->getUserFD());
 	if (channel->getNumOfOperators() < 1)
 		channel->addToOperators(channel->getFirstJoinedUserFD());
+	if (channel->getNumOfUsers() < 1)
+	{
+		_allChannels.remove(findChannel(splitArgs[1]));
+		delete(channel);
+	}
 }

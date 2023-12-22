@@ -8,6 +8,7 @@ class User
 {
    public:
    User(int fd);
+   ~User();
 
    void addInvitation(std::string channelName);
    bool isInvited(std::string channelName);

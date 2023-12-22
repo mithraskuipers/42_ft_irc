@@ -40,14 +40,14 @@ void Server::runServer()
 // main reason: avoid errors if we receive partial messages
 void Server::recvNextLine(int eventFD) // TOO MESSY, NEEDS WORK
 {
-	std::vector<char> buffer(510);
+	std::vector<char> buffer(BUFFER_SIZE);
 	std::list<std::string> msgList;
 	int bytesRead;
 	std::string savedMsgParts;
 	while (1)
 	{
-		memset(buffer.data(), 0, 500);
-		bytesRead = recv(eventFD, buffer.data(), 500 - 1, 0);
+		memset(buffer.data(), 0, BUFFER_SIZE);
+		bytesRead = recv(eventFD, buffer.data(), BUFFER_SIZE - 1, 0);
 		std::cout << "\033[1;31m" << "just received:\n" << buffer.data() << "with fd " << eventFD << " and bytes read " << bytesRead << "\033[0m\n" << std::endl; // FOR TESTING RMV LATER
 		if (bytesRead < 0)
 		{
@@ -92,7 +92,6 @@ int Server::connectNewUser()
 	int connectSock = accept(_serverSocket, (sockaddr *)&s_address, &s_size);
 	if (connectSock < 0)
 		throw std::runtime_error("Failure during accept().");
-
 	fcntl(connectSock, F_SETFL, O_NONBLOCK);
 	_currentlyHandledEvent.events = EPOLLIN;
 	_currentlyHandledEvent.data.fd = connectSock;
@@ -104,8 +103,9 @@ int Server::connectNewUser()
 void Server::disconnectUser(int fd)
 {
 	std::cout << findUserByFD(fd)->getNickName() << " disconnected" << std::endl;
-
-	// this might be a leak, the element is removed but is the object destroyed?
+	
+	User *tmp = findUserByFD(fd);
 	_allUsers.remove(findUserByFD(fd));
+	delete(tmp);
 	close(fd);
 }

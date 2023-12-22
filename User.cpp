@@ -4,6 +4,10 @@ User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _
 {
 
 }
+User::~User()
+{
+	std::cout << _nickName << "was destroyed" << std::endl;
+}
 
 std::string User::getSource()
 {

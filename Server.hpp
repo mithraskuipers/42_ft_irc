@@ -29,6 +29,7 @@
 #include "Replies.hpp"
 
 #define HOSTNAME "127.0.0.1"
+#define BUFFER_SIZE 510
 #define MAX_CONNECTIONS 100
 #define MAX_EVENTS 100
 
@@ -55,7 +56,6 @@ class Server
 	int		checkJoinErrors(Channel *channel, User *user, std::string password);
 
 	void	rplNick(std::vector<std::string> splitArgs, User *messenger);
-	void	rplPass(std::vector<std::string> splitArgs, User *messenger);
 	void	rplUser(std::vector<std::string> splitArgs, User *messenger);
 	void	rplJoin(std::vector<std::string> splitArgs, User *messenger);
 	void	rplPart(std::vector<std::string> splitArgs, User *messenger);
