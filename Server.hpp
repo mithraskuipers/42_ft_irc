@@ -66,6 +66,8 @@ class Server
 	void	rplMode(std::vector<std::string> splitArgs, User *messenger);
 	void	rplTopic(std::vector<std::string> splitArgs, User *messenger);
 
+void replyIRSSI(User *messenger, int eventFD, std::vector<std::string> splitArgs);
+void replyNetCat(User *messenger);
 	// serverInitiate.cpp
 	void	createServerSocket();
 	void	setSocketOptions();

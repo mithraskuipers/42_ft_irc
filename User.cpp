@@ -1,6 +1,6 @@
 #include "User.hpp"
 
-User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _realName("")
+User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _realName(""), _isNetCatter(0)
 {
 
 }
@@ -27,6 +27,19 @@ bool User::isInvited(std::string channelName)
 			return (1);
 	}
 	return (0);
+}
+
+bool User::isIncompleteUser()
+{
+	if (_nickName.empty() || _userName.empty() || \
+	_hostName.empty() || _realName.empty() || _password.empty())
+		return (1);
+	return (0);
+}
+
+bool User::isNetCatter()
+{
+	return (_isNetCatter);
 }
 
 void User::setUserFD(int fd)
@@ -57,6 +70,16 @@ void User::setRealName(std::string realName)
 void User::setPassword(std::string password)
 {
 	_password = password;
+}
+
+void User::makeNetCatter(std::string nickName)
+{
+	_nickName = nickName;
+	_userName = "student";
+	_hostName = "student";
+	_realName = "student";
+	_password = "student";
+	_isNetCatter = 1;
 }
 
 int User::getUserFD()

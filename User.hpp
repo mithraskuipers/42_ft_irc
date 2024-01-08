@@ -12,6 +12,8 @@ class User
 
    void addInvitation(std::string channelName);
    bool isInvited(std::string channelName);
+   bool isIncompleteUser();
+   bool	isNetCatter();
 
    void setUserFD(int fd);
    void setNickName(std::string nickName);
@@ -19,6 +21,7 @@ class User
    void setHostName(std::string hostName);
    void setRealName(std::string realName);
    void setPassword(std::string password);
+   void makeNetCatter(std::string nickName);
 
    int			getUserFD();
    std::string	getNickName();
@@ -36,6 +39,7 @@ class User
    std::string	_realName;
    std::string	_password;
    std::vector	<std::string> _channelInvitations;
+   bool			_isNetCatter;
 };
 
 #endif

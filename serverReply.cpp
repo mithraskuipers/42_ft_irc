@@ -14,36 +14,73 @@ void Server::findReply(std::string fullMsg, int eventFD)
 	if (!splitArgs.empty())
 	{
 		User *messenger = findUserByFD(eventFD);
-		if (!splitArgs[0].compare("PASS"))
-			messenger->setPassword(splitArgs[1]);
-		if (!splitArgs[0].compare("NICK"))
-			rplNick(splitArgs, messenger);
-
-		if (!splitArgs[0].compare("USER"))
-			rplUser(splitArgs, messenger);
-		if (!splitArgs[0].compare("JOIN"))
-			rplJoin(splitArgs, messenger);
-		if (!splitArgs[0].compare("PART"))
-			rplPart(splitArgs, messenger);
-		if (!splitArgs[0].compare("PRIVMSG"))
-			rplPrivmsg(splitArgs, messenger);
-		if (!splitArgs[0].compare("QUIT"))
-			rplQuit(splitArgs, messenger);
-
-		if (!splitArgs[0].compare("INVITE"))
-			rplInvite(splitArgs, messenger);
-		if (!splitArgs[0].compare("KICK"))
-			rplKick(splitArgs, messenger);
-		if (!splitArgs[0].compare("MODE"))
-			rplMode(splitArgs, messenger);			
-		if (!splitArgs[0].compare("TOPIC"))
-			rplTopic(splitArgs, messenger);
-
-		if (!splitArgs[0].compare("CAP"))
-			send(eventFD, "421 CAP :No Cap\r\n", 17, 0);
-		if (!splitArgs[0].compare("PING"))
-			sendReply(eventFD, RPL_PING(messenger->getSource(), messenger->getHostName()) + "\r\n");
+		if (messenger->isNetCatter())
+			replyNetCat(messenger);
+		else
+			replyIRSSI(messenger, eventFD, splitArgs);
 	}
+}
+
+void Server::replyIRSSI(User *messenger, int eventFD, std::vector<std::string> splitArgs)
+{
+	if (!splitArgs[0].compare("CAP"))
+		send(eventFD, "421 CAP :No Cap\r\n", 17, 0);
+	else if (!splitArgs[0].compare("PASS"))
+		messenger->setPassword(splitArgs[1]);
+	else if (!splitArgs[0].compare("NICK"))
+		rplNick(splitArgs, messenger);
+	else if (!splitArgs[0].compare("USER"))
+		rplUser(splitArgs, messenger);
+	else if (messenger->isIncompleteUser())
+	{
+		if ((!splitArgs[0].compare("NcUser")) && (!splitArgs[1].empty()))
+			messenger->makeNetCatter(splitArgs[1]);
+		else
+			disconnectUser(messenger->getUserFD());
+		// send error message
+	}
+	else if (!splitArgs[0].compare("JOIN"))
+		rplJoin(splitArgs, messenger);
+	else if (!splitArgs[0].compare("PART"))
+		rplPart(splitArgs, messenger);
+	else if (!splitArgs[0].compare("PRIVMSG"))
+		rplPrivmsg(splitArgs, messenger);
+	else if (!splitArgs[0].compare("QUIT"))
+		rplQuit(splitArgs, messenger);
+	else if (!splitArgs[0].compare("INVITE"))
+		rplInvite(splitArgs, messenger);
+	else if (!splitArgs[0].compare("KICK"))
+		rplKick(splitArgs, messenger);
+	else if (!splitArgs[0].compare("MODE"))
+		rplMode(splitArgs, messenger);			
+	else if (!splitArgs[0].compare("TOPIC"))
+		rplTopic(splitArgs, messenger);
+	else if (!splitArgs[0].compare("PING"))
+		sendReply(eventFD, RPL_PING(messenger->getSource(), messenger->getHostName()) + "\r\n");
+}
+
+// seperate reply-scheme for netCat
+void Server::replyNetCat(User *messenger)
+{
+	sendReply(messenger->getUserFD(), "you are a netcatter or a mad-hatter\n");
+// 	else if (!splitArgs[0].compare("JOIN"))
+// 		rplJoin(splitArgs, messenger);
+// 	else if (!splitArgs[0].compare("PART"))
+// 		rplPart(splitArgs, messenger);
+// 	else if (!splitArgs[0].compare("PRIVMSG"))
+// 		rplPrivmsg(splitArgs, messenger);
+// 	else if (!splitArgs[0].compare("QUIT"))
+// 		rplQuit(splitArgs, messenger);
+// 	else if (!splitArgs[0].compare("INVITE"))
+// 		rplInvite(splitArgs, messenger);
+// 	else if (!splitArgs[0].compare("KICK"))
+// 		rplKick(splitArgs, messenger);
+// 	else if (!splitArgs[0].compare("MODE"))
+// 		rplMode(splitArgs, messenger);			
+// 	else if (!splitArgs[0].compare("TOPIC"))
+// 		rplTopic(splitArgs, messenger);
+// 	else if (!splitArgs[0].compare("PING"))
+// 		sendReply(eventFD, RPL_PING(messenger->getSource(), messenger->getHostName()) + "\r\n");
 }
 
 void Server::sendReply(int targetFD, std::string msg)
@@ -68,6 +105,11 @@ void Server::rplNick(std::vector<std::string> splitArgs, User *messenger)
 
 void Server::rplUser(std::vector<std::string> splitArgs, User *messenger)
 {
+	if (splitArgs.size() < 4)
+	{
+		sendReply(messenger->getUserFD(), "sum-tin wong");
+		return ;
+	}
 	messenger->setUserName(splitArgs[2]);
 	messenger->setHostName(splitArgs[3]);
 	messenger->setRealName(strJoinWithSpaces(splitArgs, 4));
