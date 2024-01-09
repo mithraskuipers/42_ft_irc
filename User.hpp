@@ -13,7 +13,6 @@ class User
    void addInvitation(std::string channelName);
    bool isInvited(std::string channelName);
    bool isIncompleteUser();
-   bool	isNetCatter();
 
    void setUserFD(int fd);
    void setNickName(std::string nickName);
@@ -39,7 +38,6 @@ class User
    std::string	_realName;
    std::string	_password;
    std::vector	<std::string> _channelInvitations;
-   bool			_isNetCatter;
 };
 
 #endif

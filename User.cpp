@@ -1,12 +1,12 @@
 #include "User.hpp"
 
-User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _realName(""), _isNetCatter(0)
+User::User(int fd) : _userFD(fd), _nickName(""), _userName(""), _hostName(""), _realName("")
 {
 
 }
 User::~User()
 {
-	std::cout << _nickName << "was destroyed" << std::endl;
+	std::cout << _nickName << " was destroyed" << std::endl;
 }
 
 std::string User::getSource()
@@ -35,11 +35,6 @@ bool User::isIncompleteUser()
 	_hostName.empty() || _realName.empty() || _password.empty())
 		return (1);
 	return (0);
-}
-
-bool User::isNetCatter()
-{
-	return (_isNetCatter);
 }
 
 void User::setUserFD(int fd)
@@ -79,7 +74,6 @@ void User::makeNetCatter(std::string nickName)
 	_hostName = "student";
 	_realName = "student";
 	_password = "student";
-	_isNetCatter = 1;
 }
 
 int User::getUserFD()

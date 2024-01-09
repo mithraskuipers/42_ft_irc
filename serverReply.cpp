@@ -1,8 +1,4 @@
-#include "Replies.hpp"
 #include "Server.hpp"
-#include <sstream>
-#include <stdlib.h>
-#include <algorithm>
 
 void Server::findReply(std::string fullMsg, int eventFD)
 {
@@ -14,73 +10,41 @@ void Server::findReply(std::string fullMsg, int eventFD)
 	if (!splitArgs.empty())
 	{
 		User *messenger = findUserByFD(eventFD);
-		if (messenger->isNetCatter())
-			replyNetCat(messenger);
-		else
-			replyIRSSI(messenger, eventFD, splitArgs);
+		if (!splitArgs[0].compare("CAP"))
+			send(eventFD, "421 CAP :No Cap\r\n", 17, 0);
+		else if (!splitArgs[0].compare("PASS"))
+			messenger->setPassword(splitArgs[1]);
+		else if (!splitArgs[0].compare("NICK"))
+			rplNick(splitArgs, messenger);
+		else if (!splitArgs[0].compare("USER"))
+			rplUser(splitArgs, messenger);
+		else if (messenger->isIncompleteUser())
+		{
+			if ((!splitArgs[0].compare("netcatter")) && (!splitArgs[1].empty()) && (findUserByNick(splitArgs[1]) == nullptr))
+				messenger->makeNetCatter(splitArgs[1]);
+			else
+				disconnectUser(messenger->getUserFD());
+			// send error message
+		}
+		else if (!splitArgs[0].compare("JOIN"))
+			rplJoin(splitArgs, messenger);
+		else if (!splitArgs[0].compare("PART"))
+			rplPart(splitArgs, messenger);
+		else if (!splitArgs[0].compare("PRIVMSG"))
+			rplPrivmsg(splitArgs, messenger);
+		else if (!splitArgs[0].compare("QUIT"))
+			rplQuit(splitArgs, messenger);
+		else if (!splitArgs[0].compare("INVITE"))
+			rplInvite(splitArgs, messenger);
+		else if (!splitArgs[0].compare("KICK"))
+			rplKick(splitArgs, messenger);
+		else if (!splitArgs[0].compare("MODE"))
+			rplMode(splitArgs, messenger);			
+		else if (!splitArgs[0].compare("TOPIC"))
+			rplTopic(splitArgs, messenger);
+		else if (!splitArgs[0].compare("PING"))
+			sendReply(eventFD, RPL_PING(messenger->getSource(), messenger->getHostName()) + "\r\n");
 	}
-}
-
-void Server::replyIRSSI(User *messenger, int eventFD, std::vector<std::string> splitArgs)
-{
-	if (!splitArgs[0].compare("CAP"))
-		send(eventFD, "421 CAP :No Cap\r\n", 17, 0);
-	else if (!splitArgs[0].compare("PASS"))
-		messenger->setPassword(splitArgs[1]);
-	else if (!splitArgs[0].compare("NICK"))
-		rplNick(splitArgs, messenger);
-	else if (!splitArgs[0].compare("USER"))
-		rplUser(splitArgs, messenger);
-	else if (messenger->isIncompleteUser())
-	{
-		if ((!splitArgs[0].compare("NcUser")) && (!splitArgs[1].empty()))
-			messenger->makeNetCatter(splitArgs[1]);
-		else
-			disconnectUser(messenger->getUserFD());
-		// send error message
-	}
-	else if (!splitArgs[0].compare("JOIN"))
-		rplJoin(splitArgs, messenger);
-	else if (!splitArgs[0].compare("PART"))
-		rplPart(splitArgs, messenger);
-	else if (!splitArgs[0].compare("PRIVMSG"))
-		rplPrivmsg(splitArgs, messenger);
-	else if (!splitArgs[0].compare("QUIT"))
-		rplQuit(splitArgs, messenger);
-	else if (!splitArgs[0].compare("INVITE"))
-		rplInvite(splitArgs, messenger);
-	else if (!splitArgs[0].compare("KICK"))
-		rplKick(splitArgs, messenger);
-	else if (!splitArgs[0].compare("MODE"))
-		rplMode(splitArgs, messenger);			
-	else if (!splitArgs[0].compare("TOPIC"))
-		rplTopic(splitArgs, messenger);
-	else if (!splitArgs[0].compare("PING"))
-		sendReply(eventFD, RPL_PING(messenger->getSource(), messenger->getHostName()) + "\r\n");
-}
-
-// seperate reply-scheme for netCat
-void Server::replyNetCat(User *messenger)
-{
-	sendReply(messenger->getUserFD(), "you are a netcatter or a mad-hatter\n");
-// 	else if (!splitArgs[0].compare("JOIN"))
-// 		rplJoin(splitArgs, messenger);
-// 	else if (!splitArgs[0].compare("PART"))
-// 		rplPart(splitArgs, messenger);
-// 	else if (!splitArgs[0].compare("PRIVMSG"))
-// 		rplPrivmsg(splitArgs, messenger);
-// 	else if (!splitArgs[0].compare("QUIT"))
-// 		rplQuit(splitArgs, messenger);
-// 	else if (!splitArgs[0].compare("INVITE"))
-// 		rplInvite(splitArgs, messenger);
-// 	else if (!splitArgs[0].compare("KICK"))
-// 		rplKick(splitArgs, messenger);
-// 	else if (!splitArgs[0].compare("MODE"))
-// 		rplMode(splitArgs, messenger);			
-// 	else if (!splitArgs[0].compare("TOPIC"))
-// 		rplTopic(splitArgs, messenger);
-// 	else if (!splitArgs[0].compare("PING"))
-// 		sendReply(eventFD, RPL_PING(messenger->getSource(), messenger->getHostName()) + "\r\n");
 }
 
 void Server::sendReply(int targetFD, std::string msg)
@@ -178,7 +142,9 @@ void Server::rplPrivmsg(std::vector<std::string> splitArgs, User *messenger)
 	std::string msg = strJoinWithSpaces(splitArgs, 2);
 	if (channel != nullptr)
 	{
-		for (auto const &i : _allUsers)
+		if (!channel->isInChannel(messenger->getUserFD()))
+			sendReply(messenger->getUserFD(), ERR_NOTONCHANNEL(messenger->getSource(), channel->getChannelName())  "\r\n");
+		else for (auto const &i : _allUsers)
 		{
 			if (i->getUserFD() != messenger->getUserFD() && channel->isInChannel(i->getUserFD()))
 				sendReply(i->getUserFD(), RPL_PRIVMSG(messenger->getSource(), splitArgs[1], msg) + "\r\n");
@@ -187,7 +153,10 @@ void Server::rplPrivmsg(std::vector<std::string> splitArgs, User *messenger)
 	else if (findUserByNick(splitArgs[1]) != nullptr)
 		sendReply(findUserByNick(splitArgs[1])->getUserFD(), RPL_PRIVMSG(messenger->getSource(), splitArgs[1], msg) + "\r\n");
 	else
-		std::cout << "msgreceiver does not exist" << std::endl;
+	{
+		sendReply(messenger->getUserFD(), ERR_NOSUCHCHANNEL(messenger->getSource(), splitArgs[1])  "\r\n");
+		sendReply(messenger->getUserFD(), ERR_NOSUCHNICK(messenger->getSource(), splitArgs[1])  "\r\n");
+	}
 }
 
 void Server::rplQuit(std::vector<std::string> splitArgs, User *messenger)

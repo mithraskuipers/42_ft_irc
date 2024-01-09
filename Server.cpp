@@ -1,5 +1,5 @@
 #include "Server.hpp"
-#include <list>
+
 void showSplash(const std::string &serverAddress, const std::string &serverPort);
 
 Server::Server(char *port, char *password) : _port(port), _password(password)
