@@ -20,7 +20,7 @@ void Server::findReply(std::string fullMsg, int eventFD)
 			rplUser(splitArgs, messenger);
 		else if (messenger->isIncompleteUser())
 		{
-			if ((!splitArgs[0].compare("netcatter")) && (!splitArgs[1].empty()) && (findUserByNick(splitArgs[1]) == nullptr))
+			if ((!splitArgs[0].compare("netcatter")) && (splitArgs.size() > 1) &&(findUserByNick(splitArgs[1]) == nullptr))
 				messenger->makeNetCatter(splitArgs[1]);
 			else
 				disconnectUser(messenger->getUserFD());
@@ -53,17 +53,37 @@ void Server::sendReply(int targetFD, std::string msg)
 	send(targetFD, msg.c_str(), msg.length(), 0);
 }
 
+bool notAlphaNum(std::string nickname)
+{
+	size_t i = 0;
+	while (i < nickname.size())
+	{
+		if (!std::isalnum(nickname[i]))
+			return (1);
+		i++;
+	}
+	return (0);
+}
+
 void Server::rplNick(std::vector<std::string> splitArgs, User *messenger)
 {
-	if (!messenger->getNickName().empty())
+	if (splitArgs.size() < 2)
 	{
-		if (findUserByNick(splitArgs[1]) != nullptr)
-		{
-			sendReply(messenger->getUserFD(), ERR_NICKNAMEINUSE(messenger->getSource(), splitArgs[1]) + "\r\n");
-			return ;
-		}
-		sendReply(messenger->getUserFD(), RPL_NICK(messenger->getSource(), splitArgs[1]) + "\r\n");
+		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "NICK") + "\r\n");
+		return ;
 	}
+	if (notAlphaNum(splitArgs[1]))
+	{
+		sendReply(messenger->getUserFD(), ERR_ERRONEUSNICKNAME(messenger->getSource(), splitArgs[1]) + "\r\n");
+		return ;
+	}
+	if (findUserByNick(splitArgs[1]) != nullptr)
+	{
+		sendReply(messenger->getUserFD(), ERR_NICKNAMEINUSE(messenger->getSource(), splitArgs[1]) + "\r\n");
+		return ;
+	}
+	if (!messenger->getNickName().empty())
+		sendReply(messenger->getUserFD(), RPL_NICK(messenger->getSource(), splitArgs[1]) + "\r\n");
 	messenger->setNickName(splitArgs[1]);
 }
 
@@ -143,7 +163,7 @@ void Server::rplPrivmsg(std::vector<std::string> splitArgs, User *messenger)
 	if (channel != nullptr)
 	{
 		if (!channel->isInChannel(messenger->getUserFD()))
-			sendReply(messenger->getUserFD(), ERR_NOTONCHANNEL(messenger->getSource(), channel->getChannelName())  "\r\n");
+			sendReply(messenger->getUserFD(), ERR_NOTONCHANNEL(messenger->getSource(), channel->getChannelName()) + "\r\n");
 		else for (auto const &i : _allUsers)
 		{
 			if (i->getUserFD() != messenger->getUserFD() && channel->isInChannel(i->getUserFD()))
@@ -153,10 +173,7 @@ void Server::rplPrivmsg(std::vector<std::string> splitArgs, User *messenger)
 	else if (findUserByNick(splitArgs[1]) != nullptr)
 		sendReply(findUserByNick(splitArgs[1])->getUserFD(), RPL_PRIVMSG(messenger->getSource(), splitArgs[1], msg) + "\r\n");
 	else
-	{
-		sendReply(messenger->getUserFD(), ERR_NOSUCHCHANNEL(messenger->getSource(), splitArgs[1])  "\r\n");
-		sendReply(messenger->getUserFD(), ERR_NOSUCHNICK(messenger->getSource(), splitArgs[1])  "\r\n");
-	}
+		sendReply(messenger->getUserFD(), ERR_NOSUCHNICK(messenger->getSource(), splitArgs[1]) + "\r\n");
 }
 
 void Server::rplQuit(std::vector<std::string> splitArgs, User *messenger)
