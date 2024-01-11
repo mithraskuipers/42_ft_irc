@@ -187,13 +187,19 @@ void Server::rplQuit(std::vector<std::string> splitArgs, User *messenger)
 void Server::rplInvite(std::vector<std::string> splitArgs, User *messenger)
 {	
 	User *invitee = findUserByNick(splitArgs[1]);
-	if (invitee == nullptr)
-	{
-		std::cout << "invited user not found" << std::endl;
-		return ;
-	}
+	Channel *channel = findChannel(splitArgs[2]);
 	if (confirmOperator(splitArgs[2], messenger))
 	{
+		if (invitee == nullptr)
+		{
+			sendReply(messenger->getUserFD(), ERR_NOSUCHNICK(messenger->getSource(), splitArgs[1]) + "\r\n");
+			return ;
+		}
+		if (channel == nullptr)
+		{
+			sendReply(messenger->getUserFD(), ERR_NOSUCHCHANNEL(messenger->getSource(), splitArgs[2]) + "\r\n");
+			return ;
+		}
 		sendReply(invitee->getUserFD(), RPL_INVITE(messenger->getSource(), \
 		splitArgs[1], splitArgs[2]) + "\r\n");
 		invitee->addInvitation(splitArgs[2]);
@@ -202,18 +208,25 @@ void Server::rplInvite(std::vector<std::string> splitArgs, User *messenger)
 
 void Server::rplKick(std::vector<std::string> splitArgs, User *messenger)
 {
-	User *creep;
+	User *creep = findUserByNick(splitArgs[2]);
+	Channel *channel = findChannel(splitArgs[1]);
 	if (splitArgs.size() < 4)
 		splitArgs.push_back("");
-	creep = findUserByNick(splitArgs[2]);
-	(void) messenger;
 	if (creep == nullptr)
-		std::cout << "kick target not found" << std::endl;
+	{
+		sendReply(messenger->getUserFD(), ERR_NOSUCHNICK(messenger->getSource(), splitArgs[1]) + "\r\n");
+		return ;
+	}
+	if (channel == nullptr)
+	{
+		sendReply(messenger->getUserFD(), ERR_NOSUCHCHANNEL(messenger->getSource(), splitArgs[2]) + "\r\n");
+		return ;
+	}
 	else if (confirmOperator(splitArgs[1], messenger))
 	{
 		rplPart(splitArgs, creep);
-		findChannel(splitArgs[1])->addToBanned(creep->getUserFD());
-		findChannel(splitArgs[1])->msgAllInChannel(RPL_KICK(messenger->getSource(), \
+		channel->addToBanned(creep->getUserFD());
+		channel->msgAllInChannel(RPL_KICK(messenger->getSource(), \
 		splitArgs[1], splitArgs[2], strJoinWithSpaces(splitArgs, 3)) + "\r\n");
 	}
 }
