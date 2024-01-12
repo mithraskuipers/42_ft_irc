@@ -1,6 +1,6 @@
 NAME = ircServer
 CC	= c++
-SRC = main.cpp Server.cpp serverInitiate.cpp serverReply.cpp \
+SRC = main.cpp Server.cpp serverInitiate.cpp serverReply.cpp replyUtils.cpp \
 User.cpp serverUtils.cpp Channel.cpp
 
 OBJFILES = $(SRC:%.cpp=%.o)

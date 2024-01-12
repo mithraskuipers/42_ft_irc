@@ -52,10 +52,6 @@ class Server
 	int		connectNewUser();
 
 	// serverReply.cpp
-	void	modeArgsPlus(std::vector<std::string> splitArgs, Channel *channel);
-	void	modeArgsMinus(std::vector<std::string> splitArgs, Channel *channel);
-	int		checkJoinErrors(Channel *channel, User *user, std::string password);
-
 	void	rplNick(std::vector<std::string> splitArgs, User *messenger);
 	void	rplUser(std::vector<std::string> splitArgs, User *messenger);
 	void	rplJoin(std::vector<std::string> splitArgs, User *messenger);
@@ -66,6 +62,13 @@ class Server
 	void	rplKick(std::vector<std::string> splitArgs, User *messenger);
 	void	rplMode(std::vector<std::string> splitArgs, User *messenger);
 	void	rplTopic(std::vector<std::string> splitArgs, User *messenger);
+
+	// replyUtils.cpp
+	int			checkJoinErrors(Channel *channel, User *user, std::vector<std::string> splitArgs);
+	void		modeArgsPlus(std::vector<std::string> splitArgs, Channel *channel);
+	void		modeArgsMinus(std::vector<std::string> splitArgs, Channel *channel);
+	std::string	cleanModes(std::string unclean);
+	bool		checkNick(User *messenger, std::string nickname);
 
 	// serverInitiate.cpp
 	void	createServerSocket();

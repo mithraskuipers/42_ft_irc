@@ -67,13 +67,12 @@ void User::setPassword(std::string password)
 	_password = password;
 }
 
-void User::makeNetCatter(std::string nickName)
+void User::makeNetCatter()
 {
-	_nickName = nickName;
-	_userName = "student";
-	_hostName = "student";
-	_realName = "student";
-	_password = "student";
+	_userName = "netcatter";
+	_hostName = "netcatter";
+	_realName = "netcatter";
+	_password = "netcatter";
 }
 
 int User::getUserFD()

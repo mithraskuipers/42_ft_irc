@@ -7,62 +7,49 @@ void Server::findReply(std::string fullMsg, int eventFD)
 	std::string word;
 	while (ss >> word)
 		splitArgs.push_back(word);
-	if (!splitArgs.empty())
-	{
-		User *messenger = findUserByFD(eventFD);
-		if (!splitArgs[0].compare("CAP"))
-			send(eventFD, "421 CAP :No Cap\r\n", 17, 0);
-		else if (!splitArgs[0].compare("PASS"))
-			messenger->setPassword(splitArgs[1]);
-		else if (!splitArgs[0].compare("NICK"))
-			rplNick(splitArgs, messenger);
-		else if (!splitArgs[0].compare("USER"))
-			rplUser(splitArgs, messenger);
-		else if (messenger->isIncompleteUser())
-		{
-			if ((!splitArgs[0].compare("netcatter")) && (splitArgs.size() > 1) &&(findUserByNick(splitArgs[1]) == nullptr))
-				messenger->makeNetCatter(splitArgs[1]);
-			else
-				disconnectUser(messenger->getUserFD());
-			// send error message
-		}
-		else if (!splitArgs[0].compare("JOIN"))
-			rplJoin(splitArgs, messenger);
-		else if (!splitArgs[0].compare("PART"))
-			rplPart(splitArgs, messenger);
-		else if (!splitArgs[0].compare("PRIVMSG"))
-			rplPrivmsg(splitArgs, messenger);
-		else if (!splitArgs[0].compare("QUIT"))
-			rplQuit(splitArgs, messenger);
-		else if (!splitArgs[0].compare("INVITE"))
-			rplInvite(splitArgs, messenger);
-		else if (!splitArgs[0].compare("KICK"))
-			rplKick(splitArgs, messenger);
-		else if (!splitArgs[0].compare("MODE"))
-			rplMode(splitArgs, messenger);			
-		else if (!splitArgs[0].compare("TOPIC"))
-			rplTopic(splitArgs, messenger);
-		else if (!splitArgs[0].compare("PING"))
-			sendReply(eventFD, RPL_PING(messenger->getSource(), messenger->getHostName()) + "\r\n");
-	}
+	size_t vecSize = splitArgs.size();
+	User *messenger = findUserByFD(eventFD);
+
+	if (vecSize < 1)
+		return ;
+	else if (!splitArgs[0].compare("CAP"))
+		send(eventFD, "421 CAP :No Cap\r\n", 17, 0);
+	else if ((vecSize > 1) && (!splitArgs[0].compare("PASS")))
+		messenger->setPassword(splitArgs[1]);
+	else if (!splitArgs[0].compare("NICK"))
+		rplNick(splitArgs, messenger);
+	else if (!splitArgs[0].compare("USER"))
+		rplUser(splitArgs, messenger);
+	else if (!splitArgs[0].compare("netcatter"))
+		messenger->makeNetCatter();
+	else if (messenger->isIncompleteUser())
+		send(eventFD, "User incomplete\r\n", 17, 0);
+	else if (!splitArgs[0].compare("TOPIC"))
+		rplTopic(splitArgs, messenger);
+	else if (!splitArgs[0].compare("PING"))
+		sendReply(eventFD, RPL_PING(messenger->getSource(), messenger->getHostName()) + "\r\n");
+	else if (!splitArgs[0].compare("PART"))
+		rplPart(splitArgs, messenger);
+	else if (!splitArgs[0].compare("QUIT"))
+		rplQuit(splitArgs, messenger);
+	else if (vecSize < 2)
+		return ;
+	else if (!splitArgs[0].compare("JOIN"))
+		rplJoin(splitArgs, messenger);
+	else if (!splitArgs[0].compare("PRIVMSG"))
+		rplPrivmsg(splitArgs, messenger);
+	else if (!splitArgs[0].compare("INVITE"))
+		rplInvite(splitArgs, messenger);
+	else if (!splitArgs[0].compare("KICK"))
+		rplKick(splitArgs, messenger);
+	else if (!splitArgs[0].compare("MODE"))
+		rplMode(splitArgs, messenger);			
 }
 
 void Server::sendReply(int targetFD, std::string msg)
 {
 	std::cout << "\033[1;36m" << "just sent:\n" << msg << "to fd " << targetFD << "\033[0m\n" << std::endl; // FOR TESTING
 	send(targetFD, msg.c_str(), msg.length(), 0);
-}
-
-bool notAlphaNum(std::string nickname)
-{
-	size_t i = 0;
-	while (i < nickname.size())
-	{
-		if (!std::isalnum(nickname[i]))
-			return (1);
-		i++;
-	}
-	return (0);
 }
 
 void Server::rplNick(std::vector<std::string> splitArgs, User *messenger)
@@ -72,28 +59,27 @@ void Server::rplNick(std::vector<std::string> splitArgs, User *messenger)
 		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "NICK") + "\r\n");
 		return ;
 	}
-	if (notAlphaNum(splitArgs[1]))
-	{
-		sendReply(messenger->getUserFD(), ERR_ERRONEUSNICKNAME(messenger->getSource(), splitArgs[1]) + "\r\n");
+	std::string nickname = splitArgs[1];
+	if (checkNick(messenger, nickname))
 		return ;
-	}
-	if (findUserByNick(splitArgs[1]) != nullptr)
-	{
-		sendReply(messenger->getUserFD(), ERR_NICKNAMEINUSE(messenger->getSource(), splitArgs[1]) + "\r\n");
-		return ;
-	}
 	if (!messenger->getNickName().empty())
-		sendReply(messenger->getUserFD(), RPL_NICK(messenger->getSource(), splitArgs[1]) + "\r\n");
-	messenger->setNickName(splitArgs[1]);
+		sendReply(messenger->getUserFD(), RPL_NICK(messenger->getSource(), nickname) + "\r\n");
+	messenger->setNickName(nickname);
 }
 
 void Server::rplUser(std::vector<std::string> splitArgs, User *messenger)
 {
 	if (splitArgs.size() < 4)
 	{
-		sendReply(messenger->getUserFD(), "sum-tin wong");
+		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "USER") + "\r\n");
 		return ;
 	}
+	if (messenger->getNickName().empty())
+	{
+		disconnectUser(messenger->getUserFD());
+		return ;
+	}
+
 	messenger->setUserName(splitArgs[2]);
 	messenger->setHostName(splitArgs[3]);
 	messenger->setRealName(strJoinWithSpaces(splitArgs, 4));
@@ -101,11 +87,6 @@ void Server::rplUser(std::vector<std::string> splitArgs, User *messenger)
 	if (messenger->getPassword().compare(_password))
 	{
 		sendReply(messenger->getUserFD(), ERR_PASSWDMISMATCH(messenger->getSource()) + "\r\n");
-		disconnectUser(messenger->getUserFD());
-	}
-	else if (findUserByNick(messenger->getNickName())->getUserFD() != messenger->getUserFD())
-	{
-		sendReply(messenger->getUserFD(), RPL_TRYAGAIN(messenger->getSource(), messenger->getNickName()) + "\r\n");
 		disconnectUser(messenger->getUserFD());
 	}
 	else
@@ -117,33 +98,21 @@ void Server::rplUser(std::vector<std::string> splitArgs, User *messenger)
 	}
 }
 
-int Server::checkJoinErrors(Channel *channel, User *messenger, std::string password)
-{
-	if (channel->isBanned(messenger->getUserFD()))
-		sendReply(messenger->getUserFD(), ERR_BANNEDFROMCHAN(messenger->getSource(), channel->getChannelName()) + "\r\n");
-	else if ((channel->getActiveModes().find('k') != channel->getActiveModes().npos) && (channel->getChannelKey().compare(password)))
-		sendReply(messenger->getUserFD(), ERR_BADCHANNELKEY(messenger->getSource(), channel->getChannelName()) + "\r\n");
-	else if ((channel->getActiveModes().find('i') != channel->getActiveModes().npos) && (!messenger->isInvited(channel->getChannelName())))
-		sendReply(messenger->getUserFD(), ERR_INVITEONLYCHAN(messenger->getSource(), channel->getChannelName()) + "\r\n");
-	else if ((channel->getActiveModes().find('l') != channel->getActiveModes().npos) && (channel->getNumOfUsers() >= channel->getLimit()))
-		sendReply(messenger->getUserFD(), ERR_CHANNELISFULL(messenger->getSource(), channel->getChannelName()) + "\r\n");
-	else
-		return (0);
-	return (1);
-}
-
 void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
 {
+	if (splitArgs.size() < 2)
+	{
+		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "JOIN") + "\r\n");
+		return ;
+	}
 	Channel *channel = findChannel(splitArgs[1]);
-	if (splitArgs.size() < 3)
-		splitArgs.push_back("");
 	if (channel == nullptr)
 	{
 		_allChannels.push_back(new Channel(splitArgs[1]));
 		channel = findChannel(splitArgs[1]);
 		channel->addToOperators(messenger->getUserFD());
 	}
-	if (checkJoinErrors(channel, messenger, splitArgs[2]))
+	if (checkJoinErrors(channel, messenger, splitArgs))
 		return ;
 	channel->addToChannel(messenger->getUserFD());
 	channel->msgAllInChannel(RPL_JOIN(messenger->getSource(), splitArgs[1]) + "\r\n");
@@ -158,6 +127,11 @@ void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
 
 void Server::rplPrivmsg(std::vector<std::string> splitArgs, User *messenger)
 {
+	if (splitArgs.size() < 2)
+	{
+		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "MSG") + "\r\n");
+		return ;
+	}
 	Channel *channel = findChannel(splitArgs[1]);
 	std::string msg = strJoinWithSpaces(splitArgs, 2);
 	if (channel != nullptr)
@@ -186,6 +160,11 @@ void Server::rplQuit(std::vector<std::string> splitArgs, User *messenger)
 
 void Server::rplInvite(std::vector<std::string> splitArgs, User *messenger)
 {	
+	if (splitArgs.size() < 3)
+	{
+		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "INVITE") + "\r\n");
+		return ;
+	}
 	User *invitee = findUserByNick(splitArgs[1]);
 	Channel *channel = findChannel(splitArgs[2]);
 	if (confirmOperator(splitArgs[2], messenger))
@@ -208,6 +187,11 @@ void Server::rplInvite(std::vector<std::string> splitArgs, User *messenger)
 
 void Server::rplKick(std::vector<std::string> splitArgs, User *messenger)
 {
+	if (splitArgs.size() < 3)
+	{
+		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "KICK") + "\r\n");
+		return ;
+	}
 	User *creep = findUserByNick(splitArgs[2]);
 	Channel *channel = findChannel(splitArgs[1]);
 	if (splitArgs.size() < 4)
@@ -231,86 +215,53 @@ void Server::rplKick(std::vector<std::string> splitArgs, User *messenger)
 	}
 }
 
-std::string cleanModes(std::string unclean)
-{
-	std::string clean;
-	size_t i = 0;
-	clean += unclean[0];
-	while (i < unclean.length())
-	{
-		if ((unclean[i] == 'i') || (unclean[i] == 't') || (unclean[i] == 'k') || (unclean[i] == 'l'))
-			clean += unclean[i];
-		i++;
-	}
-	return (clean);
-}
-
-void Server::modeArgsPlus(std::vector<std::string> splitArgs, Channel *channel)
-{
-	size_t i = 0;
-	size_t n_arg = 3;
-	while (i < splitArgs[2].size() && n_arg < splitArgs.size())
-	{
-		if (splitArgs[2][i] == 'o')
-			channel->addToOperators(findUserByNick(splitArgs[n_arg])->getUserFD());
-		else if (splitArgs[2][i] == 'l')
-			channel->setLimit(stoi(splitArgs[n_arg]));
-		else if (splitArgs[2][i] == 'k')
-			channel->setChannelKey(splitArgs[n_arg]);
-		else
-			n_arg--;
-		n_arg++;
-		i++;
-	}
-}
-
-void Server::modeArgsMinus(std::vector<std::string> splitArgs, Channel *channel)
-{
-	size_t i = 0;
-	size_t n_arg = 3;
-	while (i < splitArgs[2].size() && n_arg < splitArgs.size())
-	{
-		if (splitArgs[2][i] == 'o')
-		{
-			channel->rmvFromOperators(findUserByNick(splitArgs[n_arg])->getUserFD());
-			n_arg++;
-		}
-		if (splitArgs[2][i] == 'l')
-			channel->setLimit(-1);
-		if (splitArgs[2][i] == 'k')
-			channel->setChannelKey("");
-		i++;
-	}
-}
-
 void Server::rplMode(std::vector<std::string> splitArgs, User *messenger)
 {
-	Channel *channel = (findChannel(splitArgs[1]));
-	if (channel != nullptr)
+	if (splitArgs.size() < 2)
 	{
-		if (splitArgs.size() == 2)
+		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "MODE") + "\r\n");
+		return ;
+	}
+	if (findUserByNick(splitArgs[1]) != nullptr)
+		return ;
+	Channel *channel = (findChannel(splitArgs[1]));
+	if (channel == nullptr)
+	{
+		sendReply(messenger->getUserFD(), ERR_NOSUCHCHANNEL(messenger->getSource(), splitArgs[1]) + "\r\n");
+		return ;
+	}
+	if (splitArgs.size() == 2)
+	{
+		if (channel->getActiveModes().size() < 2)
+			channel->setActiveModes("");
+		sendReply(messenger->getUserFD(), RPL_MODE(messenger->getSource(), \
+		splitArgs[1], channel->getActiveModes() + "\r\n"));
+	}
+	else if (confirmOperator(splitArgs[1], messenger))
+	{
+		if (splitArgs.size() < 3)
 		{
-			if (channel->getActiveModes().size() < 2)
-				channel->setActiveModes("");
-			sendReply(messenger->getUserFD(), RPL_MODE(messenger->getSource(), \
-			splitArgs[1], channel->getActiveModes() + "\r\n"));
+			sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "MODE") + "\r\n");
+			return ;
 		}
-		else if (confirmOperator(splitArgs[1], messenger))
-		{
-			channel->setActiveModes(splitArgs[2]);
-			if (splitArgs[2][0] == '+')
-				modeArgsPlus(splitArgs, channel);
-			if (splitArgs[2][0] == '-')
-				modeArgsMinus(splitArgs, channel);
-			channel->msgAllInChannel(RPL_MODE(messenger->getSource(), \
-			splitArgs[1], cleanModes(splitArgs[2]) + "\r\n"));
-		}
+		channel->setActiveModes(splitArgs[2]);
+		if (splitArgs[2][0] == '+')
+			modeArgsPlus(splitArgs, channel);
+		if (splitArgs[2][0] == '-')
+			modeArgsMinus(splitArgs, channel);
+		channel->msgAllInChannel(RPL_MODE(messenger->getSource(), \
+		splitArgs[1], cleanModes(splitArgs[2]) + "\r\n"));
 	}
 }
 
 void Server::rplTopic(std::vector<std::string> splitArgs, User *messenger)
 {
-	if (splitArgs[2].empty())
+	if (splitArgs.size() < 2)
+	{
+		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "TOPIC") + "\r\n");
+		return ;
+	}
+	if (splitArgs.size() < 3)
 		splitArgs.push_back("");
 	Channel *channel = findChannel(splitArgs[1]);
 
@@ -336,6 +287,11 @@ void Server::rplTopic(std::vector<std::string> splitArgs, User *messenger)
 
 void Server::rplPart(std::vector<std::string> splitArgs, User *messenger)
 {
+	if (splitArgs.size() < 2)
+	{
+		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "PART") + "\r\n");
+		return ;
+	}
 	Channel *channel = findChannel(splitArgs[1]);
 	channel->msgAllInChannel(RPL_PART(messenger->getSource(), splitArgs[1]) + "\r\n");
 	channel->rmvFromChannel(messenger->getUserFD());

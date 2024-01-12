@@ -20,7 +20,7 @@ class User
    void setHostName(std::string hostName);
    void setRealName(std::string realName);
    void setPassword(std::string password);
-   void makeNetCatter(std::string nickName);
+   void makeNetCatter();
 
    int			getUserFD();
    std::string	getNickName();
