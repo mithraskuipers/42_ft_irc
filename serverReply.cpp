@@ -152,7 +152,7 @@ void Server::rplPrivmsg(std::vector<std::string> splitArgs, User *messenger)
 
 void Server::rplQuit(std::vector<std::string> splitArgs, User *messenger)
 {
-	if (splitArgs[1].empty())
+	if (splitArgs.size() < 2)
 		splitArgs.push_back("");
 	sendReply(messenger->getUserFD(), RPL_QUIT(messenger->getSource(), splitArgs[1]) + "\r\n");
 	disconnectUser(messenger->getUserFD());
@@ -222,7 +222,7 @@ void Server::rplMode(std::vector<std::string> splitArgs, User *messenger)
 		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "MODE") + "\r\n");
 		return ;
 	}
-	if (findUserByNick(splitArgs[1]) != nullptr)
+	if (findUserByNick(splitArgs[1]) != nullptr) // protection from 'other' MODE
 		return ;
 	Channel *channel = (findChannel(splitArgs[1]));
 	if (channel == nullptr)
@@ -239,11 +239,6 @@ void Server::rplMode(std::vector<std::string> splitArgs, User *messenger)
 	}
 	else if (confirmOperator(splitArgs[1], messenger))
 	{
-		if (splitArgs.size() < 3)
-		{
-			sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "MODE") + "\r\n");
-			return ;
-		}
 		channel->setActiveModes(splitArgs[2]);
 		if (splitArgs[2][0] == '+')
 			modeArgsPlus(splitArgs, channel);
@@ -275,14 +270,8 @@ void Server::rplTopic(std::vector<std::string> splitArgs, User *messenger)
 	else
 		channel->setTopic(strJoinWithSpaces(splitArgs, 2));
 
-	for (auto const& u : _allUsers)
-	{
-		if (channel->isInChannel(u->getUserFD()))
-		{
-			sendReply(u->getUserFD(), RPL_TOPIC(messenger->getSource(), \
-			channel->getChannelName(), channel->getTopic()) + "\r\n");
-		}
-	}
+	channel->msgAllInChannel(RPL_TOPIC(messenger->getSource(), \
+	channel->getChannelName(), channel->getTopic()) + "\r\n");
 }
 
 void Server::rplPart(std::vector<std::string> splitArgs, User *messenger)
