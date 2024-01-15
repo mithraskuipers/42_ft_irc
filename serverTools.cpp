@@ -2,11 +2,10 @@
 
 void Server::checkFailure(int socket, const std::string &msg)
 {
-	if (_checkFail < 0)
+	if (socket < 0)
 	{
 		throw std::runtime_error(msg.c_str());
 		close(socket);
-		exit(EXIT_FAILURE);
 	}
 }
 

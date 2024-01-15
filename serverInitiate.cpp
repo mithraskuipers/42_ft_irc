@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "errno.h"
 
 Server::Server(char *port, char *password) : _port(port), _password(password)
 {

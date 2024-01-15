@@ -37,6 +37,7 @@ void Server::recvNextLine(int eventFD) // TOO MESSY, NEEDS WORK
 		std::cout << "\033[1;31m" << "just received:\n" << buffer.data() << "with fd " << eventFD << " and bytes read " << bytesRead << "\033[0m\n" << std::endl; // FOR TESTING RMV LATER
 		if (bytesRead < 0)
 		{
+			perror("hrllo: ");
 			throw std::runtime_error("Error while reading buffer from client.");
 		}
 		else if (bytesRead == 0) // Connection closed by client
