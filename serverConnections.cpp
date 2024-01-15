@@ -1,19 +1,5 @@
 #include "Server.hpp"
 
-void showSplash(const std::string &serverAddress, const std::string &serverPort);
-
-Server::Server(char *port, char *password) : _port(port), _password(password)
-{
-	// initServer.cpp
-	createServerSocket();
-	setSocketOptions();
-	bindSocketToAddress();
-	listenWithSocket();
-	monitorSocketEvents();
-	std::cout << "Server is up and running and listening to port " << _port << std::endl;
-	showSplash(HOSTNAME, _port);
-}
-
 void Server::runServer()
 {
 	int i;

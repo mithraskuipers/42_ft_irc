@@ -1,7 +1,9 @@
 NAME = ircServer
 CC	= c++
-SRC = main.cpp Server.cpp serverInitiate.cpp serverReply.cpp replyUtils.cpp \
-User.cpp serverUtils.cpp Channel.cpp
+SRC = main.cpp \
+serverInitiate.cpp serverConnections.cpp serverTools.cpp \
+serverReplies.cpp replyTools.cpp \
+User.cpp Channel.cpp
 
 OBJFILES = $(SRC:%.cpp=%.o)
 CFLAGS = -Wall -Wextra -Werror #-g3 -fsanitize=leak
