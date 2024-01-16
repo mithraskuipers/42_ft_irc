@@ -209,7 +209,10 @@ void Server::rplKick(std::vector<std::string> splitArgs, User *messenger)
 	}
 	else if (confirmOperator(splitArgs[1], messenger))
 	{
-		rplPart(splitArgs, creep);
+		userLeavesChannel(splitArgs[1], creep);
+		channel = findChannel(splitArgs[1]);
+		if (channel == nullptr)
+			return ;
 		channel->addToBanned(creep->getUserFD());
 		channel->msgAllInChannel(RPL_KICK(messenger->getSource(), \
 		splitArgs[1], splitArgs[2], strJoinWithSpaces(splitArgs, 3)) + "\r\n");

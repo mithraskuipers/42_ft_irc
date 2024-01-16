@@ -101,7 +101,7 @@ void Server::userLeavesChannel(std::string channelName, User *messenger)
 		_allChannels.remove(findChannel(channel->getChannelName()));
 		delete(channel);
 	}
-	if (channel->getNumOfOperators() < 1)
+	else if (channel->getNumOfOperators() < 1)
 		channel->addToOperators(channel->getFirstJoinedUserFD());
 }
 

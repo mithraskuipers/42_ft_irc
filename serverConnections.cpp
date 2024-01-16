@@ -22,32 +22,91 @@ void Server::runServer()
 	}
 }
 
-
 void Server::recvNextLine(int eventFD)
 {
+	int byt;
+	char buf[BUFFER_SIZE];
 	std::list<std::string> msgList;
-	std::string nextLine = "";
-	char tmpChar[1];
-	int reading = 1;
+	User *messenger = findUserByFD(eventFD);
 
-	while (reading == 1)
+	memset(buf, 0, BUFFER_SIZE);
+	byt = recv(eventFD, buf, BUFFER_SIZE, 0);
+	if (byt == -1)
+		throw std::runtime_error("Error while reading buffer from client.");
+	if (byt == 0)
+		disconnectUser(eventFD);
+	
+	messenger->addToBuffer(buf);
+	msgList = strSplit(messenger->getPersonalBuffer(), '\n');
+	if (msgList.size() > 0)
 	{
-		reading = recv(eventFD, tmpChar, 1, 0);
-		if (tmpChar[0] == '\n')
+		for (auto &it : msgList)
 		{
-			msgList.push_back(nextLine);
-			nextLine.clear();
+			std::cout << "\033[1;31m" << "processing:\n" << it << "\033[0m\n" << std::endl;
+			findReply(it, eventFD);
 		}
-		else
-			nextLine += tmpChar[0];
-	}
-
-	for (auto &it : msgList)
-	{
-		std::cout << it << std::endl;
-		findReply(it, eventFD);
+		messenger->clearBuffer();
 	}
 }
+
+int Server::connectNewUser()
+{
+	sockaddr_in s_address;
+	socklen_t s_size = sizeof(s_address);
+
+	int connectSock = accept(_serverSocket, (sockaddr *)&s_address, &s_size);
+	if (connectSock < 0)
+		throw std::runtime_error("Failure during accept().");
+	fcntl(connectSock, F_SETFL, O_NONBLOCK);
+	_currentlyHandledEvent.events = EPOLLIN;
+	_currentlyHandledEvent.data.fd = connectSock;
+	epoll_ctl(_epollFD, EPOLL_CTL_ADD, connectSock, &(_currentlyHandledEvent));
+	_allUsers.push_back(new User(connectSock));
+	return (connectSock);
+}
+
+void Server::disconnectUser(int fd)
+{
+	std::cout << findUserByFD(fd)->getNickName() << " disconnected" << std::endl;
+	
+	User *tmp = findUserByFD(fd);
+	_allUsers.remove(findUserByFD(fd));
+	delete(tmp);
+	close(fd);
+}
+
+// void Server::recvNextLine(int eventFD)
+// {
+// 	std::list<std::string> msgList;
+// 	std::string nextLine = "";
+// 	char tmpChar[1];
+// 	int reading = 1;
+
+// 	while (reading == 1)
+// 	{
+// 		reading = recv(eventFD, tmpChar, 1, 0);
+// 		if (reading < 0)
+// 			break ;//throw std::runtime_error("Error while reading buffer from client.");
+// 		else if (reading == 0)
+// 		{
+// 			disconnectUser(eventFD);
+// 			break;
+// 		}
+// 		else if (tmpChar[0] == '\n')
+// 		{
+// 			msgList.push_back(nextLine);
+// 			nextLine.clear();
+// 		}
+// 		else if (tmpChar[0] != EOF)
+// 			nextLine += tmpChar[0];
+// 	}
+
+// 	for (auto &it : msgList)
+// 	{
+// 		std::cout << it << std::endl;
+// 		findReply(it, eventFD);
+// 	}
+// }
 
 // use recv() to read until there is a \n for each line read 
 // main reason: avoid errors if we receive partial messages
@@ -62,12 +121,13 @@ void Server::recvNextLine(int eventFD)
 // 		memset(buffer.data(), 0, BUFFER_SIZE);
 // 		bytesRead = recv(eventFD, buffer.data(), BUFFER_SIZE - 1, 0);
 // 		std::cout << "\033[1;31m" << "just received:\n" << buffer.data() << "with fd " << eventFD << " and bytes read " << bytesRead << "\033[0m\n" << std::endl; // FOR TESTING RMV LATER
-// 		if (bytesRead < 0)
-// 		{
-// 			perror("hrllo: ");
-// 			throw std::runtime_error("Error while reading buffer from client.");
-// 		}
-// 		else if (bytesRead == 0) // Connection closed by client
+// 		// if (bytesRead < 0)
+// 		// {
+// 		// 	perror("hrllo: ");
+// 		// 	throw std::runtime_error("Error while reading buffer from client.");
+// 		// }
+// 		// else 
+// 		if (bytesRead == 0) // Connection closed by client
 // 		{
 // 			disconnectUser(eventFD);
 // 			break;
@@ -97,29 +157,3 @@ void Server::recvNextLine(int eventFD)
 // 	for (auto &it : msgList)
 // 		findReply(it, eventFD);
 // }
-
-int Server::connectNewUser()
-{
-	sockaddr_in s_address;
-	socklen_t s_size = sizeof(s_address);
-
-	int connectSock = accept(_serverSocket, (sockaddr *)&s_address, &s_size);
-	if (connectSock < 0)
-		throw std::runtime_error("Failure during accept().");
-	fcntl(connectSock, F_SETFL, O_NONBLOCK);
-	_currentlyHandledEvent.events = EPOLLIN;
-	_currentlyHandledEvent.data.fd = connectSock;
-	epoll_ctl(_epollFD, EPOLL_CTL_ADD, connectSock, &(_currentlyHandledEvent));
-	_allUsers.push_back(new User(connectSock));
-	return (connectSock);
-}
-
-void Server::disconnectUser(int fd)
-{
-	std::cout << findUserByFD(fd)->getNickName() << " disconnected" << std::endl;
-	
-	User *tmp = findUserByFD(fd);
-	_allUsers.remove(findUserByFD(fd));
-	delete(tmp);
-	close(fd);
-}
