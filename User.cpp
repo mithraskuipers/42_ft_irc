@@ -70,7 +70,7 @@ void User::setPassword(std::string password)
 void User::makeNetCatter()
 {
 	_userName = "netcatter";
-	_hostName = "netcatter";
+	_hostName = "127.0.0.1";
 	_realName = "netcatter";
 	_password = "netcatter";
 }

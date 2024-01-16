@@ -89,3 +89,36 @@ bool Server::checkNick(User *messenger, std::string nickname)
 	}
 	return (0);
 }
+
+void Server::userLeavesChannel(std::string channelName, User *messenger)
+{
+	Channel *channel = findChannel(channelName);
+	channel->msgAllInChannel(RPL_PART(messenger->getSource(), channel->getChannelName()) + "\r\n");
+	channel->rmvFromOperators(messenger->getUserFD());
+	channel->rmvFromChannel(messenger->getUserFD());
+	if (channel->getNumOfUsers() < 1)
+	{
+		_allChannels.remove(findChannel(channel->getChannelName()));
+		delete(channel);
+	}
+	if (channel->getNumOfOperators() < 1)
+		channel->addToOperators(channel->getFirstJoinedUserFD());
+}
+
+void Server::leaveAllChannels(User *messenger)
+{
+	bool search = 0;
+	while (search == 0)
+	{
+		search = 1;
+		for (auto &i : _allChannels)
+		{
+			if (i->isInChannel(messenger->getUserFD()))
+			{
+				userLeavesChannel(i->getChannelName(), messenger);
+				search = 0;
+				break ;
+			}
+		}
+	}
+}

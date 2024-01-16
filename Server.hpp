@@ -80,7 +80,9 @@ class Server
 	int			checkJoinErrors(Channel *channel, User *user, std::vector<std::string> splitArgs);
 	void		modeArgsMinus(std::vector<std::string> splitArgs, Channel *channel);
 	void		modeArgsPlus(std::vector<std::string> splitArgs, Channel *channel);
+	void		userLeavesChannel(std::string channelName, User *messenger);
 	bool		checkNick(User *messenger, std::string nickname);
+	void		leaveAllChannels(User *messenger);
 	std::string	cleanModes(std::string unclean);
 
 	private:

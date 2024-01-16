@@ -155,6 +155,7 @@ void Server::rplQuit(std::vector<std::string> splitArgs, User *messenger)
 	if (splitArgs.size() < 2)
 		splitArgs.push_back("");
 	sendReply(messenger->getUserFD(), RPL_QUIT(messenger->getSource(), splitArgs[1]) + "\r\n");
+	leaveAllChannels(messenger);
 	disconnectUser(messenger->getUserFD());
 }
 
@@ -281,15 +282,12 @@ void Server::rplPart(std::vector<std::string> splitArgs, User *messenger)
 		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "PART") + "\r\n");
 		return ;
 	}
+	
 	Channel *channel = findChannel(splitArgs[1]);
-	channel->msgAllInChannel(RPL_PART(messenger->getSource(), splitArgs[1]) + "\r\n");
-	channel->rmvFromChannel(messenger->getUserFD());
-	channel->rmvFromOperators(messenger->getUserFD());
-	if (channel->getNumOfOperators() < 1)
-		channel->addToOperators(channel->getFirstJoinedUserFD());
-	if (channel->getNumOfUsers() < 1)
+	if (channel == nullptr)
 	{
-		_allChannels.remove(findChannel(splitArgs[1]));
-		delete(channel);
+		sendReply(messenger->getUserFD(), ERR_NOSUCHCHANNEL(messenger->getSource(), splitArgs[1]) + "\r\n");
+		return ;
 	}
+	userLeavesChannel(splitArgs[1], messenger);
 }
