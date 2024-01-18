@@ -65,6 +65,7 @@ class Server
 
 	// serverReplies.cpp
 	void	rplPrivmsg(std::vector<std::string> splitArgs, User *messenger);
+	void	rplNotice(std::vector<std::string> splitArgs, User *messenger);
 	void	rplInvite(std::vector<std::string> splitArgs, User *messenger);
 	void	rplTopic(std::vector<std::string> splitArgs, User *messenger);
 	void	rplNick(std::vector<std::string> splitArgs, User *messenger);

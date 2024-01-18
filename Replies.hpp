@@ -37,6 +37,7 @@
 #define RPL_JOIN(source, channel) ":" + source + " JOIN :" + channel
 #define RPL_PART(source, channel) ":" + source + " PART :" + channel
 #define RPL_PRIVMSG(source, target, msg) ":" + source + " PRIVMSG " + target + " " + msg
+#define RPL_NOTICE(source, target, msg) ":" + source + " NOTICE " + target + " " + msg
 #define RPL_QUIT(source, msg) ":" + source + " QUIT :Quit: " + msg
 
 // OPERATOR
@@ -46,11 +47,10 @@
 #define RPL_TOPIC(source, channel, topic) ":" + source + " TOPIC " + channel + " " + topic
 #define RPL_PING(source, token) ":" + source + " PONG :" + token
 
-// USEFULL UTILITY
+// OTHER
 #define RPL_TRYAGAIN(source, nickname) "263 " + source + " :Nickname " + nickname + " is already in use, please try again"
 
 // UNUSED
 #define RPL_WHOISUSER(source, nick, user, host, realname) "311 " + source + " :" + nick + " " + user + " " + host + " " + realname
-#define RPL_NOTICE(source, target, msg) ":" + source + " NOTICE " + target + " :" + msg
 
 #endif

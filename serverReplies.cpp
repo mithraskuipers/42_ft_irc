@@ -38,6 +38,8 @@ void Server::findReply(std::string fullMsg, int eventFD)
 		rplJoin(splitArgs, messenger);
 	else if (!splitArgs[0].compare("PRIVMSG"))
 		rplPrivmsg(splitArgs, messenger);
+	else if (!splitArgs[0].compare("NOTICE"))
+		rplNotice(splitArgs, messenger);
 	else if (!splitArgs[0].compare("INVITE"))
 		rplInvite(splitArgs, messenger);
 	else if (!splitArgs[0].compare("KICK"))
@@ -149,6 +151,26 @@ void Server::rplPrivmsg(std::vector<std::string> splitArgs, User *messenger)
 		sendReply(findUserByNick(splitArgs[1])->getUserFD(), RPL_PRIVMSG(messenger->getSource(), splitArgs[1], msg) + "\r\n");
 	else
 		sendReply(messenger->getUserFD(), ERR_NOSUCHNICK(messenger->getSource(), splitArgs[1]) + "\r\n");
+}
+
+void Server::rplNotice(std::vector<std::string> splitArgs, User *messenger)
+{
+	if (splitArgs.size() < 2)
+		return ;
+	Channel *channel = findChannel(splitArgs[1]);
+	std::string msg = strJoinWithSpaces(splitArgs, 2);
+	if (channel != nullptr)
+	{
+		if (!channel->isInChannel(messenger->getUserFD()))
+			return ;
+		else for (auto const &i : _allUsers)
+		{
+			if (i->getUserFD() != messenger->getUserFD() && channel->isInChannel(i->getUserFD()))
+				sendReply(i->getUserFD(), RPL_NOTICE(messenger->getSource(), splitArgs[1], msg) + "\r\n");
+		}
+	}
+	else if (findUserByNick(splitArgs[1]) != nullptr)
+		sendReply(findUserByNick(splitArgs[1])->getUserFD(), RPL_NOTICE(messenger->getSource(), splitArgs[1], msg) + "\r\n");
 }
 
 void Server::rplQuit(std::vector<std::string> splitArgs, User *messenger)

@@ -2,24 +2,23 @@
 
 int Server::checkJoinErrors(Channel *channel, User *messenger, std::vector<std::string> splitArgs)
 {
-	std::cout << "checking join errors" << std::endl;
-	// int ufd = messenger->getUserFD();
-	// std::string source = messenger->getSource();
-	// std::string channelName = channel->getChannelName();
+	int ufd = messenger->getUserFD();
+	std::string source = messenger->getSource();
+	std::string channelName = channel->getChannelName();
 
-	if (channel->isInChannel(messenger->getUserFD()))
-		sendReply(messenger->getUserFD(), "you are already in the channel\r\n");
-	else if (channel->isBanned(messenger->getUserFD()))
-		sendReply(messenger->getUserFD(), ERR_BANNEDFROMCHAN(messenger->getSource(), channel->getChannelName()) + "\r\n");
+	if (channel->isInChannel(ufd))
+		sendReply(ufd, "you are already in the channel\r\n");
+	else if (channel->isBanned(ufd))
+		sendReply(ufd, ERR_BANNEDFROMCHAN(source, channelName) + "\r\n");
 	else if ((channel->getActiveModes().find('k') != channel->getActiveModes().npos) && \
 		((splitArgs.size() < 3) || (channel->getChannelKey().compare(splitArgs[2]))))
-		sendReply(messenger->getUserFD(), ERR_BADCHANNELKEY(messenger->getSource(), channel->getChannelName()) + "\r\n");
+		sendReply(ufd, ERR_BADCHANNELKEY(source, channelName) + "\r\n");
 	else if ((channel->getActiveModes().find('i') != channel->getActiveModes().npos) && \
-		(!messenger->isInvited(channel->getChannelName())))
-		sendReply(messenger->getUserFD(), ERR_INVITEONLYCHAN(messenger->getSource(), channel->getChannelName()) + "\r\n");
+		(!messenger->isInvited(channelName)))
+		sendReply(ufd, ERR_INVITEONLYCHAN(source, channelName) + "\r\n");
 	else if ((channel->getActiveModes().find('l') != channel->getActiveModes().npos) && \
 		(channel->getNumOfUsers() >= channel->getLimit()))
-		sendReply(messenger->getUserFD(), ERR_CHANNELISFULL(messenger->getSource(), channel->getChannelName()) + "\r\n");
+		sendReply(ufd, ERR_CHANNELISFULL(source, channelName) + "\r\n");
 	else
 		return (0);
 	return (1);
