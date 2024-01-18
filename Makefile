@@ -6,7 +6,7 @@ serverReplies.cpp replyTools.cpp \
 User.cpp Channel.cpp
 
 OBJFILES = $(SRC:%.cpp=%.o)
-CFLAGS = -Wall -Wextra -Werror #-g3 -fsanitize=leak
+CFLAGS = -Wall -Wextra -Werror -g3 #-fsanitize=address
 
 all	: $(NAME)
 

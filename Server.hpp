@@ -56,7 +56,6 @@ class Server
 	// serverTools.cpp
 	std::string	strJoinWithSpaces(std::vector<std::string> splitArgs, size_t startPoint);
 	bool		confirmOperator(std::string channelName, User *messenger);
-	void		serverStdout(const std::string &firstMessageCombined);
 	std::list<std::string> strSplit(std::string str, char separator);
 	void		checkFailure(int socket, const std::string &msg);
 	Channel		*findChannel(std::string channelName);

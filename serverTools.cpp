@@ -43,27 +43,27 @@ Channel *Server::findChannel(std::string channelName)
 	for (auto &i : _allChannels)
 	{
 		if (!i->getChannelName().compare(channelName))
-			return (&(*i));
+			return (i);
 	}
 	return (nullptr);
 }
 
 User *Server::findUserByNick(std::string nickName)
 {
-	for (auto const& i : _allUsers)
+	for (auto &i : _allUsers)
 	{
 		if (!i->getNickName().compare(nickName))
-			return (&(*i));
+			return (i);
 	}
 	return (nullptr);
 }
 
 User *Server::findUserByFD(int fd)
 {
-	for (auto const& i : _allUsers)
+	for (auto &i : _allUsers)
 	{
 		if (i->getUserFD() == fd)
-			return (&(*i));
+			return (i);
 	}
 	return (nullptr);
 }
@@ -79,18 +79,4 @@ std::string Server::strJoinWithSpaces(std::vector<std::string> splitArgs, size_t
 		startPoint++;
 	}
 	return (msg);
-}
-
-void Server::serverStdout(const std::string &firstMessageCombined)
-{
-	time_t rawtime;
-	struct tm *timeinfo;
-	char buffer[80];
-
-	time(&rawtime);
-	timeinfo = localtime(&rawtime);
-
-	strftime(buffer, sizeof(buffer), "%H:%M:%S", timeinfo);
-	std::string str(buffer);
-	std::cout << "[" << str << "] " << firstMessageCombined << std::endl;
 }

@@ -46,7 +46,7 @@ void Server::recvNextLine(int eventFD)
 		for (auto &it : msgList)
 		{
 			std::cout << "\033[1;31m" << "processing:\n" << it << "\033[0m\n" << std::endl;
-			findReply(*(&it), eventFD);
+			findReply(it, eventFD);
 		}
 		if (findUserByFD(eventFD) != nullptr)
 			messenger->clearBuffer();

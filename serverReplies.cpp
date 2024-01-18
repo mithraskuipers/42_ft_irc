@@ -9,7 +9,8 @@ void Server::findReply(std::string fullMsg, int eventFD)
 		splitArgs.push_back(word);
 	size_t vecSize = splitArgs.size();
 	User *messenger = findUserByFD(eventFD);
-
+	if (messenger == nullptr)
+		throw std::runtime_error("User missing after read");
 	if (vecSize < 1)
 		return ;
 	else if (!splitArgs[0].compare("CAP"))
@@ -103,14 +104,15 @@ void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
 		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "JOIN") + "\r\n");
 		return ;
 	}
-	if (findChannel(splitArgs[1]) == nullptr)
+	Channel *channel = findChannel(splitArgs[1]);
+	if (channel == nullptr)
 	{
 		_allChannels.push_back(new Channel(splitArgs[1]));
-		findChannel(splitArgs[1])->addToOperators(messenger->getUserFD());
+		channel = findChannel(splitArgs[1]);
+		channel->addToOperators(messenger->getUserFD());
 		std::cout << "operator added " << std::endl;
 	}
-	Channel *channel = findChannel(splitArgs[1]);
-	if (checkJoinErrors(findChannel(splitArgs[1]), messenger, splitArgs))
+	if (checkJoinErrors(channel, messenger, splitArgs))
 		return ;
 	channel->addToChannel(messenger->getUserFD());
 	channel->msgAllInChannel(RPL_JOIN(messenger->getSource(), splitArgs[1]) + "\r\n");
@@ -186,21 +188,22 @@ void Server::rplInvite(std::vector<std::string> splitArgs, User *messenger)
 	}
 	User *invitee = findUserByNick(splitArgs[1]);
 	Channel *channel = findChannel(splitArgs[2]);
+	if (invitee == nullptr)
+	{
+		sendReply(messenger->getUserFD(), ERR_NOSUCHNICK(messenger->getSource(), splitArgs[1]) + "\r\n");
+		return ;
+	}
+	if (channel == nullptr)
+	{
+		sendReply(messenger->getUserFD(), ERR_NOSUCHCHANNEL(messenger->getSource(), splitArgs[2]) + "\r\n");
+		return ;
+	}
 	if (confirmOperator(splitArgs[2], messenger))
 	{
-		if (invitee == nullptr)
-		{
-			sendReply(messenger->getUserFD(), ERR_NOSUCHNICK(messenger->getSource(), splitArgs[1]) + "\r\n");
-			return ;
-		}
-		if (channel == nullptr)
-		{
-			sendReply(messenger->getUserFD(), ERR_NOSUCHCHANNEL(messenger->getSource(), splitArgs[2]) + "\r\n");
-			return ;
-		}
 		sendReply(invitee->getUserFD(), RPL_INVITE(messenger->getSource(), \
 		splitArgs[1], splitArgs[2]) + "\r\n");
 		invitee->addInvitation(splitArgs[2]);
+		channel->rmvFromBanned(invitee->getUserFD());
 	}
 }
 
@@ -281,7 +284,11 @@ void Server::rplTopic(std::vector<std::string> splitArgs, User *messenger)
 	if (splitArgs.size() < 3)
 		splitArgs.push_back("");
 	Channel *channel = findChannel(splitArgs[1]);
-
+	if (channel == nullptr)
+	{
+		sendReply(messenger->getUserFD(), ERR_NOSUCHCHANNEL(messenger->getSource(), splitArgs[2]) + "\r\n");
+		return ;
+	}
 	if  (channel->getActiveModes().find('t') != std::string::npos)
 	{
 		if (confirmOperator(splitArgs[1], messenger))
@@ -303,7 +310,6 @@ void Server::rplPart(std::vector<std::string> splitArgs, User *messenger)
 		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "PART") + "\r\n");
 		return ;
 	}
-	
 	Channel *channel = findChannel(splitArgs[1]);
 	if (channel == nullptr)
 	{
