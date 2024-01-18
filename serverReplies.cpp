@@ -110,16 +110,11 @@ void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
 		std::cout << "operator added " << std::endl;
 	}
 	Channel *channel = findChannel(splitArgs[1]);
-	std::cout << "pre-join error " << std::endl;
 	if (checkJoinErrors(findChannel(splitArgs[1]), messenger, splitArgs))
 		return ;
-	std::cout << "after join error " << std::endl;
 	channel->addToChannel(messenger->getUserFD());
-	std::cout << "one" << std::endl;
 	channel->msgAllInChannel(RPL_JOIN(messenger->getSource(), splitArgs[1]) + "\r\n");
-	std::cout << "two" << std::endl;
 	sendReply(messenger->getUserFD(), RPL_TOPIC(messenger->getSource(), channel->getChannelName(), channel->getTopic()) + "\r\n");
-	std::cout << "three" << std::endl;
 	for (auto &j: _allUsers)
 	{
 		if ((channel->isInChannel(j->getUserFD())))

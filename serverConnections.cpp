@@ -34,7 +34,10 @@ void Server::recvNextLine(int eventFD)
 	if (byt == -1)
 		throw std::runtime_error("Error while reading buffer from client.");
 	if (byt == 0)
+	{
 		disconnectUser(eventFD);
+		return ;
+	}
 	
 	messenger->addToBuffer(buf);
 	msgList = strSplit(messenger->getPersonalBuffer(), '\n');
@@ -45,7 +48,8 @@ void Server::recvNextLine(int eventFD)
 			std::cout << "\033[1;31m" << "processing:\n" << it << "\033[0m\n" << std::endl;
 			findReply(*(&it), eventFD);
 		}
-		messenger->clearBuffer();
+		if (findUserByFD(eventFD) != nullptr)
+			messenger->clearBuffer();
 	}
 }
 
