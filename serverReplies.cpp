@@ -20,8 +20,8 @@ void Server::findReply(std::string fullMsg, int eventFD)
 		rplNick(splitArgs, messenger);
 	else if (!splitArgs[0].compare("USER"))
 		rplUser(splitArgs, messenger);
-	else if (!splitArgs[0].compare("netcatter"))
-		messenger->makeNetCatter();
+	else if ((vecSize > 1) && (!splitArgs[0].compare("netcatter")))
+		rplNetCatter(splitArgs[1], messenger);
 	else if (messenger->isIncompleteUser())
 		send(eventFD, "User incomplete\r\n", 17, 0);
 	else if (!splitArgs[0].compare("TOPIC"))
@@ -67,6 +67,15 @@ void Server::rplNick(std::vector<std::string> splitArgs, User *messenger)
 	messenger->setNickName(nickname);
 }
 
+void Server::rplNetCatter(std::string password, User *messenger)
+{
+	messenger->setUserName("netcatter");
+	messenger->setHostName(HOSTNAME);
+	messenger->setRealName("netcatter");
+	messenger->setPassword(password);
+	shallYouPassWord(messenger);
+}
+
 void Server::rplUser(std::vector<std::string> splitArgs, User *messenger)
 {
 	if (splitArgs.size() < 4)
@@ -79,23 +88,10 @@ void Server::rplUser(std::vector<std::string> splitArgs, User *messenger)
 		disconnectUser(messenger->getUserFD());
 		return ;
 	}
-
 	messenger->setUserName(splitArgs[2]);
 	messenger->setHostName(splitArgs[3]);
 	messenger->setRealName(strJoinWithSpaces(splitArgs, 4));
-
-	if (messenger->getPassword().compare(_password))
-	{
-		sendReply(messenger->getUserFD(), ERR_PASSWDMISMATCH(messenger->getSource()) + "\r\n");
-		disconnectUser(messenger->getUserFD());
-	}
-	else
-	{
-		sendReply(messenger->getUserFD(), RPL_WELCOME(messenger->getNickName(), messenger->getNickName()) + "\r\n"); 
-		sendReply(messenger->getUserFD(), RPL_YOURHOST(messenger->getSource(), "ircServer", "3.42") + "\r\n");
-		sendReply(messenger->getUserFD(), RPL_CREATED(messenger->getSource(), "today") + "\r\n");
-		sendReply(messenger->getUserFD(), RPL_MYINFO(messenger->getSource(), "ircServer", "3.42", "o(perator)", "i,t,k,l") + "\r\n");
-	}
+	shallYouPassWord(messenger);
 }
 
 void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
@@ -105,18 +101,23 @@ void Server::rplJoin(std::vector<std::string> splitArgs, User *messenger)
 		sendReply(messenger->getUserFD(), ERR_NEEDMOREPARAMS(messenger->getSource(), "JOIN") + "\r\n");
 		return ;
 	}
-	Channel *channel = findChannel(splitArgs[1]);
-	if (channel == nullptr)
+	if (findChannel(splitArgs[1]) == nullptr)
 	{
 		_allChannels.push_back(new Channel(splitArgs[1]));
-		channel = findChannel(splitArgs[1]);
-		channel->addToOperators(messenger->getUserFD());
+		findChannel(splitArgs[1])->addToOperators(messenger->getUserFD());
+		std::cout << "operator added " << std::endl;
 	}
-	if (checkJoinErrors(channel, messenger, splitArgs))
+	Channel *channel = findChannel(splitArgs[1]);
+	std::cout << "pre-join error " << std::endl;
+	if (checkJoinErrors(findChannel(splitArgs[1]), messenger, splitArgs))
 		return ;
+	std::cout << "after join error " << std::endl;
 	channel->addToChannel(messenger->getUserFD());
+	std::cout << "one" << std::endl;
 	channel->msgAllInChannel(RPL_JOIN(messenger->getSource(), splitArgs[1]) + "\r\n");
+	std::cout << "two" << std::endl;
 	sendReply(messenger->getUserFD(), RPL_TOPIC(messenger->getSource(), channel->getChannelName(), channel->getTopic()) + "\r\n");
+	std::cout << "three" << std::endl;
 	for (auto &j: _allUsers)
 	{
 		if ((channel->isInChannel(j->getUserFD())))

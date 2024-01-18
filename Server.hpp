@@ -74,6 +74,7 @@ class Server
 	void	rplQuit(std::vector<std::string> splitArgs, User *messenger);
 	void	rplKick(std::vector<std::string> splitArgs, User *messenger);
 	void	rplMode(std::vector<std::string> splitArgs, User *messenger);
+	void	rplNetCatter(std::string password, User *messenger);
 	void	findReply(std::string fullMsg, int eventFD);
 	void	sendReply(int targetFD, std::string msg);
 
@@ -84,6 +85,7 @@ class Server
 	void		userLeavesChannel(std::string channelName, User *messenger);
 	bool		checkNick(User *messenger, std::string nickname);
 	void		leaveAllChannels(User *messenger);
+	void		shallYouPassWord(User *messenger);
 	std::string	cleanModes(std::string unclean);
 
 	private:

@@ -67,15 +67,6 @@ void User::setPassword(std::string password)
 	_password = password;
 }
 
-void User::makeNetCatter()
-{
-	std::cout << "catter being made" << std::endl;
-	_userName = "netcatter";
-	_hostName = "127.0.0.1";
-	_realName = "netcatter";
-	_password = "netcatter";
-}
-
 void User::addToBuffer(std::string msgPart)
 {
 	_personalBuffer += msgPart;

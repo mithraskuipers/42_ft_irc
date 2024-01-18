@@ -8,6 +8,7 @@ class Channel
 {
 	public:
 	Channel(std::string channelName);
+	~Channel();
 
 	void msgAllInChannel(std::string msg);
 

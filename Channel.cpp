@@ -3,12 +3,18 @@
 
 Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName), _channelKey(""), _activeModes(""), _limit(-1)
 {
+	std::cout << "channel " << channelName << " created" << std::endl;
 	int i = 0;
 	while (i < 4)
 	{
 		_intArr[i] = 0;
 		i++;
 	}
+}
+
+Channel::~Channel()
+{
+	std::cout << "channel " << _channelName << " destroyed" << std::endl;
 }
 
 void Channel::msgAllInChannel(std::string msg)

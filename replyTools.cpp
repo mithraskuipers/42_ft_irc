@@ -2,14 +2,23 @@
 
 int Server::checkJoinErrors(Channel *channel, User *messenger, std::vector<std::string> splitArgs)
 {
-	if (channel->isBanned(messenger->getUserFD()))
+	std::cout << "checking join errors" << std::endl;
+	// int ufd = messenger->getUserFD();
+	// std::string source = messenger->getSource();
+	// std::string channelName = channel->getChannelName();
+
+	if (channel->isInChannel(messenger->getUserFD()))
+		sendReply(messenger->getUserFD(), "you are already in the channel\r\n");
+	else if (channel->isBanned(messenger->getUserFD()))
 		sendReply(messenger->getUserFD(), ERR_BANNEDFROMCHAN(messenger->getSource(), channel->getChannelName()) + "\r\n");
 	else if ((channel->getActiveModes().find('k') != channel->getActiveModes().npos) && \
 		((splitArgs.size() < 3) || (channel->getChannelKey().compare(splitArgs[2]))))
 		sendReply(messenger->getUserFD(), ERR_BADCHANNELKEY(messenger->getSource(), channel->getChannelName()) + "\r\n");
-	else if ((channel->getActiveModes().find('i') != channel->getActiveModes().npos) && (!messenger->isInvited(channel->getChannelName())))
+	else if ((channel->getActiveModes().find('i') != channel->getActiveModes().npos) && \
+		(!messenger->isInvited(channel->getChannelName())))
 		sendReply(messenger->getUserFD(), ERR_INVITEONLYCHAN(messenger->getSource(), channel->getChannelName()) + "\r\n");
-	else if ((channel->getActiveModes().find('l') != channel->getActiveModes().npos) && (channel->getNumOfUsers() >= channel->getLimit()))
+	else if ((channel->getActiveModes().find('l') != channel->getActiveModes().npos) && \
+		(channel->getNumOfUsers() >= channel->getLimit()))
 		sendReply(messenger->getUserFD(), ERR_CHANNELISFULL(messenger->getSource(), channel->getChannelName()) + "\r\n");
 	else
 		return (0);
@@ -120,5 +129,21 @@ void Server::leaveAllChannels(User *messenger)
 				break ;
 			}
 		}
+	}
+}
+
+void Server::shallYouPassWord(User *messenger)
+{
+	if (messenger->getPassword().compare(_password))
+	{
+		sendReply(messenger->getUserFD(), ERR_PASSWDMISMATCH(messenger->getSource()) + "\r\n");
+		disconnectUser(messenger->getUserFD());
+	}
+	else
+	{
+		sendReply(messenger->getUserFD(), RPL_WELCOME(messenger->getNickName(), messenger->getNickName()) + "\r\n"); 
+		sendReply(messenger->getUserFD(), RPL_YOURHOST(messenger->getSource(), "ircServer", "3.42") + "\r\n");
+		sendReply(messenger->getUserFD(), RPL_CREATED(messenger->getSource(), "today") + "\r\n");
+		sendReply(messenger->getUserFD(), RPL_MYINFO(messenger->getSource(), "ircServer", "3.42", "o(perator)", "i,t,k,l") + "\r\n");
 	}
 }
