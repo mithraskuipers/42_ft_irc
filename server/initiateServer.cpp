@@ -1,15 +1,13 @@
 #include "Server.hpp"
 #include "errno.h"
 
-Server::Server(char *port, char *password) : _port(port), _password(password)
+void Server::checkFailure(int socket, const std::string &msg)
 {
-	// serverInitiate.cpp
-	createServerSocket();
-	bindSocketToAddress();
-	listenWithSocket();
-	monitorSocketEvents();
-	std::cout << "Server is up and running and listening to port " << _port << std::endl;
-	showSplash(HOSTNAME, _port);
+	if (socket < 0)
+	{
+		throw std::runtime_error(msg.c_str());
+		close(socket);
+	}
 }
 
 void Server::createServerSocket()

@@ -1,9 +1,10 @@
 NAME = ircServer
 CC	= c++
 SRC = main.cpp \
-serverInitiate.cpp serverConnections.cpp serverTools.cpp \
-serverReplies.cpp replyTools.cpp \
-User.cpp Channel.cpp
+server/initiateServer.cpp server/recvSend.cpp server/Server.cpp server/serverUtils.cpp \
+replies/allReplies.cpp replies/replyUtils.cpp \
+channel/Channel.cpp \
+user/User.cpp
 
 OBJFILES = $(SRC:%.cpp=%.o)
 CFLAGS = -Wall -Wextra -Werror -g3 #-fsanitize=address

@@ -1,12 +1,16 @@
 #include "Server.hpp"
 
-void Server::checkFailure(int socket, const std::string &msg)
+std::string Server::strJoinWithSpaces(std::vector<std::string> splitArgs, size_t startPoint)
 {
-	if (socket < 0)
+	std::string msg;
+	while (startPoint < splitArgs.size())
 	{
-		throw std::runtime_error(msg.c_str());
-		close(socket);
+		msg += splitArgs[startPoint];
+		if (startPoint != splitArgs.size())
+			msg += " ";
+		startPoint++;
 	}
+	return (msg);
 }
 
 std::list<std::string> Server::strSplit(std::string str, char separator)
@@ -26,16 +30,6 @@ std::list<std::string> Server::strSplit(std::string str, char separator)
         i++;
 	}
 	return (strVec);
-}
-
-bool Server::confirmOperator(std::string channelName, User *messenger)
-{
-	if (!findChannel(channelName)->isOperator(messenger->getUserFD()))
-	{
-		sendReply(messenger->getUserFD(), ERR_CHANOPRIVSNEEDED(messenger->getSource(), channelName) + "\r\n");
-		return (0);
-	}
-	return (1);
 }
 
 Channel *Server::findChannel(std::string channelName)
@@ -68,15 +62,4 @@ User *Server::findUserByFD(int fd)
 	return (nullptr);
 }
 
-std::string Server::strJoinWithSpaces(std::vector<std::string> splitArgs, size_t startPoint)
-{
-	std::string msg;
-	while (startPoint < splitArgs.size())
-	{
-		msg += splitArgs[startPoint];
-		if (startPoint != splitArgs.size())
-			msg += " ";
-		startPoint++;
-	}
-	return (msg);
-}
+

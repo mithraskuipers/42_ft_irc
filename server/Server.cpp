@@ -1,5 +1,16 @@
 #include "Server.hpp"
 
+Server::Server(char *port, char *password) : _port(port), _password(password)
+{
+	// serverInitiate.cpp
+	createServerSocket();
+	bindSocketToAddress();
+	listenWithSocket();
+	monitorSocketEvents();
+	std::cout << "Server is up and running and listening to port " << _port << std::endl;
+	showSplash(HOSTNAME, _port);
+}
+
 void Server::runServer()
 {
 	int i;
@@ -19,37 +30,6 @@ void Server::runServer()
 				recvNextLine(_tempSavedEvents[i].data.fd);
 			i++;
 		}
-	}
-}
-
-void Server::recvNextLine(int eventFD)
-{
-	int byt;
-	char buf[BUFFER_SIZE];
-	std::list<std::string> msgList;
-	User *messenger = findUserByFD(eventFD);
-
-	memset(buf, 0, BUFFER_SIZE);
-	byt = recv(eventFD, buf, BUFFER_SIZE, 0);
-	if (byt == -1)
-		throw std::runtime_error("Error while reading buffer from client.");
-	if (byt == 0)
-	{
-		disconnectUser(eventFD);
-		return ;
-	}
-	
-	messenger->addToBuffer(buf);
-	msgList = strSplit(messenger->getPersonalBuffer(), '\n');
-	if (msgList.size() > 0)
-	{
-		for (auto &it : msgList)
-		{
-			std::cout << "\033[1;31m" << "processing:\n" << it << "\033[0m\n" << std::endl;
-			findReply(it, eventFD);
-		}
-		if (findUserByFD(eventFD) != nullptr)
-			messenger->clearBuffer();
 	}
 }
 

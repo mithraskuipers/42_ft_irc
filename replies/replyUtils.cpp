@@ -1,4 +1,14 @@
-#include "Server.hpp"
+#include "../server/Server.hpp"
+
+bool Server::confirmOperator(std::string channelName, User *messenger)
+{
+	if (!findChannel(channelName)->isOperator(messenger->getUserFD()))
+	{
+		sendReply(messenger->getUserFD(), ERR_CHANOPRIVSNEEDED(messenger->getSource(), channelName) + "\r\n");
+		return (0);
+	}
+	return (1);
+}
 
 int Server::checkJoinErrors(Channel *channel, User *messenger, std::vector<std::string> splitArgs)
 {
@@ -22,6 +32,44 @@ int Server::checkJoinErrors(Channel *channel, User *messenger, std::vector<std::
 	else
 		return (0);
 	return (1);
+}
+
+bool Server::checkNick(User *messenger, std::string nickname)
+{
+	size_t i = 0;
+	while (i < nickname.size())
+	{
+		if (!std::isalnum(nickname[i]))
+		{
+			sendReply(messenger->getUserFD(), \
+			ERR_ERRONEUSNICKNAME(messenger->getSource(), nickname) + "\r\n");
+			return (1);
+		}
+		i++;
+	}
+	if (findUserByNick(nickname) != nullptr)
+	{
+		sendReply(messenger->getUserFD(), \
+		ERR_NICKNAMEINUSE(messenger->getSource(), nickname) + "\r\n");
+		return (1);
+	}
+	return (0);
+}
+
+void Server::checkPassWord(User *messenger)
+{
+	if (messenger->getPassword().compare(_password))
+	{
+		sendReply(messenger->getUserFD(), ERR_PASSWDMISMATCH(messenger->getSource()) + "\r\n");
+		disconnectUser(messenger->getUserFD());
+	}
+	else
+	{
+		sendReply(messenger->getUserFD(), RPL_WELCOME(messenger->getNickName(), messenger->getNickName()) + "\r\n"); 
+		sendReply(messenger->getUserFD(), RPL_YOURHOST(messenger->getSource(), "ircServer", "3.42") + "\r\n");
+		sendReply(messenger->getUserFD(), RPL_CREATED(messenger->getSource(), "today") + "\r\n");
+		sendReply(messenger->getUserFD(), RPL_MYINFO(messenger->getSource(), "ircServer", "3.42", "o(perator)", "i,t,k,l") + "\r\n");
+	}
 }
 
 void Server::modeArgsPlus(std::vector<std::string> splitArgs, Channel *channel)
@@ -76,28 +124,6 @@ std::string Server::cleanModes(std::string unclean)
 	return (clean);
 }
 
-bool Server::checkNick(User *messenger, std::string nickname)
-{
-	size_t i = 0;
-	while (i < nickname.size())
-	{
-		if (!std::isalnum(nickname[i]))
-		{
-			sendReply(messenger->getUserFD(), \
-			ERR_ERRONEUSNICKNAME(messenger->getSource(), nickname) + "\r\n");
-			return (1);
-		}
-		i++;
-	}
-	if (findUserByNick(nickname) != nullptr)
-	{
-		sendReply(messenger->getUserFD(), \
-		ERR_NICKNAMEINUSE(messenger->getSource(), nickname) + "\r\n");
-		return (1);
-	}
-	return (0);
-}
-
 void Server::userLeavesChannel(std::string channelName, User *messenger)
 {
 	Channel *channel = findChannel(channelName);
@@ -128,21 +154,5 @@ void Server::leaveAllChannels(User *messenger)
 				break ;
 			}
 		}
-	}
-}
-
-void Server::shallYouPassWord(User *messenger)
-{
-	if (messenger->getPassword().compare(_password))
-	{
-		sendReply(messenger->getUserFD(), ERR_PASSWDMISMATCH(messenger->getSource()) + "\r\n");
-		disconnectUser(messenger->getUserFD());
-	}
-	else
-	{
-		sendReply(messenger->getUserFD(), RPL_WELCOME(messenger->getNickName(), messenger->getNickName()) + "\r\n"); 
-		sendReply(messenger->getUserFD(), RPL_YOURHOST(messenger->getSource(), "ircServer", "3.42") + "\r\n");
-		sendReply(messenger->getUserFD(), RPL_CREATED(messenger->getSource(), "today") + "\r\n");
-		sendReply(messenger->getUserFD(), RPL_MYINFO(messenger->getSource(), "ircServer", "3.42", "o(perator)", "i,t,k,l") + "\r\n");
 	}
 }

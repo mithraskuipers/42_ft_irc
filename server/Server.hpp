@@ -25,9 +25,9 @@
 #include <ctime>
 #include <cstdio>
 
-#include "User.hpp"
-#include "Channel.hpp"
-#include "Replies.hpp"
+#include "../user/User.hpp"
+#include "../channel/Channel.hpp"
+#include "../replies/Replies.hpp"
 
 #define HOSTNAME "127.0.0.1"
 #define BUFFER_SIZE 510
@@ -38,55 +38,56 @@ class Server
 {
 	public:
 
-	// serverInitiate.cpp
+	// Server.cpp
 	Server(char *port, char *password);
+	void	disconnectUser(int eventFD);
+	int		connectNewUser();
+	void	runServer();
 
+	// recvSend.cpp
+	void	recvNextLine(int eventFD);
+	void	findReply(std::string fullMsg, int eventFD);
+	void	sendReply(int targetFD, std::string msg);
+
+	// serverInitiate.cpp
 	void 	showSplash(const std::string &serverAddress, const std::string &serverPort);
+	void	checkFailure(int socket, const std::string &msg);
 	void	bindSocketToAddress();
 	void	monitorSocketEvents();
 	void	createServerSocket();
 	void	listenWithSocket();
 
-	// serverConnections.cpp
-	void	disconnectUser(int eventFD);
-	void	recvNextLine(int eventFD);
-	int		connectNewUser();
-	void	runServer();
+	// serverUtils.cpp
+	std::string				strJoinWithSpaces(std::vector<std::string> splitArgs, size_t startPoint);
+	std::list<std::string>	strSplit(std::string str, char separator);
+	Channel					*findChannel(std::string channelName);
+	User					*findUserByNick(std::string nickName);
+	User					*findUserByFD(int fd);
 
-	// serverTools.cpp
-	std::string	strJoinWithSpaces(std::vector<std::string> splitArgs, size_t startPoint);
-	bool		confirmOperator(std::string channelName, User *messenger);
-	std::list<std::string> strSplit(std::string str, char separator);
-	void		checkFailure(int socket, const std::string &msg);
-	Channel		*findChannel(std::string channelName);
-	User		*findUserByNick(std::string nickName);
-	User		*findUserByFD(int fd);
-
-	// serverReplies.cpp
+	// allReplies.cpp
 	void	rplPrivmsg(std::vector<std::string> splitArgs, User *messenger);
 	void	rplNotice(std::vector<std::string> splitArgs, User *messenger);
-	void	rplInvite(std::vector<std::string> splitArgs, User *messenger);
-	void	rplTopic(std::vector<std::string> splitArgs, User *messenger);
+	void	rplKick(std::vector<std::string> splitArgs, User *messenger);
+	void		rplMode(std::vector<std::string> splitArgs, User *messenger);
+	void	rplNetCatter(std::string password, User *messenger);
 	void	rplNick(std::vector<std::string> splitArgs, User *messenger);
 	void	rplUser(std::vector<std::string> splitArgs, User *messenger);
-	void	rplJoin(std::vector<std::string> splitArgs, User *messenger);
 	void	rplPart(std::vector<std::string> splitArgs, User *messenger);
 	void	rplQuit(std::vector<std::string> splitArgs, User *messenger);
-	void	rplKick(std::vector<std::string> splitArgs, User *messenger);
-	void	rplMode(std::vector<std::string> splitArgs, User *messenger);
-	void	rplNetCatter(std::string password, User *messenger);
-	void	findReply(std::string fullMsg, int eventFD);
-	void	sendReply(int targetFD, std::string msg);
+	void	rplInvite(std::vector<std::string> splitArgs, User *messenger);
+	void	rplTopic(std::vector<std::string> splitArgs, User *messenger);
+	void	rplJoin(std::vector<std::string> splitArgs, User *messenger);
 
-	// replyTools.cpp
+	// replyUtils.cpp
 	int			checkJoinErrors(Channel *channel, User *user, std::vector<std::string> splitArgs);
 	void		modeArgsMinus(std::vector<std::string> splitArgs, Channel *channel);
 	void		modeArgsPlus(std::vector<std::string> splitArgs, Channel *channel);
 	void		userLeavesChannel(std::string channelName, User *messenger);
+	bool		confirmOperator(std::string channelName, User *messenger);
 	bool		checkNick(User *messenger, std::string nickname);
 	void		leaveAllChannels(User *messenger);
-	void		shallYouPassWord(User *messenger);
 	std::string	cleanModes(std::string unclean);
+	void		checkPassWord(User *messenger);
 
 	private:
 	char				*_port;

@@ -1,5 +1,5 @@
 #include "Channel.hpp"
-#include "Server.hpp"
+#include "../server/Server.hpp"
 
 Channel::Channel(std::string channelName) : _topic(""), _channelName(channelName), _channelKey(""), _activeModes(""), _limit(-1)
 {
