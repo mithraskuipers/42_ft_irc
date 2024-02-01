@@ -1,8 +1,5 @@
 # FT_IRC
 
-<p align="center">  <img src="assets/welcome.png" width="55%"> </p>
----
-
 ## :school_satchel: About this project
 
 The goal of this project is to replicate the functionality of an IRC server.
@@ -10,8 +7,6 @@ The goal of this project is to replicate the functionality of an IRC server.
 ###  _ :crystal_ball: Definition
 
 > "IRC (Internet Relay Chat) is a **protocol for real-time text messaging between internet-connected computers created in 1988**. It is mainly used for group discussion in chat rooms called “channels” although it supports private messages between two users, data transfer, and various server-side and client-side commands. As of April 2011, the top 100 IRC networks served over 500,000 users at a time on hundreds of thousands of channels." ([source](https://www.radware.com/security/ddos-knowledge-center/ddospedia/irc-internet-relay-chat/))
-
-<img src="assets/irc-shema.png">
 
 ### _ :floppy_disk: Subject requirements
 
@@ -26,8 +21,6 @@ The goal of this project is to replicate the functionality of an IRC server.
    - iv. You should have normal users and operators, and implement the operators' specific commands.
 6. No leaks (even still reachables) and handle the signals (partial messages with `CTRL+D`, suspended process with `CTRL+Z`, and obviously SIGINT (`CTRL+C`)).
 7. (Bonuses) Implement a bot + file transfer.
-
----
 
 ### :high_brightness: Commands that we implemented
 
@@ -52,8 +45,6 @@ The goal of this project is to replicate the functionality of an IRC server.
 | Topic | The `TOPIC` command changes or views the topic of the given channel. |
 | User | The `USER` command specifies the username and realname of a new user. |
 
----
-
 ## :gift: Useful Resources
 
 ### _ :books: Helpful links
@@ -61,8 +52,6 @@ The goal of this project is to replicate the functionality of an IRC server.
 - **To understand what exactly is an IRC and begin the project**: [Chirc](http://chi.cs.uchicago.edu/chirc/irc.html) (An IRC subject from a Chicago uni) and the subsequent pages.
 - **Regarding the client/server connection**: [Beej's Guide to network programming](https://beej.us/guide/bgnet/pdf/bgnet_a4_c_1.pdf). This is super helpful for understanding sockets, the `poll()` function, system calls, and their order.
 - **A link to the IRC Client Protocol with good formatting**: [Modern IRC Client Protocol](https://modern.ircdocs.horse/). This provides descriptions of all the commands with correct syntax and expected Numerical Replies.
-
-<p align="center"> <img src="assets/network.png"> </p>
 
 ### _ :mailbox: Tips
 
